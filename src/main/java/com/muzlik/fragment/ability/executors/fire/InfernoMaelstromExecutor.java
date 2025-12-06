@@ -41,22 +41,27 @@ public class InfernoMaelstromExecutor implements AbilityExecutor {
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         EnvironmentManager envManager = plugin.getEnvironmentManager();
         
-        // Initial cinematic VFX - DRAMATICALLY MORE CHAOTIC AT HIGHER RANKS
-        int coreCount = 100 + (rank * 40); // 100 → 220 at rank 3
-        int secondaryCount = 50 + (rank * 30); // 50 → 140 at rank 3
-        int ambientCount = 40 + (rank * 25); // 40 → 115 at rank 3
-        int impactCount = 30 + (rank * 20); // 30 → 90 at rank 3
+        // QUALITY-FOCUSED initial VFX - dramatic but controlled
+        // These are reduced counts that still look impressive through pattern design
+        int coreCount = 35 + (rank * 12);      // 35 → 71 at rank 3 (was 100 → 220)
+        int secondaryCount = 18 + (rank * 8);  // 18 → 42 at rank 3 (was 50 → 140)
+        int ambientCount = 12 + (rank * 6);    // 12 → 30 at rank 3 (was 40 → 115)
+        int impactCount = 10 + (rank * 5);     // 10 → 25 at rank 3 (was 30 → 90)
         
         VFXLayerBuilder initialVFX = new VFXLayerBuilder(plugin, center, rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            .core(Particle.FLAME, coreCount, ParticlePattern.RING, radius, 0.5 + (rank * 0.3), radius, 0.1 + (rank * 0.05), null)
-            .secondary(Particle.END_ROD, secondaryCount, ParticlePattern.SPIRAL, radius * 0.8, 2.0 + (rank * 0.5), radius * 0.8, 0.05 + (rank * 0.03), null)
-            .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.SPHERE, radius * 0.5, 1.0 + (rank * 0.4), radius * 0.5, 0.02 + (rank * 0.02), null)
-            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, radius * 0.6, 0.5 + (rank * 0.3), radius * 0.6, 0.1 + (rank * 0.05), null);
+            // Core: Flame ring - defines the vortex boundary clearly
+            .core(Particle.FLAME, coreCount, ParticlePattern.RING, radius * 0.7, 0.3 + (rank * 0.15), radius * 0.7, 0.06 + (rank * 0.02), null)
+            // Secondary: END_ROD spiral - creates upward motion feel
+            .secondary(Particle.END_ROD, secondaryCount, ParticlePattern.SPIRAL, radius * 0.5, 1.2 + (rank * 0.3), radius * 0.5, 0.03 + (rank * 0.01), null)
+            // Ambient: Smoke - subtle base layer for depth
+            .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.SPHERE, radius * 0.3, 0.6 + (rank * 0.2), radius * 0.3, 0.01, null)
+            // Impact: Lava bursts - punctuation at key points
+            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, radius * 0.4, 0.3 + (rank * 0.15), radius * 0.4, 0.05 + (rank * 0.02), null);
         
-        // Cinematic at rank 2+, more intense at higher ranks
+        // Cinematic shake at rank 2+ - indicates power level
         if (rank >= 2) {
-            initialVFX.cinematic(0.2 + (rank * 0.03), CinematicEffect.SCREEN_SHAKE);
+            initialVFX.cinematic(0.15 + (rank * 0.02), CinematicEffect.SCREEN_SHAKE);
         }
         
         initialVFX.spawn();

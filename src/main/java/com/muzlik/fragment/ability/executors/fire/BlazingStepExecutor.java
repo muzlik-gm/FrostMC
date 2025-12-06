@@ -52,20 +52,26 @@ public class BlazingStepExecutor implements AbilityExecutor {
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // Initial VFX at start location
+        // FOCUSED initial VFX at start location - clean dash burst
+        // Reduced counts for secondary ability
+        int burstCore = 15 + (rank * 4);       // 15 → 27 at rank 3 (was 40 constant)
+        int burstSecondary = 8 + (rank * 2);   // 8 → 14 at rank 3 (was 20 constant)
+        int burstImpact = 6 + (rank * 2);      // 6 → 12 at rank 3 (was 15 constant)
+        
         VFXLayerBuilder startVFX = new VFXLayerBuilder(plugin, startLoc, rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            .core(Particle.FLAME, 40, ParticlePattern.BURST, 0.5, 0.5, 0.5, 0.1, null)
-            .secondary(Particle.END_ROD, 20, ParticlePattern.SPHERE, 0.3, 0.3, 0.3, 0.05, null)
-            .impact(Particle.LAVA, 15, ParticlePattern.BURST, 0.4, 0.4, 0.4, 0.1, null);
+            .core(Particle.FLAME, burstCore, ParticlePattern.BURST, 0.3, 0.3, 0.3, 0.06, null)
+            .secondary(Particle.END_ROD, burstSecondary, ParticlePattern.SPHERE, 0.2, 0.2, 0.2, 0.03, null)
+            .impact(Particle.LAVA, burstImpact, ParticlePattern.BURST, 0.25, 0.25, 0.25, 0.05, null);
         
+        // Cinematic only at higher ranks (5+)
         if (rank >= 5) {
             startVFX.cinematic(0.15, CinematicEffect.HEAT_SHIMMER);
         }
         
         startVFX.spawn();
         
-        // Create burning trail with enhanced VFX
+        // Create burning trail with FOCUSED VFX
         new BukkitRunnable() {
             int ticks = 0;
             @Override
@@ -77,13 +83,18 @@ public class BlazingStepExecutor implements AbilityExecutor {
                 
                 Location trailLoc = startLoc.clone().add(direction.clone().multiply(ticks * range / 60.0));
                 
-                // Trail VFX every 5 ticks
+                // Trail VFX every 5 ticks - minimal, focused embers
                 if (ticks % 5 == 0) {
+                    // Minimal trail counts - just enough to show the path
+                    int trailCore = 3 + rank;      // 3 → 6 at rank 3 (was 8 constant)
+                    int trailSecondary = 1 + (rank / 2); // 1 → 2 at rank 3 (was 3 constant)
+                    int trailAmbient = 2 + (rank / 2);   // 2 → 3 at rank 3 (was 4 constant)
+                    
                     new VFXLayerBuilder(plugin, trailLoc, rank, player)
                         .withPerformanceManager(plugin.getVFXPerformanceManager())
-                        .core(Particle.FLAME, 8, ParticlePattern.POINT, 0.3, 0.1, 0.3, 0.02, null)
-                        .secondary(Particle.END_ROD, 3, ParticlePattern.POINT, 0.15, 0.05, 0.15, 0.01, null)
-                        .ambient(Particle.SMOKE_LARGE, 4, ParticlePattern.POINT, 0.2, 0.1, 0.2, 0.01, null)
+                        .core(Particle.FLAME, trailCore, ParticlePattern.POINT, 0.15, 0.05, 0.15, 0.01, null)
+                        .secondary(Particle.END_ROD, trailSecondary, ParticlePattern.POINT, 0.08, 0.02, 0.08, 0.005, null)
+                        .ambient(Particle.SMOKE_LARGE, trailAmbient, ParticlePattern.POINT, 0.1, 0.05, 0.1, 0.005, null)
                         .spawn();
                 }
                 

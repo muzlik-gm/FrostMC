@@ -42,17 +42,24 @@ public class StoneFistExecutor implements AbilityExecutor {
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // 5-Layer VFX System
+        // FOCUSED IMPACT VFX - clean, satisfying punch effect
+        // Reduced counts + VFXLayerBuilder multiplier = proportional VFX to ability power
+        int coreCount = 20 + (rank * 5);       // 20 → 35 at rank 3 (was 50)
+        int secondaryCount = 8 + (rank * 3);   // 8 → 17 at rank 3 (was 20)
+        int ambientCount = 10 + (rank * 3);    // 10 → 19 at rank 3 (was 30)
+        int impactCount = 15 + (rank * 4);     // 15 → 27 at rank 3 (was 40)
+        
+        // 5-Layer VFX System - Satisfying impact aesthetic
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            // Core: BLOCK_DUST impact
-            .core(Particle.BLOCK_DUST, 50, ParticlePattern.BURST, 1, 1, 1, 0.1, Material.STONE.createBlockData())
-            // Secondary: SWEEP_ATTACK strike
-            .secondary(Particle.SWEEP_ATTACK, 20, ParticlePattern.RING, 1.5, 0.5, 1.5, 0.05, null)
-            // Ambient: Ground rumble
-            .ambient(Particle.SMOKE_NORMAL, 30, ParticlePattern.POINT, 1, 0.5, 1, 0.02, null)
-            // Impact: Debris burst
-            .impact(Particle.BLOCK_CRACK, 40, ParticlePattern.BURST, 1.5, 1, 1.5, 0.15, Material.STONE.createBlockData());
+            // Core: BLOCK_DUST - focused ground crack
+            .core(Particle.BLOCK_DUST, coreCount, ParticlePattern.BURST, 0.6, 0.4, 0.6, 0.06, Material.STONE.createBlockData())
+            // Secondary: SWEEP_ATTACK - single strike visual
+            .secondary(Particle.SWEEP_ATTACK, secondaryCount, ParticlePattern.RING, 1.0, 0.3, 1.0, 0.03, null)
+            // Ambient: Ground rumble - subtle dust
+            .ambient(Particle.SMOKE_NORMAL, ambientCount, ParticlePattern.POINT, 0.8, 0.3, 0.8, 0.01, null)
+            // Impact: Debris - few satisfying rock chunks
+            .impact(Particle.BLOCK_CRACK, impactCount, ParticlePattern.BURST, 0.8, 0.5, 0.8, 0.08, Material.STONE.createBlockData());
         
         // Cinematic: Ground shake at rank 4+
         if (rank >= 4) {

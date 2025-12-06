@@ -27,33 +27,36 @@ public class LightningBoltExecutor implements AbilityExecutor {
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         double radius = 3.0 + (rank * 0.3);
         
-        // Strike lightning effect - multiple strikes at higher ranks
+        // Strike lightning effect - single strike at low ranks, additional at rank 4+
         world.strikeLightningEffect(target);
         if (rank >= 4) {
             world.strikeLightningEffect(target.clone().add(1, 0, 0));
             world.strikeLightningEffect(target.clone().add(-1, 0, 0));
         }
         
-        // Multi-layer VFX - MORE CHAOTIC AT HIGHER RANKS
-        // Layer 1: Electric core - more sparks at higher ranks
-        int electricCount = 60 + (rank * 20); // 60 → 180 at rank 6
-        world.spawnParticle(Particle.ELECTRIC_SPARK, target.clone().add(0, 1, 0), electricCount, 0.5 + (rank * 0.15), 2.0 + (rank * 0.3), 0.5 + (rank * 0.15), 0.2 + (rank * 0.05));
+        // FOCUSED Lightning VFX - clean electric strike, not particle spam
+        // Reduced counts for primary ability + VFXLayerBuilder would further reduce
+        // Layer 1: Electric core - focused sparks
+        int electricCount = 15 + (rank * 5);   // 15 → 45 at rank 6 (was 60 → 180)
+        world.spawnParticle(Particle.ELECTRIC_SPARK, target.clone().add(0, 1, 0), electricCount, 0.3 + (rank * 0.08), 1.2 + (rank * 0.15), 0.3 + (rank * 0.08), 0.1 + (rank * 0.02));
         
-        // Layer 2: Soul fire flame (blue lightning glow) - more intense at higher ranks
-        int soulFireCount = 40 + (rank * 15); // 40 → 130 at rank 6
-        world.spawnParticle(Particle.SOUL_FIRE_FLAME, target.clone().add(0, 1, 0), soulFireCount, 0.4 + (rank * 0.12), 1.5 + (rank * 0.25), 0.4 + (rank * 0.12), 0.1 + (rank * 0.03));
+        // Layer 2: Soul fire flame (blue glow) - subtle accent
+        int soulFireCount = 10 + (rank * 4);   // 10 → 34 at rank 6 (was 40 → 130)
+        world.spawnParticle(Particle.SOUL_FIRE_FLAME, target.clone().add(0, 1, 0), soulFireCount, 0.25 + (rank * 0.06), 0.9 + (rank * 0.12), 0.25 + (rank * 0.06), 0.05 + (rank * 0.01));
         
-        // Layer 3: End rod (white flash) - more explosive at higher ranks
-        int endRodCount = 30 + (rank * 12); // 30 → 102 at rank 6
-        world.spawnParticle(Particle.END_ROD, target.clone().add(0, 2, 0), endRodCount, 0.3 + (rank * 0.1), 1.0 + (rank * 0.2), 0.3 + (rank * 0.1), 0.15 + (rank * 0.04));
+        // Layer 3: End rod (white flash) - minimal highlight
+        int endRodCount = 8 + (rank * 3);      // 8 → 26 at rank 6 (was 30 → 102)
+        world.spawnParticle(Particle.END_ROD, target.clone().add(0, 2, 0), endRodCount, 0.2 + (rank * 0.05), 0.6 + (rank * 0.1), 0.2 + (rank * 0.05), 0.08 + (rank * 0.02));
         
-        // Layer 4: Crit particles (impact burst) - more chaotic at higher ranks
-        int critCount = 50 + (rank * 18); // 50 → 158 at rank 6
-        world.spawnParticle(Particle.CRIT, target, critCount, 1.0 + (rank * 0.2), 0.2 + (rank * 0.1), 1.0 + (rank * 0.2), 0.3 + (rank * 0.08));
+        // Layer 4: Crit particles - focused impact burst
+        int critCount = 12 + (rank * 5);       // 12 → 42 at rank 6 (was 50 → 158)
+        world.spawnParticle(Particle.CRIT, target, critCount, 0.6 + (rank * 0.1), 0.15 + (rank * 0.05), 0.6 + (rank * 0.1), 0.15 + (rank * 0.04));
         
-        // Layer 5: Cloud particles (atmospheric effect) - more clouds at higher ranks
-        int cloudCount = 25 + (rank * 10); // 25 → 85 at rank 6
-        world.spawnParticle(Particle.CLOUD, target.clone().add(0, 0.5, 0), cloudCount, 0.8 + (rank * 0.15), 0.3 + (rank * 0.1), 0.8 + (rank * 0.15), 0.05 + (rank * 0.02));
+        // Layer 5: Cloud particles - subtle atmosphere (only at higher ranks)
+        if (rank >= 3) {
+            int cloudCount = 6 + (rank * 2);   // Only 6 → 18 at rank 6 (was 25 → 85)
+            world.spawnParticle(Particle.CLOUD, target.clone().add(0, 0.5, 0), cloudCount, 0.5 + (rank * 0.08), 0.2 + (rank * 0.05), 0.5 + (rank * 0.08), 0.02);
+        }
         
         // Sound layers - louder and more intense at higher ranks
         float volume = 1.2f + (rank * 0.15f);

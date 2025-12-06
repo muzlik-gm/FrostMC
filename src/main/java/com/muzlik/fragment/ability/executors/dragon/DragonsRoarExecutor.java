@@ -23,7 +23,8 @@ public class DragonsRoarExecutor implements AbilityExecutor {
         
         java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
         
-        // Create dragon breath cone - MORE CHAOTIC AT HIGHER RANKS
+        // Create dragon breath cone - MEANINGFUL, REACTIVE VFX
+        // Particles scale with rank but focus on quality, not spam
         for (int i = 1; i <= range; i++) {
             Location checkLoc = eyeLoc.clone().add(direction.clone().multiply(i));
             double currentWidth = coneWidth * (i / range); // Expanding cone
@@ -36,32 +37,37 @@ public class DragonsRoarExecutor implements AbilityExecutor {
                     target.setFireTicks(100 + (rank * 20)); // Longer burn at higher ranks
                     hitEntities.add(entity.getUniqueId());
                     
-                    // Hit VFX
-                    checkLoc.getWorld().spawnParticle(Particle.LAVA, target.getLocation().add(0, 1, 0), 10 + rank * 3, 0.3, 0.5, 0.3, 0.1);
+                    // REACTIVE HIT VFX - meaningful feedback when hitting enemies
+                    // This VFX responds to actual damage, making it feel impactful
+                    int hitParticles = 8 + (rank * 2);  // 8 → 24 at rank 8 (was 10 + rank*3 = up to 34)
+                    checkLoc.getWorld().spawnParticle(Particle.LAVA, target.getLocation().add(0, 1, 0), hitParticles, 0.2, 0.3, 0.2, 0.05);
+                    // Secondary hit glow - indicates fire damage
+                    checkLoc.getWorld().spawnParticle(Particle.FLAME, target.getLocation().add(0, 1, 0), hitParticles / 2, 0.3, 0.4, 0.3, 0.02);
                 }
             }
             
-            // VFX - MORE PARTICLES AT HIGHER RANKS
-            int flameCount = 20 + (rank * 8); // 20 → 84 at rank 8
-            int lavaCount = 10 + (rank * 5); // 10 → 50 at rank 8
-            int smokeCount = 15 + (rank * 6); // 15 → 63 at rank 8
+            // QUALITY VFX - reduced counts, focused pattern
+            // Core flame - main visual indicator of breath
+            int flameCount = 10 + (rank * 3);      // 10 → 34 at rank 8 (was 20 → 84)
+            checkLoc.getWorld().spawnParticle(Particle.FLAME, checkLoc, flameCount, currentWidth * 0.6, currentWidth * 0.6, currentWidth * 0.6, 0.05 + (rank * 0.01));
             
-            // Core flame particles
-            checkLoc.getWorld().spawnParticle(Particle.FLAME, checkLoc, flameCount, currentWidth, currentWidth, currentWidth, 0.1 + (rank * 0.02));
-            
-            // Lava particles for dragon intensity
+            // Lava accents - only on alternating segments for visual rhythm
             if (i % 2 == 0) {
-                checkLoc.getWorld().spawnParticle(Particle.LAVA, checkLoc, lavaCount, currentWidth * 0.8, currentWidth * 0.8, currentWidth * 0.8, 0.05);
+                int lavaCount = 4 + (rank * 2);    // 4 → 20 at rank 8 (was 10 → 50)
+                checkLoc.getWorld().spawnParticle(Particle.LAVA, checkLoc, lavaCount, currentWidth * 0.5, currentWidth * 0.5, currentWidth * 0.5, 0.03);
             }
             
-            // Smoke trail
+            // Smoke trail - subtle depth, only every 3rd segment
             if (i % 3 == 0) {
-                checkLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, checkLoc, smokeCount, currentWidth * 0.6, currentWidth * 0.6, currentWidth * 0.6, 0.03);
+                int smokeCount = 5 + rank;         // 5 → 13 at rank 8 (was 15 → 63)
+                checkLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, checkLoc, smokeCount, currentWidth * 0.4, currentWidth * 0.4, currentWidth * 0.4, 0.02);
             }
             
-            // Dragon breath particles at higher ranks
+            // MEANINGFUL HIGH-RANK VFX - Dragon breath particles only at rank 5+
+            // These are special particles that indicate mastery of the ability
             if (rank >= 5 && i % 2 == 0) {
-                checkLoc.getWorld().spawnParticle(Particle.DRAGON_BREATH, checkLoc, rank * 2, currentWidth, currentWidth, currentWidth, 0.02);
+                int dragonCount = (rank - 4) * 2;  // 2 → 8 at rank 8 (was rank*2 = up to 16)
+                checkLoc.getWorld().spawnParticle(Particle.DRAGON_BREATH, checkLoc, dragonCount, currentWidth * 0.7, currentWidth * 0.7, currentWidth * 0.7, 0.01);
             }
         }
         
