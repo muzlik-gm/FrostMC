@@ -26,6 +26,5 @@ public class AbyssalVoidExecutor implements AbilityExecutor {
         
         player.getWorld().spawnParticle(Particle.SMOKE_LARGE, player.getLocation(), 200, radius, 2, radius, 0.1);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 2.0f, 0.5f);
-        player.sendMessage("§5⚫ Abyssal Void!");
     }
 }

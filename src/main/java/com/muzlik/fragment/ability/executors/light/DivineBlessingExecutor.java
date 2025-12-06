@@ -29,6 +29,5 @@ public class DivineBlessingExecutor implements AbilityExecutor {
         
         player.getWorld().spawnParticle(Particle.END_ROD, player.getLocation(), 80, 1, 1, 1, 0.1);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f);
-        player.sendMessage("§e✨ Divine Blessing!");
     }
 }

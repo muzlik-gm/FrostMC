@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
+import com.muzlik.util.Typography;
 
 /**
  * Manages all UI screens and displays with enhanced visual effects.
@@ -69,7 +70,7 @@ public class UIManager {
         // Play LEVEL_UP sound on GUI open (Requirement 4.5)
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.2f);
         
-        Inventory inv = Bukkit.createInventory(null, 54, Component.text("§8" + toSmallCaps("fragments"), NamedTextColor.DARK_GRAY));
+        Inventory inv = Bukkit.createInventory(null, 54, Component.text(Typography.formatTitle("fragments")));
         
         Collection<FragmentType> ownedFragments = fragmentManager.getPlayerFragments(player);
         FragmentType activeFragment = fragmentManager.getActiveFragment(player);
@@ -116,46 +117,62 @@ public class UIManager {
         
         FragmentDefinition fragment = fragmentManager.getFragment(type);
         if (fragment == null) {
-            player.sendMessage("§c✗ Fragment not found");
+            player.sendMessage(Typography.formatError("Fragment not found"));
             return;
         }
         
+        // Create inventory with uppercase title using Typography
+        String title = type.getDisplayName().toUpperCase() + " ABILITIES";
         Inventory inv = Bukkit.createInventory(null, 54, 
-                Component.text("§8" + toSmallCaps(type.getDisplayName() + " abilities")));
+                Component.text(Typography.formatMenuTitle(title)));
         
         // Fill border with decorative glass
         fillBorder(inv);
         
         // ═══════════════════════════════════════════════════════════
-        // ROW 1 (slots 10-16): Fragment info + Stats
+        // TOP AREA: Fragment icon + Stats panels
         // ═══════════════════════════════════════════════════════════
         
-        // Fragment icon (slot 10-11)
+        // Fragment icon (slot 4 - top center)
         ItemStack fragmentIcon = new FragmentIconBuilder(type, player, levelManager, rankManager, manaManager)
                 .fragmentManager(fragmentManager)
                 .owned(fragmentManager.hasFragment(player, type))
                 .active(type.equals(fragmentManager.getActiveFragment(player)))
                 .charged(fragmentManager.isCharged(player, type))
                 .build();
-        inv.setItem(10, fragmentIcon);
+        inv.setItem(4, fragmentIcon);
         
-        // Stats panel (slot 13-15)
-        inv.setItem(13, createStatsPanel(player, type));
-        inv.setItem(15, createLevelBonusPanel(player, type));
+        // Stats panel (slot 2)
+        inv.setItem(2, createStatsPanel(player, type));
+        
+        // Level bonus panel (slot 6)
+        inv.setItem(6, createLevelBonusPanel(player, type));
         
         // ═══════════════════════════════════════════════════════════
-        // ROW 2-3 (slots 19-25, 28-34): Abilities
+        // MIDDLE AREA: Abilities in a clear row
         // ═══════════════════════════════════════════════════════════
         
         // Get abilities
         java.util.List<AbilityDefinition> abilities = fragment.getAbilities();
         
-        // Layout: abilities spread across center with spacing
-        // Row 2: slots 20, 22, 24 (primary, secondary, ultimate)
-        // Row 3: slots 29, 31, 33 (advanced, mastery, if available)
-        int[] abilitySlots = {20, 22, 24, 29, 31};
-        int slotIndex = 0;
+        // Use middle row (row 3) centered - slots 19-25
+        // For 5 abilities: 19, 20, 21, 22, 23 or spread: 19, 21, 22, 23, 25
+        int numAbilities = Math.min(abilities.size(), 5);
         
+        // Calculate starting slot for centered layout
+        int[] abilitySlots;
+        if (numAbilities <= 3) {
+            // Center 3 abilities: 20, 22, 24
+            abilitySlots = new int[]{20, 22, 24};
+        } else if (numAbilities == 4) {
+            // 4 abilities: 19, 21, 23, 25
+            abilitySlots = new int[]{19, 21, 23, 25};
+        } else {
+            // 5 abilities: 19, 20, 22, 24, 25
+            abilitySlots = new int[]{19, 20, 22, 24, 25};
+        }
+        
+        int slotIndex = 0;
         for (AbilityDefinition ability : abilities) {
             if (slotIndex >= abilitySlots.length) break;
             
@@ -167,11 +184,11 @@ public class UIManager {
         }
         
         // ═══════════════════════════════════════════════════════════
-        // BOTTOM ROW: Back button
+        // BOTTOM: Back button
         // ═══════════════════════════════════════════════════════════
         
         ItemStack backButton = createBackButton();
-        inv.setItem(45, backButton);
+        inv.setItem(49, backButton); // Bottom center
         
         player.openInventory(inv);
     }
@@ -322,18 +339,18 @@ public class UIManager {
     private ItemStack createInfoButton() {
         ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§e§l" + toSmallCaps("Fragment Guide"));
+        meta.setDisplayName(Typography.formatTitle("Fragment Guide"));
         meta.setLore(Arrays.asList(
                 "",
-                "§7ʟᴇꜰᴛ-ᴄʟɪᴄᴋ §8→ §fᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs",
-                "§7ʀɪɢʜᴛ-ᴄʟɪᴄᴋ §8→ §fᴀᴄᴛɪᴠᴀᴛᴇ",
+                Typography.formatLabel("Left-Click ") + Typography.SYMBOL_ARROW + Typography.formatValue(" View Abilities"),
+                Typography.formatLabel("Right-Click ") + Typography.SYMBOL_ARROW + Typography.formatValue(" Activate"),
                 "",
-                "§7§m                    ",
+                Typography.COLOR_TEXT + "§m                    ",
                 "",
-                "§a✓ ᴀᴄᴛɪᴠᴀᴛᴇᴅ §8- §7Currently using",
-                "§f○ ᴏᴡɴᴇᴅ §8- §7Can switch to",
-                "§6⚡ ᴄʜᴀʀɢᴇᴅ §8- §7Ready to activate",
-                "§8✗ ʟᴏᴄᴋᴇᴅ §8- §7Need ritual"
+                Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " Activated " + Typography.COLOR_TEXT_DARK + "- Currently using",
+                Typography.COLOR_HIGHLIGHT + Typography.SYMBOL_DOT + " Owned " + Typography.COLOR_TEXT_DARK + "- Can switch to",
+                Typography.COLOR_ACCENT + Typography.SYMBOL_LIGHTNING + " Charged " + Typography.COLOR_TEXT_DARK + "- Ready to activate",
+                Typography.COLOR_TEXT_DARK + Typography.SYMBOL_CROSS + " Locked " + Typography.COLOR_TEXT_DARK + "- Need ritual"
         ));
         item.setItemMeta(meta);
         return item;
@@ -345,8 +362,8 @@ public class UIManager {
     private ItemStack createBackButton() {
         ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§e§l← Back");
-        meta.setLore(Arrays.asList("§7Return to Fragment overview"));
+        meta.setDisplayName(Typography.formatTitle("Back"));
+        meta.setLore(Arrays.asList(Typography.COLOR_TEXT + "Return to Fragment overview"));
         item.setItemMeta(meta);
         return item;
     }

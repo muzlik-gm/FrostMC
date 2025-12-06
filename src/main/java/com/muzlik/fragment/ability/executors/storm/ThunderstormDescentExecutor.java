@@ -84,6 +84,5 @@ public class ThunderstormDescentExecutor implements AbilityExecutor {
             }
         }.runTaskTimer(player.getServer().getPluginManager().getPlugin("FrostSMP"), 0L, 4L); // Strike every 0.2s
         
-        player.sendMessage("§b⚡ Thunder God's Wrath! §7(" + strikeCount + " strikes)");
     }
 }

@@ -75,7 +75,6 @@ public class VoidSlashExecutor implements AbilityExecutor {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.5f, 0.5f);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 0.7f);
         
-        player.sendMessage("§5🌀 Void Slash! §7(" + hitCount + " hit)");
     }
     
     private Vector rotateAroundY(Vector vector, double angle) {

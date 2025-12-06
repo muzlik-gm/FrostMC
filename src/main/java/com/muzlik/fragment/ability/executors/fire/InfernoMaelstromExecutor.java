@@ -143,6 +143,6 @@ public class InfernoMaelstromExecutor implements AbilityExecutor {
         
         center.getWorld().playSound(center, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 0.8f);
         center.getWorld().playSound(center, Sound.BLOCK_FIRE_AMBIENT, 2.0f, 0.8f);
-        player.sendMessage("§c🔥 Inferno Maelstrom! §8(Ring of fire)");
+
     }
 }

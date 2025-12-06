@@ -69,7 +69,6 @@ public class VampiricDrainExecutor implements AbilityExecutor {
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_HURT, 1.0f, 0.8f);
             player.getWorld().playSound(livingTarget.getLocation(), Sound.ENTITY_PLAYER_HURT, 0.8f, 0.6f);
             
-            player.sendMessage("§5⚫ Vampiric Drain! §7Healed " + String.format("%.1f", healing) + " HP");
         } else {
             player.sendMessage("§c✗ No target found!");
         }

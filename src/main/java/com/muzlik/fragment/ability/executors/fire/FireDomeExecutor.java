@@ -112,7 +112,6 @@ public class FireDomeExecutor implements AbilityExecutor {
         // Sound effects
         player.getWorld().playSound(center, Sound.ITEM_FIRECHARGE_USE, 1.5f, 1.0f);
         
-        player.sendMessage("§c🔥 Fire Dome! §7[" + String.format("%.0f", duration) + "s, " + 
-                         String.format("%.1f", radius) + "m]");
+
     }
 }

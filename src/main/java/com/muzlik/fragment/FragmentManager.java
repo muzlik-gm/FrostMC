@@ -206,6 +206,9 @@ public class FragmentManager {
         // Deactivate previous Fragment passives
         if (previousFragment != null) {
             rankManager.deactivatePassives(player, previousFragment);
+            
+            // Clean up active abilities from previous fragment
+            cleanupFragmentAbilities(player, previousFragment);
         }
         
         // Set new active Fragment
@@ -226,6 +229,24 @@ public class FragmentManager {
             player.sendMessage("§7Use abilities with §eSneak + Right/Left Click §7while holding hotbar slots 0-4");
         } else {
             player.sendMessage("§7Fragment deactivated");
+        }
+    }
+    
+    /**
+     * Clean up active abilities for a specific fragment
+     */
+    private void cleanupFragmentAbilities(Player player, FragmentType type) {
+        // End flight if active for Dragon or Air fragments
+        if (type == FragmentType.DRAGON || type == FragmentType.AIR) {
+            com.muzlik.FrostSMPPlugin frostPlugin = (com.muzlik.FrostSMPPlugin) plugin;
+            frostPlugin.getFlightManager().endFlight(player, false);
+        }
+        
+        // Ensure flight is disabled when switching away from flying fragments
+        if (!player.getGameMode().equals(org.bukkit.GameMode.CREATIVE) && 
+            !player.getGameMode().equals(org.bukkit.GameMode.SPECTATOR)) {
+            player.setAllowFlight(false);
+            player.setFlying(false);
         }
     }
 

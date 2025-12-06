@@ -69,6 +69,5 @@ public class StoneFistExecutor implements AbilityExecutor {
         vfxBuilder.spawn();
         
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_STONE_BREAK, 2.0f, 0.5f);
-        player.sendMessage("§7⛰ Stone Fist!");
     }
 }

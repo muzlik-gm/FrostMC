@@ -48,8 +48,13 @@ public class PlayerDataListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        
+        loadPlayerData(event.getPlayer());
+    }
+
+    /**
+     * Load player data (public for reload support)
+     */
+    public void loadPlayerData(Player player) {
         // Load player data asynchronously
         dataPersistence.loadPlayerDataAsync(player.getUniqueId()).thenAccept(data -> {
             // Run on main thread
@@ -80,9 +85,9 @@ public class PlayerDataListener implements Listener {
                                 levelManager.setLevel(player, fragmentType, fragmentData.level);
                                 levelManager.setXP(player, fragmentType, fragmentData.xp);
                                 
-                                plugin.getLogger().info("Loaded Fragment " + fragmentType.name() + " for " + player.getName() + 
+                                /* plugin.getLogger().info("Loaded Fragment " + fragmentType.name() + " for " + player.getName() + 
                                     ": Rank=" + fragmentData.rank + ", Level=" + fragmentData.level + 
-                                    ", XP=" + fragmentData.xp);
+                                    ", XP=" + fragmentData.xp); */
                             }
                         } catch (IllegalArgumentException e) {
                             plugin.getLogger().warning("Invalid Fragment type for " + player.getName() + ": " + entry.getKey());
@@ -110,8 +115,8 @@ public class PlayerDataListener implements Listener {
                             double savedMana = fragmentData.currentMana;
                             manaManager.loadPlayerMana(player, savedMana, rank, level);
                             
-                            plugin.getLogger().info("Activated Fragment " + activeType.name() + " for " + player.getName() + 
-                                " with Mana=" + savedMana);
+                            /* plugin.getLogger().info("Activated Fragment " + activeType.name() + " for " + player.getName() + 
+                                " with Mana=" + savedMana); */
                         }
                     } catch (IllegalArgumentException e) {
                         plugin.getLogger().warning("Invalid active Fragment type for " + player.getName() + ": " + data.activeFragment);
@@ -123,12 +128,12 @@ public class PlayerDataListener implements Listener {
                     int charLevel = data.characterLevel > 0 ? data.characterLevel : 1;
                     double charXP = data.characterXp >= 0 ? data.characterXp : 0;
                     characterLevelManager.loadCharacterData(player, charLevel, charXP);
-                    plugin.getLogger().info("Loaded Character Level for " + player.getName() + 
-                        ": Level=" + charLevel + ", XP=" + String.format("%.1f", charXP));
+                    /* plugin.getLogger().info("Loaded Character Level for " + player.getName() + 
+                        ": Level=" + charLevel + ", XP=" + String.format("%.1f", charXP)); */
                 }
                 
-                plugin.getLogger().info("Loaded " + (data.fragments != null ? data.fragments.size() : 0) + 
-                    " fragments for " + player.getName());
+                /* plugin.getLogger().info("Loaded " + (data.fragments != null ? data.fragments.size() : 0) + 
+                    " fragments for " + player.getName()); */
             });
         });
     }
@@ -171,9 +176,9 @@ public class PlayerDataListener implements Listener {
             
             data.fragments.put(fragmentType.name(), fragmentData);
             
-            plugin.getLogger().info("Saving Fragment " + fragmentType.name() + " for " + player.getName() + 
+            /* plugin.getLogger().info("Saving Fragment " + fragmentType.name() + " for " + player.getName() + 
                 ": Rank=" + fragmentData.rank + ", Level=" + fragmentData.level + 
-                ", XP=" + fragmentData.xp + ", Mana=" + fragmentData.currentMana);
+                ", XP=" + fragmentData.xp + ", Mana=" + fragmentData.currentMana); */
         }
         
         data.uiMode = "STANDARD";
@@ -183,15 +188,15 @@ public class PlayerDataListener implements Listener {
         if (characterLevelManager != null) {
             data.characterLevel = characterLevelManager.getCharacterLevelForSave(player);
             data.characterXp = characterLevelManager.getCharacterXPForSave(player);
-            plugin.getLogger().info("Saving Character Level for " + player.getName() + 
-                ": Level=" + data.characterLevel + ", XP=" + String.format("%.1f", data.characterXp));
+            /* plugin.getLogger().info("Saving Character Level for " + player.getName() + 
+                ": Level=" + data.characterLevel + ", XP=" + String.format("%.1f", data.characterXp)); */
         }
         
         // Save asynchronously
         dataPersistence.savePlayerDataAsync(player.getUniqueId(), data);
         
-        plugin.getLogger().info("Saved " + ownedFragments.size() + " fragments for " + player.getName() + 
-            " (Active: " + (activeFragment != null ? activeFragment.name() : "none") + ")");
+        /* plugin.getLogger().info("Saved " + ownedFragments.size() + " fragments for " + player.getName() + 
+            " (Active: " + (activeFragment != null ? activeFragment.name() : "none") + ")"); */
         
         // Clean up managers
         manaManager.removePlayer(player);

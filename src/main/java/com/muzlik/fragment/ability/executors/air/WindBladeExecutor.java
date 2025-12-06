@@ -69,6 +69,5 @@ public class WindBladeExecutor implements AbilityExecutor {
         
         float pitch = 1.5f + (rank * 0.1f);
         player.getWorld().playSound(eyeLoc, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f + (rank * 0.2f), pitch);
-        player.sendMessage("§f💨 Wind Blade! §7(Rank " + rank + ")");
     }
 }

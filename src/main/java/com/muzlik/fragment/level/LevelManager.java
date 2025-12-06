@@ -34,9 +34,9 @@ public class LevelManager {
     // Default fallback max level (if Fragment not registered)
     private static final int DEFAULT_MAX_LEVEL = 5;
     
-    // XP requirements - MUCH LOWER than before
-    private static final double BASE_XP = 50.0; // Was 100, now 50
-
+    // XP requirements - INCREASED significantly
+    private static final double BASE_XP = 500.0; // Was 50, now 500
+    
     public LevelManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.playerLevelData = new ConcurrentHashMap<>();
@@ -77,7 +77,7 @@ public class LevelManager {
 
     /**
      * Get XP required for next level
-     * Formula: BASE_XP * level * 1.2 (mild scaling)
+     * Formula: BASE_XP * level^1.5 (steeper scaling)
      */
     public double getXPForNextLevel(Player player, FragmentType type) {
         int currentLevel = getLevel(player, type);
@@ -87,8 +87,8 @@ public class LevelManager {
             return 0; // Already max level
         }
         
-        // Simple, achievable XP curve: 50, 72, 103, 149, 215, etc.
-        return BASE_XP * Math.pow(1.2, currentLevel);
+        // Steeper XP curve: 500, 1414, 2598, 4000, etc.
+        return BASE_XP * Math.pow(currentLevel, 1.5);
     }
 
     /**
@@ -148,7 +148,7 @@ public class LevelManager {
      */
     public void activatePrestige(Player player, FragmentType type) {
         if (!canPrestige(player, type)) {
-            player.sendMessage("§c✗ Must be max level to prestige");
+            player.sendMessage(com.muzlik.util.Typography.formatError("Must be max level to prestige"));
             return;
         }
         
@@ -157,9 +157,9 @@ public class LevelManager {
         data.setXp(0);
         data.incrementPrestige();
         
-        player.sendMessage("§6✦ §lPRESTIGE §6✦");
-        player.sendMessage("§e" + type.getDisplayName() + " Fragment has been prestiged!");
-        player.sendMessage("§7Prestige Level: §b" + data.getPrestigeLevel());
+        player.sendMessage(com.muzlik.util.Typography.COLOR_ACCENT + "✦ §lPRESTIGE ✦");
+        player.sendMessage(com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + " Fragment has been prestiged!");
+        player.sendMessage(com.muzlik.util.Typography.formatLabel("Prestige Level: ") + com.muzlik.util.Typography.formatValue(String.valueOf(data.getPrestigeLevel())));
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.0f);
     }
 
@@ -183,7 +183,7 @@ public class LevelManager {
         data.setXp(newXP);
         
         if (penalty > 0) {
-            player.sendMessage("§c✗ Lost §4" + String.format("%.0f", penalty) + " §cXP §7(" + type.getDisplayName() + ")");
+            player.sendMessage(com.muzlik.util.Typography.formatError("Lost " + String.format("%.0f", penalty) + " XP (" + type.getDisplayName() + ")"));
         }
     }
 
@@ -207,7 +207,7 @@ public class LevelManager {
             return; // Already max level
         }
         
-        double xpRequired = BASE_XP * Math.pow(1.2, currentLevel);
+        double xpRequired = BASE_XP * Math.pow(currentLevel, 1.5);
         
         if (currentXP >= xpRequired) {
             // Level up!
@@ -220,10 +220,6 @@ public class LevelManager {
             checkLevelUp(player, type, data);
         }
     }
-
-    /**
-     * Trigger level-up notification with bonuses shown
-     */
     private void triggerLevelUpNotification(Player player, FragmentType type, int newLevel, int maxLevel) {
         // Calculate bonuses at this level
         double cooldownReduction = getCooldownReduction(newLevel, maxLevel) * 100;
@@ -231,16 +227,16 @@ public class LevelManager {
         double damageBonus = getDamageBonus(newLevel, maxLevel) * 100;
         
         player.sendMessage("");
-        player.sendMessage("§a§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        player.sendMessage("§6§l   ⬆ FRAGMENT LEVEL UP!");
+        player.sendMessage(com.muzlik.util.Typography.COLOR_SUCCESS + "§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        player.sendMessage(com.muzlik.util.Typography.COLOR_ACCENT + "§l   ⬆ " + com.muzlik.util.Typography.toSmallCaps("Fragment Level Up!"));
         player.sendMessage("");
-        player.sendMessage("§e" + type.getDisplayName() + " §7→ §bLevel " + newLevel + "/" + maxLevel);
+        player.sendMessage(com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + com.muzlik.util.Typography.COLOR_TEXT + " " + com.muzlik.util.Typography.SYMBOL_ARROW + " " + com.muzlik.util.Typography.COLOR_PRIMARY + "Level " + newLevel + "/" + maxLevel);
         player.sendMessage("");
-        player.sendMessage("§7Bonuses:");
-        player.sendMessage("  §b⏱ §fCooldown: §a-" + String.format("%.0f", cooldownReduction) + "%");
-        player.sendMessage("  §b⚡ §fMana Cost: §a-" + String.format("%.0f", manaCostReduction) + "%");
-        player.sendMessage("  §b⚔ §fDamage: §a+" + String.format("%.0f", damageBonus) + "%");
-        player.sendMessage("§a§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        player.sendMessage(com.muzlik.util.Typography.COLOR_TEXT + "Bonuses:");
+        player.sendMessage("  " + com.muzlik.util.Typography.COLOR_PRIMARY + com.muzlik.util.Typography.SYMBOL_COOLDOWN + " " + com.muzlik.util.Typography.COLOR_HIGHLIGHT + "Cooldown: " + com.muzlik.util.Typography.COLOR_SUCCESS + "-" + String.format("%.0f", cooldownReduction) + "%");
+        player.sendMessage("  " + com.muzlik.util.Typography.COLOR_PRIMARY + com.muzlik.util.Typography.SYMBOL_LIGHTNING + " " + com.muzlik.util.Typography.COLOR_HIGHLIGHT + "Mana Cost: " + com.muzlik.util.Typography.COLOR_SUCCESS + "-" + String.format("%.0f", manaCostReduction) + "%");
+        player.sendMessage("  " + com.muzlik.util.Typography.COLOR_PRIMARY + com.muzlik.util.Typography.SYMBOL_SWORD + " " + com.muzlik.util.Typography.COLOR_HIGHLIGHT + "Damage: " + com.muzlik.util.Typography.COLOR_SUCCESS + "+" + String.format("%.0f", damageBonus) + "%");
+        player.sendMessage(com.muzlik.util.Typography.COLOR_SUCCESS + "§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
         
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
     }

@@ -124,8 +124,7 @@ public class TerraShaperExecutor implements AbilityExecutor {
         player.getWorld().playSound(startLoc, Sound.BLOCK_GRAVEL_BREAK, 1.5f, 0.6f);
         
         // Send message
-        player.sendMessage("§7⛰ §eTerra Shaper! §7[" + length + " blocks, " + 
-                         String.format("%.0f", durationSeconds) + "s]");
+
         
         // Schedule cleanup
         Bukkit.getScheduler().runTaskLater(plugin, () -> {

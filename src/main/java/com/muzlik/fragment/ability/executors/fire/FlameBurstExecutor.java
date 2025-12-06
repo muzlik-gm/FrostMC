@@ -81,6 +81,6 @@ public class FlameBurstExecutor implements AbilityExecutor {
         float pitch = 1.0f + (rank * 0.1f);
         eyeLoc.getWorld().playSound(spawnLoc, Sound.ENTITY_BLAZE_SHOOT, 1.0f + (rank * 0.2f), pitch);
         
-        player.sendMessage("§c🔥 Flame Burst! §7(Rank " + rank + ")");
+
     }
 }

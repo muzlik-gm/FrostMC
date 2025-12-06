@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.muzlik.util.Typography;
 
 /**
  * Builder class for creating ability icons with status indicators.
@@ -42,25 +43,6 @@ public class AbilityIconBuilder {
         this.levelManager = levelManager;
         this.cooldownManager = cooldownManager;
         this.scalingEngine = new AbilityScalingEngine();
-    }
-
-    /**
-     * Convert text to small caps unicode
-     */
-    private static String toSmallCaps(String text) {
-        String smallCaps = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
-        String normal = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder result = new StringBuilder();
-        
-        for (char c : text.toLowerCase().toCharArray()) {
-            int index = normal.indexOf(c);
-            if (index >= 0) {
-                result.append(smallCaps.charAt(index));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 
     /**
@@ -125,15 +107,15 @@ public class AbilityIconBuilder {
      * Build display name with status indicator - CLEAN MINIMAL STYLE
      */
     private String buildDisplayName(boolean isUnlocked, boolean isOnCooldown) {
-        String name = toSmallCaps(ability.getDisplayName());
+        String name = Typography.toSmallCaps(ability.getDisplayName());
         String slotNum = String.valueOf(ability.getSlot().getSlotIndex() + 1);
         
         if (!isUnlocked) {
-            return "§8§l" + slotNum + " §c✗ §8" + name;
+            return Typography.COLOR_TEXT_DARK + "§l" + slotNum + " " + Typography.COLOR_ERROR + Typography.SYMBOL_CROSS + " " + Typography.COLOR_TEXT_DARK + name;
         } else if (isOnCooldown) {
-            return "§8§l" + slotNum + " §e⏱ §7" + name;
+            return Typography.COLOR_TEXT_DARK + "§l" + slotNum + " " + Typography.COLOR_SECONDARY + Typography.SYMBOL_COOLDOWN + " " + Typography.COLOR_TEXT + name;
         } else {
-            return "§8§l" + slotNum + " §a✓ §f" + name;
+            return Typography.COLOR_TEXT_DARK + "§l" + slotNum + " " + Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " " + Typography.COLOR_HIGHLIGHT + name;
         }
     }
 
@@ -145,11 +127,11 @@ public class AbilityIconBuilder {
         List<String> lore = new ArrayList<>();
         
         // Description
-        lore.add("§8" + ability.getDescription());
+        lore.add(Typography.COLOR_TEXT_DARK + ability.getDescription());
         lore.add("");
         
         // Slot info
-        lore.add("§7sʟᴏᴛ §f" + ability.getSlot().getDisplayName());
+        lore.add(Typography.formatLabel("Slot: ") + Typography.formatValue(ability.getSlot().getDisplayName()));
         lore.add("");
         
         if (isUnlocked) {
@@ -164,33 +146,33 @@ public class AbilityIconBuilder {
             double finalMana = scaledMana * (1 - manaReduction);
             double finalCooldown = cooldownSeconds * (1 - cdReduction);
             
-            lore.add("§7ᴍᴀɴᴀ §b" + String.format("%.0f", finalMana));
+            lore.add(Typography.formatLabel("Mana: ") + Typography.COLOR_PRIMARY + String.format("%.0f", finalMana));
             if (manaReduction > 0) {
-                lore.add("  §8(-" + String.format("%.0f", manaReduction * 100) + "% from level)");
+                lore.add("  " + Typography.COLOR_TEXT_DARK + "(-" + String.format("%.0f", manaReduction * 100) + "% from level)");
             }
             
-            lore.add("§7ᴄᴏᴏʟᴅᴏᴡɴ §e" + String.format("%.1f", finalCooldown) + "s");
+            lore.add(Typography.formatLabel("Cooldown: ") + Typography.COLOR_SECONDARY + String.format("%.1f", finalCooldown) + "s");
             if (cdReduction > 0) {
-                lore.add("  §8(-" + String.format("%.0f", cdReduction * 100) + "% from level)");
+                lore.add("  " + Typography.COLOR_TEXT_DARK + "(-" + String.format("%.0f", cdReduction * 100) + "% from level)");
             }
             
             // Show current cooldown if on cooldown
             if (isOnCooldown) {
                 double remaining = cooldownManager.getRemainingCooldownSeconds(player, ability.getId());
                 lore.add("");
-                lore.add("§c⏱ " + formatTime(remaining) + " §7ʀᴇᴍᴀɪɴɪɴɢ");
+                lore.add(Typography.COLOR_ERROR + Typography.SYMBOL_COOLDOWN + " " + formatTime(remaining) + " " + Typography.toSmallCaps("Remaining"));
             } else {
                 lore.add("");
-                lore.add("§a▸ ʀᴇᴀᴅʏ ᴛᴏ ᴜsᴇ");
+                lore.add(Typography.COLOR_SUCCESS + Typography.SYMBOL_ARROW + " " + Typography.toSmallCaps("Ready to use"));
             }
             
             // Usage hint
             lore.add("");
-            lore.add("§8sɴᴇᴀᴋ + ᴄʟɪᴄᴋ ᴏɴ ʜᴏᴛʙᴀʀ");
+            lore.add(Typography.COLOR_TEXT_DARK + Typography.toSmallCaps("Sneak + Click on Hotbar"));
             
         } else {
             // Requirements for locked abilities
-            lore.add("§c✗ ʟᴏᴄᴋᴇᴅ");
+            lore.add(Typography.COLOR_ERROR + Typography.SYMBOL_CROSS + " " + Typography.toSmallCaps("Locked"));
             lore.add("");
             
             int rankReq = ability.getRankRequirement();
@@ -200,12 +182,12 @@ public class AbilityIconBuilder {
             if (playerRank < rankReq) {
                 int ranksAway = rankReq - playerRank;
                 if (ranksAway == 1) {
-                    lore.add("§e⚠ ʀᴀɴᴋ " + rankReq + " §8(1 ᴀᴡᴀʏ)");
+                    lore.add(Typography.COLOR_SECONDARY + Typography.SYMBOL_WARNING + " " + Typography.toSmallCaps("Rank " + rankReq) + " " + Typography.COLOR_TEXT_DARK + "(1 " + Typography.toSmallCaps("away") + ")");
                 } else {
-                    lore.add("§c✗ ʀᴀɴᴋ " + rankReq + " §8(" + ranksAway + " ᴀᴡᴀʏ)");
+                    lore.add(Typography.COLOR_ERROR + Typography.SYMBOL_CROSS + " " + Typography.toSmallCaps("Rank " + rankReq) + " " + Typography.COLOR_TEXT_DARK + "(" + ranksAway + " " + Typography.toSmallCaps("away") + ")");
                 }
             } else {
-                lore.add("§a✓ ʀᴀɴᴋ " + rankReq);
+                lore.add(Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " " + Typography.toSmallCaps("Rank " + rankReq));
             }
             
             // Level requirement
@@ -213,12 +195,12 @@ public class AbilityIconBuilder {
                 if (playerLevel < levelReq) {
                     int levelsAway = levelReq - playerLevel;
                     if (levelsAway <= 2) {
-                        lore.add("§e⚠ ʟᴇᴠᴇʟ " + levelReq + " §8(" + levelsAway + " ᴀᴡᴀʏ)");
+                        lore.add(Typography.COLOR_SECONDARY + Typography.SYMBOL_WARNING + " " + Typography.toSmallCaps("Level " + levelReq) + " " + Typography.COLOR_TEXT_DARK + "(" + levelsAway + " " + Typography.toSmallCaps("away") + ")");
                     } else {
-                        lore.add("§c✗ ʟᴇᴠᴇʟ " + levelReq + " §8(" + levelsAway + " ᴀᴡᴀʏ)");
+                        lore.add(Typography.COLOR_ERROR + Typography.SYMBOL_CROSS + " " + Typography.toSmallCaps("Level " + levelReq) + " " + Typography.COLOR_TEXT_DARK + "(" + levelsAway + " " + Typography.toSmallCaps("away") + ")");
                     }
                 } else {
-                    lore.add("§a✓ ʟᴇᴠᴇʟ " + levelReq);
+                    lore.add(Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " " + Typography.toSmallCaps("Level " + levelReq));
                 }
             }
         }

@@ -77,6 +77,5 @@ public class DragonsRoarExecutor implements AbilityExecutor {
         player.getWorld().playSound(eyeLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, volume, pitch);
         player.getWorld().playSound(eyeLoc, Sound.ENTITY_BLAZE_SHOOT, volume * 0.8f, 0.6f);
         
-        player.sendMessage("§c🐉 Dragon's Roar! §7(Rank " + rank + ", " + hitEntities.size() + " enemies hit)");
     }
 }

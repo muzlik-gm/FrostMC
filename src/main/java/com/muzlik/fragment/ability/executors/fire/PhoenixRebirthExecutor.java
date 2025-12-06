@@ -47,6 +47,5 @@ public class PhoenixRebirthExecutor implements AbilityExecutor {
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_AMBIENT, 1.0f, 1.5f);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.8f, 1.8f);
         
-        player.sendMessage("§6🔥 Phoenix Rebirth activated! You will revive upon death.");
     }
 }

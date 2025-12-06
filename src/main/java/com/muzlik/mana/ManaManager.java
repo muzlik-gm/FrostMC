@@ -272,7 +272,7 @@ public class ManaManager {
      * Trigger "On Mana Full" event
      */
     private void triggerManaFullEvent(Player player) {
-        player.sendMessage("§a⚡ Mana fully restored!");
+
         // Fragment-specific effects can be added here
     }
 

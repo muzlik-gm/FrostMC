@@ -11,6 +11,5 @@ public class ShadowCloneExecutor implements AbilityExecutor {
         Player player = context.getPlayer();
         player.getWorld().spawnParticle(Particle.SMOKE_LARGE, player.getLocation(), 100, 1, 1, 1, 0.1);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 0.8f);
-        player.sendMessage("§5⚫ Shadow Clone summoned!");
     }
 }

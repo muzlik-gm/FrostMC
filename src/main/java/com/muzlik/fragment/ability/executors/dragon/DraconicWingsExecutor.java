@@ -48,6 +48,5 @@ public class DraconicWingsExecutor implements AbilityExecutor {
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 2.0f, 1.0f);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 1.2f);
-        player.sendMessage("§5§l🐉 ᴅʀᴀᴄᴏɴɪᴄ ᴡɪɴɢs! §7ᴛʜᴇ sᴋʏ ɪs ʏᴏᴜʀs!");
     }
 }

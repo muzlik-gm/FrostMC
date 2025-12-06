@@ -128,7 +128,6 @@ public class DragonMeteorExecutor implements AbilityExecutor {
         player.getWorld().playSound(spawnLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.8f);
         player.getWorld().playSound(targetLoc, Sound.BLOCK_BELL_USE, 1.5f, 0.5f);
         
-        player.sendMessage("§4☄ Dragon Meteor incoming!");
     }
     
     /**
@@ -201,6 +200,5 @@ public class DragonMeteorExecutor implements AbilityExecutor {
         impactLoc.getWorld().playSound(impactLoc, Sound.ENTITY_ENDER_DRAGON_HURT, 2.0f, 0.6f);
         impactLoc.getWorld().playSound(impactLoc, Sound.BLOCK_ANVIL_LAND, 2.0f, 0.4f);
         
-        player.sendMessage("§4☄ IMPACT! §7[" + String.format("%.0f", damage) + " damage]");
     }
 }

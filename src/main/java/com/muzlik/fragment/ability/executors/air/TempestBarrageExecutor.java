@@ -64,6 +64,5 @@ public class TempestBarrageExecutor implements AbilityExecutor {
         }.runTaskTimer(plugin, 0L, 3L);
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 2.0f);
-        player.sendMessage("§f💨 Tempest Barrage!");
     }
 }

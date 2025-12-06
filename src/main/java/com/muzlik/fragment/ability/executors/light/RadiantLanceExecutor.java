@@ -40,6 +40,5 @@ public class RadiantLanceExecutor implements AbilityExecutor {
             .spawn();
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1.0f, 2.0f);
-        player.sendMessage("§e✨ Radiant Lance!");
     }
 }

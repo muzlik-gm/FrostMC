@@ -124,6 +124,5 @@ public class CelestialJudgmentExecutor implements AbilityExecutor {
         world.playSound(target, Sound.BLOCK_BEACON_ACTIVATE, 1.5f, 1.5f);
         world.playSound(target, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 2.0f);
         
-        player.sendMessage("§e✨ Celestial Judgment! §7(" + hitEntities.size() + " enemies struck)");
     }
 }

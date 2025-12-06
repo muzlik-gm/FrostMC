@@ -87,7 +87,6 @@ public class PackCallExecutor implements AbilityExecutor {
         player.getWorld().playSound(center, Sound.ENTITY_WOLF_HOWL, 2.0f, 1.0f);
         player.getWorld().playSound(center, Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1.5f, 1.2f);
         
-        player.sendMessage("§2⚔ Pack Call! §7[" + buffedCount + " summons buffed]");
     }
     
     /**

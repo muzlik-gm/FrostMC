@@ -201,10 +201,16 @@ public class FlightManager {
             visualTask = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if (!player.isOnline() || !player.isFlying()) {
+                    // Stop if player is offline or session ended
+                    if (!player.isOnline() || !activeSessions.containsKey(player.getUniqueId())) {
+                        cancel();
                         return;
                     }
-                    spawnFlightCarpet();
+                    
+                    // Only spawn particles if actually flying
+                    if (player.isFlying()) {
+                        spawnFlightCarpet();
+                    }
                 }
             }.runTaskTimer(plugin, 0L, 2L);
             
@@ -259,9 +265,12 @@ public class FlightManager {
             if (visualTask != null) visualTask.cancel();
             if (cancelTask != null) cancelTask.cancel();
             
-            // Disable flight
-            player.setAllowFlight(false);
-            player.setFlying(false);
+            // Disable flight (only for survival/adventure mode)
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE && 
+                player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
+                player.setAllowFlight(false);
+                player.setFlying(false);
+            }
             
             // Remove from active sessions
             activeSessions.remove(player.getUniqueId());
@@ -286,9 +295,12 @@ public class FlightManager {
             if (visualTask != null) visualTask.cancel();
             if (cancelTask != null) cancelTask.cancel();
             
-            // Disable flight
-            player.setAllowFlight(false);
-            player.setFlying(false);
+            // Disable flight (only for survival/adventure mode)
+            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE && 
+                player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
+                player.setAllowFlight(false);
+                player.setFlying(false);
+            }
             
             // Remove from active sessions
             activeSessions.remove(player.getUniqueId());

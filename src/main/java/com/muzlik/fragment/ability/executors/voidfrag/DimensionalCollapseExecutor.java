@@ -103,6 +103,5 @@ public class DimensionalCollapseExecutor implements AbilityExecutor {
         world.playSound(center, Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f + (rank * 0.15f), 0.5f);
         world.playSound(center, Sound.ENTITY_WITHER_SPAWN, 1.5f, 0.6f);
         
-        player.sendMessage("§5🌀 Dimensional Collapse! §7(Black hole created)");
     }
 }

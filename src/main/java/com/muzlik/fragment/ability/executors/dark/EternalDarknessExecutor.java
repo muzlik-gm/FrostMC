@@ -21,6 +21,5 @@ public class EternalDarknessExecutor implements AbilityExecutor {
         
         player.getWorld().spawnParticle(Particle.SMOKE_LARGE, player.getLocation(), 200, 2, 2, 2, 0.2);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.0f, 0.5f);
-        player.sendMessage("§5§l⚫ ETERNAL DARKNESS! You are shadow incarnate!");
     }
 }

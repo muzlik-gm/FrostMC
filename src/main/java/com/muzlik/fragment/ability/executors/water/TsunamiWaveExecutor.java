@@ -117,6 +117,5 @@ public class TsunamiWaveExecutor implements AbilityExecutor {
         player.getWorld().playSound(start, Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 2.0f, 0.8f);
         player.getWorld().playSound(start, Sound.BLOCK_WATER_AMBIENT, 2.0f, 0.6f);
         
-        player.sendMessage("§b💧 Tsunami Wave!");
     }
 }

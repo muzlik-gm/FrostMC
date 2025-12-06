@@ -54,6 +54,5 @@ public class StormSovereignExecutor implements AbilityExecutor {
         vfxBuilder.spawn();
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 2.0f, 1.5f);
-        player.sendMessage("§f§l💨 sᴛᴏʀᴍ sᴏᴠᴇʀᴇɪɢɴ! §7ʏᴏᴜ ᴄᴏᴍᴍᴀɴᴅ ᴛʜᴇ ᴡɪɴᴅs!");
     }
 }

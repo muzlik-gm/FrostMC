@@ -55,6 +55,5 @@ public class EternalFlameExecutor implements AbilityExecutor {
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_FIRECHARGE_USE, 2.0f, 0.5f);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_AMBIENT, 2.0f, 0.8f);
         
-        player.sendMessage("§6§l🔥 ETERNAL FLAME! You are living fire!");
     }
 }

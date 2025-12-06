@@ -30,7 +30,6 @@ public class ChainLightningExecutor implements AbilityExecutor {
         // Execute chain with delay to prevent recursion
         chainLightning(player, firstTarget, hitTargets, damage, maxChains, 0, rank);
         
-        player.sendMessage("§b⚡ Chain Lightning!");
     }
     
     private void chainLightning(Player player, LivingEntity target, 

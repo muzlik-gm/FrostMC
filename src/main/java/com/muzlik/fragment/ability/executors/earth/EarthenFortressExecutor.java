@@ -85,6 +85,5 @@ public class EarthenFortressExecutor implements AbilityExecutor {
         // Buff: Resistance
         player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 1));
         
-        player.sendMessage("§7⛰ Earthen Fortress! §8(Wall lasts " + (duration/20) + "s)");
     }
 }

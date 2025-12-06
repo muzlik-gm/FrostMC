@@ -206,10 +206,16 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 new com.muzlik.ui.FragmentGUIListener(fragmentManager, uiManager),
                 this
         );
-        getServer().getPluginManager().registerEvents(
-                new com.muzlik.listener.PlayerDataListener(this, dataPersistence, fragmentManager, manaManager, levelManager, rankManager),
-                this
+        // Instantiate and register PlayerDataListener
+        com.muzlik.listener.PlayerDataListener playerDataListener = new com.muzlik.listener.PlayerDataListener(
+            this, dataPersistence, fragmentManager, manaManager, levelManager, rankManager
         );
+        getServer().getPluginManager().registerEvents(playerDataListener, this);
+        
+        // Load data for currently online players (for reloads)
+        for (org.bukkit.entity.Player player : getServer().getOnlinePlayers()) {
+            playerDataListener.loadPlayerData(player);
+        }
         getServer().getPluginManager().registerEvents(
                 new com.muzlik.listener.EffectCleanupListener(this, effectRegistry),
                 this

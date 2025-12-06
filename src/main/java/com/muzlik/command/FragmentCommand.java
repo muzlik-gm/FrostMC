@@ -1,5 +1,6 @@
 package com.muzlik.command;
 
+import com.muzlik.config.ConfigManager;
 import com.muzlik.character.CharacterLevelManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
@@ -37,6 +38,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     private final RankManager rankManager;
     private final com.muzlik.cooldown.CooldownManager cooldownManager;
     private CharacterLevelManager characterLevelManager;
+    private ConfigManager configManager;
 
     public FragmentCommand(JavaPlugin plugin, FragmentManager fragmentManager, RecipeManager recipeManager, 
                           UIManager uiManager, ManaManager manaManager, LevelManager levelManager, RankManager rankManager,
@@ -50,14 +52,32 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         this.levelManager = levelManager;
         this.rankManager = rankManager;
         
-        // Get CharacterLevelManager from main plugin
+        // Get managers from main plugin
         if (plugin instanceof FrostSMPPlugin) {
             this.characterLevelManager = ((FrostSMPPlugin) plugin).getCharacterLevelManager();
+            this.configManager = ((FrostSMPPlugin) plugin).getConfigManager();
         }
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) {
+            if (sender instanceof Player) {
+                sendHelp((Player) sender);
+            } else {
+                sender.sendMessage("Usage: /fragment <subcommand>");
+            }
+            return true;
+        }
+
+        String subCommand = args[0].toLowerCase();
+
+        // Commands that don't require player sender
+        if (subCommand.equals("reload")) {
+            handleReload(sender);
+            return true;
+        }
+
         if (!(sender instanceof Player)) {
             sender.sendMessage("§cThis command can only be used by players");
             return true;
@@ -65,41 +85,31 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
 
         Player player = (Player) sender;
 
-        if (args.length == 0) {
-            sendHelp(player);
-            return true;
-        }
-
-        switch (args[0].toLowerCase()) {
-            case "give":
-                if (args.length < 2) {
-                    player.sendMessage("§cUsage: /fragment give <item>");
-                    return true;
-                }
-                giveItem(player, args[1]);
+        switch (subCommand) {
+            case "gui":
+                uiManager.openFragmentOverview(player);
                 break;
-
+            case "give":
+                handleGive(player, args);
+                break;
+            case "set":
+                handleSet(player, args);
+                break;
+            case "reset":
+                handleReset(player, args);
+                break;
             case "list":
                 showFragmentList(player);
                 break;
-            
-            case "gui":
-                // Open GUI directly without text
-                uiManager.openFragmentOverview(player);
-                break;
-
-            case "mana":
-                uiManager.openManaStatus(player);
-                break;
-            
             case "info":
                 showFragmentInfo(player);
                 break;
-            
             case "abilities":
                 showAbilitiesList(player);
                 break;
-
+            case "mana":
+                uiManager.openManaStatus(player);
+                break;
             case "grant":
                 if (args.length < 2) {
                     player.sendMessage("§cUsage: /fragment grant <type>");
@@ -107,7 +117,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
                 grantFragment(player, args[1]);
                 break;
-
             case "activate":
             case "select":
                 if (args.length < 2) {
@@ -116,9 +125,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
                 activateFragment(player, args[1]);
                 break;
-
             case "forceactivate":
-            case "setactive":
                 if (!player.hasPermission("fragment.admin")) {
                     player.sendMessage("§cYou don't have permission to use this command");
                     return true;
@@ -129,50 +136,233 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
                 forceActivateFragment(player, args[1], args[2]);
                 break;
-            
             case "generatepack":
-            case "resourcepack":
                 if (!player.hasPermission("fragment.admin")) {
                     player.sendMessage("§cYou don't have permission to use this command");
                     return true;
                 }
                 generateResourcePack(player);
                 break;
-            
             case "level":
                 showCharacterLevel(player);
                 break;
-            
-            case "setlevel":
-                if (!player.hasPermission("fragment.admin")) {
-                    player.sendMessage("§cYou don't have permission to use this command");
-                    return true;
-                }
-                if (args.length < 2) {
-                    player.sendMessage("§cUsage: /fragment setlevel <level>");
-                    return true;
-                }
-                setCharacterLevel(player, args[1]);
-                break;
-            
-            case "setfraglevel":
-                if (!player.hasPermission("fragment.admin")) {
-                    player.sendMessage("§cYou don't have permission to use this command");
-                    return true;
-                }
-                if (args.length < 2) {
-                    player.sendMessage("§cUsage: /fragment setfraglevel <level>");
-                    return true;
-                }
-                setFragmentLevel(player, args[1]);
-                break;
-
             default:
                 sendHelp(player);
                 break;
         }
 
         return true;
+    }
+
+    private void handleReload(CommandSender sender) {
+        if (!sender.hasPermission("fragment.admin")) {
+            sender.sendMessage("§cYou don't have permission to use this command");
+            return;
+        }
+        if (configManager != null) {
+            configManager.reloadConfig();
+            sender.sendMessage("§aConfiguration reloaded successfully");
+        } else {
+            sender.sendMessage("§cConfigManager not initialized");
+        }
+    }
+
+    private void handleGive(Player player, String[] args) {
+        // Usage: /fragment give <player> <fragment>
+        // Or legacy: /fragment give <item> (to self)
+        
+        if (args.length < 2) {
+            player.sendMessage("§cUsage: /fragment give <player> <fragment> OR /fragment give <item>");
+            return;
+        }
+
+        // Check if args[1] is a player
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target != null && args.length >= 3) {
+            // Giving to another player: /fragment give <player> <fragment>
+            if (!player.hasPermission("fragment.admin")) {
+                player.sendMessage("§cYou don't have permission to give items to others");
+                return;
+            }
+            giveItemToPlayer(target, args[2], player);
+        } else {
+            // Giving to self: /fragment give <item>
+            // Check if args[1] is a valid item name
+            giveItemToPlayer(player, args[1], null);
+        }
+    }
+
+    private void giveItemToPlayer(Player target, String itemName, CommandSender giver) {
+        ItemStack item = null;
+        switch (itemName.toLowerCase()) {
+            case "fire": item = createFragmentCreationItem(FragmentType.FIRE); break;
+            case "water": item = createFragmentCreationItem(FragmentType.WATER); break;
+            case "air": item = createFragmentCreationItem(FragmentType.AIR); break;
+            case "earth": item = createFragmentCreationItem(FragmentType.EARTH); break;
+            case "dark": item = createFragmentCreationItem(FragmentType.DARK); break;
+            case "light": item = createFragmentCreationItem(FragmentType.LIGHT); break;
+            case "void": item = createFragmentCreationItem(FragmentType.VOID); break;
+            case "mob": item = createFragmentCreationItem(FragmentType.MOB); break;
+            case "dragon": item = createFragmentCreationItem(FragmentType.DRAGON); break;
+            case "storm": item = createFragmentCreationItem(FragmentType.STORM); break;
+            case "changer": item = createFragmentChangerItem(); break;
+            case "manaflask": item = createManaFlaskItem(); break;
+            default:
+                if (giver != null) giver.sendMessage("§cUnknown item: " + itemName);
+                else target.sendMessage("§cUnknown item: " + itemName);
+                return;
+        }
+        
+        target.getInventory().addItem(item);
+        if (giver != null) {
+            giver.sendMessage("§aGiven " + itemName + " to " + target.getName());
+            target.sendMessage("§aReceived " + itemName + " from " + giver.getName());
+        } else {
+            target.sendMessage("§aGiven " + itemName);
+        }
+    }
+
+    private void handleSet(Player player, String[] args) {
+        // Usage: /fragment set <player> <fragment> <level/rank> <value>
+        if (!player.hasPermission("fragment.admin")) {
+            player.sendMessage("§cYou don't have permission to use this command");
+            return;
+        }
+        
+        if (args.length < 5) {
+            player.sendMessage("§cUsage: /fragment set <player> <fragment> <level/rank> <value>");
+            return;
+        }
+        
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            player.sendMessage("§cPlayer not found: " + args[1]);
+            return;
+        }
+        
+        FragmentType type;
+        try {
+            type = FragmentType.valueOf(args[2].toUpperCase());
+        } catch (IllegalArgumentException e) {
+            player.sendMessage("§cInvalid fragment type: " + args[2]);
+            return;
+        }
+        
+        String stat = args[3].toLowerCase();
+        int value;
+        try {
+            value = Integer.parseInt(args[4]);
+        } catch (NumberFormatException e) {
+            player.sendMessage("§cInvalid value: " + args[4]);
+            return;
+        }
+        
+        if (stat.equals("level")) {
+            levelManager.setLevel(target, type, value);
+            player.sendMessage("§aSet " + type.getDisplayName() + " level for " + target.getName() + " to " + value);
+        } else if (stat.equals("rank")) {
+            rankManager.setRank(target, type, value);
+            player.sendMessage("§aSet " + type.getDisplayName() + " rank for " + target.getName() + " to " + value);
+        } else {
+            player.sendMessage("§cUnknown stat: " + stat + " (use level or rank)");
+        }
+    }
+
+    private void handleReset(Player player, String[] args) {
+        // Usage: /fragment reset <player> [fragment]
+        if (!player.hasPermission("fragment.admin")) {
+            player.sendMessage("§cYou don't have permission to use this command");
+            return;
+        }
+        
+        if (args.length < 2) {
+            player.sendMessage("§cUsage: /fragment reset <player> [fragment]");
+            return;
+        }
+        
+        Player target = plugin.getServer().getPlayer(args[1]);
+        if (target == null) {
+            player.sendMessage("§cPlayer not found: " + args[1]);
+            return;
+        }
+        
+        if (args.length >= 3) {
+            // Reset specific fragment
+            try {
+                FragmentType type = FragmentType.valueOf(args[2].toUpperCase());
+                
+                // Clean up active abilities for this fragment
+                cleanupFragmentAbilities(target, type);
+                
+                levelManager.setLevel(target, type, 1);
+                levelManager.setXP(target, type, 0);
+                rankManager.initializeRank(target, type);
+                player.sendMessage("§aReset " + type.getDisplayName() + " progress for " + target.getName());
+            } catch (IllegalArgumentException e) {
+                player.sendMessage("§cInvalid fragment type: " + args[2]);
+            }
+        } else {
+            // Reset all fragments
+            // Clean up ALL active abilities first
+            cleanupAllAbilities(target);
+            
+            for (FragmentType type : FragmentType.values()) {
+                levelManager.setLevel(target, type, 1);
+                levelManager.setXP(target, type, 0);
+                rankManager.initializeRank(target, type);
+            }
+            player.sendMessage("§aReset ALL fragment progress for " + target.getName());
+        }
+    }
+    
+    /**
+     * Clean up active abilities for a specific fragment
+     */
+    private void cleanupFragmentAbilities(Player player, FragmentType type) {
+        // End flight if active for Dragon or Air fragments
+        if (type == FragmentType.DRAGON || type == FragmentType.AIR) {
+            FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+            frostPlugin.getFlightManager().endFlight(player, false);
+        }
+        
+        // Remove any active potion effects from fragment abilities
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.SPEED);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOW);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS);
+        
+        // Ensure flight is disabled
+        if (!player.getGameMode().equals(org.bukkit.GameMode.CREATIVE) && 
+            !player.getGameMode().equals(org.bukkit.GameMode.SPECTATOR)) {
+            player.setAllowFlight(false);
+            player.setFlying(false);
+        }
+    }
+    
+    /**
+     * Clean up ALL active abilities for a player
+     */
+    private void cleanupAllAbilities(Player player) {
+        // End flight unconditionally
+        FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+        frostPlugin.getFlightManager().endFlight(player, false);
+        
+        // Remove all potion effects
+        for (org.bukkit.potion.PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
+        
+        // Ensure flight is disabled
+        if (!player.getGameMode().equals(org.bukkit.GameMode.CREATIVE) && 
+            !player.getGameMode().equals(org.bukkit.GameMode.SPECTATOR)) {
+            player.setAllowFlight(false);
+            player.setFlying(false);
+        }
+        
+        // Extinguish fire
+        player.setFireTicks(0);
     }
 
     /**
@@ -574,55 +764,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private void giveItem(Player player, String itemName) {
-        ItemStack item = null;
 
-        switch (itemName.toLowerCase()) {
-            case "fire":
-                item = createFragmentCreationItem(FragmentType.FIRE);
-                break;
-            case "water":
-                item = createFragmentCreationItem(FragmentType.WATER);
-                break;
-            case "air":
-                item = createFragmentCreationItem(FragmentType.AIR);
-                break;
-            case "earth":
-                item = createFragmentCreationItem(FragmentType.EARTH);
-                break;
-            case "dark":
-                item = createFragmentCreationItem(FragmentType.DARK);
-                break;
-            case "light":
-                item = createFragmentCreationItem(FragmentType.LIGHT);
-                break;
-            case "void":
-                item = createFragmentCreationItem(FragmentType.VOID);
-                break;
-            case "mob":
-                item = createFragmentCreationItem(FragmentType.MOB);
-                break;
-            case "dragon":
-                item = createFragmentCreationItem(FragmentType.DRAGON);
-                break;
-            case "storm":
-                item = createFragmentCreationItem(FragmentType.STORM);
-                break;
-            case "changer":
-                item = createFragmentChangerItem();
-                break;
-            case "manaflask":
-                item = createManaFlaskItem();
-                break;
-            default:
-                player.sendMessage("§cUnknown item: " + itemName);
-                player.sendMessage("§7Available: fire, water, air, earth, dark, light, void, mob, dragon, storm, changer, manaflask");
-                return;
-        }
-
-        player.getInventory().addItem(item);
-        player.sendMessage("§aœ“ Given: §b" + item.getItemMeta().getDisplayName());
-    }
 
     private void grantFragment(Player player, String typeName) {
         try {
@@ -744,21 +886,31 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "forceactivate", "setlevel", "setfraglevel", "generatepack"));
+            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "forceactivate", "set", "reset", "reload", "generatepack"));
         } else if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("give")) {
-                completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));
-            } else if (args[0].equalsIgnoreCase("grant") || args[0].equalsIgnoreCase("activate")) {
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
-            } else if (args[0].equalsIgnoreCase("forceactivate")) {
+            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate")) {
                 // Add online player names
                 for (Player p : plugin.getServer().getOnlinePlayers()) {
                     completions.add(p.getName());
                 }
+            } else if (args[0].equalsIgnoreCase("grant") || args[0].equalsIgnoreCase("activate")) {
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
             }
         } else if (args.length == 3) {
-            if (args[0].equalsIgnoreCase("forceactivate")) {
+            if (args[0].equalsIgnoreCase("give")) {
+                completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));
+            } else if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate")) {
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
+            }
+        } else if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("set")) {
+                completions.addAll(Arrays.asList("level", "rank"));
+            }
+        } else if (args.length == 5) {
+            if (args[0].equalsIgnoreCase("set")) {
+                completions.add("1");
+                completions.add("5");
+                completions.add("10");
             }
         }
 

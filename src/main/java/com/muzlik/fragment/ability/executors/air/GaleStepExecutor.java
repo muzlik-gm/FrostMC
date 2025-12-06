@@ -56,6 +56,5 @@ public class GaleStepExecutor implements AbilityExecutor {
         vfxBuilder.spawn();
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PHANTOM_FLAP, 1.0f, 1.5f);
-        player.sendMessage("§f💨 Gale Step!");
     }
 }

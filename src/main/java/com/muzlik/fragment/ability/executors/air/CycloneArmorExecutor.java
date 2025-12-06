@@ -53,6 +53,5 @@ public class CycloneArmorExecutor implements AbilityExecutor {
         vfxBuilder.spawn();
         
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PHANTOM_AMBIENT, 1.0f, 1.0f);
-        player.sendMessage("§f💨 Cyclone Armor!");
     }
 }

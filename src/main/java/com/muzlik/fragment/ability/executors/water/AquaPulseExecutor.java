@@ -75,6 +75,5 @@ public class AquaPulseExecutor implements AbilityExecutor {
         
         float pitch = 1.2f + (rank * 0.1f);
         player.getWorld().playSound(loc, Sound.ENTITY_PLAYER_SPLASH, 1.0f + (rank * 0.2f), pitch);
-        player.sendMessage("§b💧 Aqua Pulse! §7(Rank " + rank + ")");
     }
 }

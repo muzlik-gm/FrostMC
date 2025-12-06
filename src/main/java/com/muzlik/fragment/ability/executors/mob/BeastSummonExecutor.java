@@ -103,6 +103,5 @@ public class BeastSummonExecutor implements AbilityExecutor {
         player.getWorld().playSound(loc, Sound.ENTITY_WOLF_GROWL, 1.2f, 1.0f);
         player.getWorld().playSound(loc, Sound.ENTITY_EVOKER_CAST_SPELL, 1.0f, 1.2f);
         
-        player.sendMessage("§2🐺 Beast Summon! §7(" + wolvesToSummon + " wolves, " + (SUMMON_DURATION/20) + "s, " + (existingSummons + wolvesToSummon) + "/" + MAX_SUMMONS_PER_PLAYER + " total)");
     }
 }

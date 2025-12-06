@@ -58,6 +58,5 @@ public class CataclysmExecutor implements AbilityExecutor {
             player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 40, 0, false, false, false));
         }
         
-        player.sendMessage("§c§l🐉 CATACLYSM! §7You are the Dragon King! §c(" + (duration / 20) + "s)");
     }
 }

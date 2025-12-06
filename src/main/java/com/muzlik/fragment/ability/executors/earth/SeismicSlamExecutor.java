@@ -69,6 +69,5 @@ public class SeismicSlamExecutor implements AbilityExecutor {
         player.getWorld().playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 0.5f);
         player.getWorld().playSound(center, Sound.ENTITY_RAVAGER_ROAR, 1.5f, 0.3f);
         
-        player.sendMessage("§7⛰ Seismic Slam! §8(" + (int)radius + " block radius)");
     }
 }

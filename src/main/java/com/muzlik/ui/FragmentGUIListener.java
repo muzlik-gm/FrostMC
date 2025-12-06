@@ -38,13 +38,12 @@ public class FragmentGUIListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         String title = event.getView().getTitle();
         
-        // Check if it's a Fragment GUI - Check for small caps titles
-        if (!title.contains("ꜰʀᴀɢᴍᴇɴᴛ") && 
-            !title.contains("ᴀʙɪʟɪᴛɪᴇ") && 
-            !title.contains("ᴍᴀɴᴀ") &&
-            !title.contains("Fragment") && // Fallback
-            !title.contains("Abilities") && 
-            !title.contains("Mana")) {
+        // Check if it's a Fragment GUI
+        // We check for "FRAGMENT" (small caps or normal) and "ABILITIES" (uppercase or small caps)
+        boolean isFragmentOverview = title.contains("ꜰʀᴀɢᴍᴇɴᴛs") || title.contains("Fragment Overview");
+        boolean isAbilityDetails = title.contains("ABILITIES") || title.contains("ᴀʙɪʟɪᴛɪᴇ") || title.contains("Abilities");
+        
+        if (!isFragmentOverview && !isAbilityDetails) {
             return;
         }
         
@@ -59,38 +58,19 @@ public class FragmentGUIListener implements Listener {
         ClickType clickType = event.getClick();
         
         // Handle Fragment Overview clicks
-        if (title.contains("ꜰʀᴀɢᴍᴇɴᴛs") || title.contains("Fragment Overview")) {
+        if (isFragmentOverview) {
             handleFragmentOverviewClick(player, displayName, clickType);
         }
         // Handle Ability Detail View clicks
-        else if (title.contains("ᴀʙɪʟɪᴛɪᴇ") || title.contains("Abilities")) {
+        else if (isAbilityDetails) {
             handleAbilityDetailClick(player, displayName);
         }
     }
     
     /**
-     * Convert small caps unicode back to normal characters
-     */
-    private String convertSmallCapsToNormal(String smallCaps) {
-        String smallCapsChars = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
-        String normalChars = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder result = new StringBuilder();
-        
-        for (char c : smallCaps.toCharArray()) {
-            int index = smallCapsChars.indexOf(c);
-            if (index >= 0) {
-                result.append(normalChars.charAt(index));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-    
-    /**
      * Handle clicks in Fragment Overview GUI
-     * LEFT-CLICK: View abilities
-     * RIGHT-CLICK: Activate fragment
+     * LEFT-CLICK: View abilities (for ANY fragment, even locked)
+     * RIGHT-CLICK: Activate fragment (requires charged/owned)
      */
     private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType) {
         // Check for info button / glass panes
@@ -111,26 +91,21 @@ public class FragmentGUIListener implements Listener {
         boolean isActive = clickedType.equals(fragmentManager.getActiveFragment(player));
         
         if (clickType == ClickType.LEFT || clickType == ClickType.SHIFT_LEFT) {
-            // LEFT-CLICK: View abilities (for owned, charged, or active fragments)
-            if (isOwned || isCharged || isActive) {
-                player.closeInventory();
-                // Small delay to prevent inventory glitch
-                final FragmentType finalType = clickedType;
-                org.bukkit.Bukkit.getScheduler().runTaskLater(
-                    org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                    () -> uiManager.openAbilityDetails(player, finalType),
-                    2L
-                );
-            } else {
-                // Locked fragment
-                uiManager.playLockedAbilitySound(player);
-                player.sendMessage("§8ᴄᴏᴍᴘʟᴇᴛᴇ ʀɪᴛᴜᴀʟ ᴛᴏ ᴜɴʟᴏᴄᴋ ᴛʜɪs ꜰʀᴀɢᴍᴇɴᴛ");
-            }
+            // LEFT-CLICK: View abilities for ANY fragment (even locked ones!)
+            player.closeInventory();
+            // Small delay to prevent inventory glitch
+            final FragmentType finalType = clickedType;
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                () -> uiManager.openAbilityDetails(player, finalType),
+                2L
+            );
+
             
         } else if (clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) {
             // RIGHT-CLICK: Activate fragment
             if (isActive) {
-                player.sendMessage("§7ᴛʜɪs ꜰʀᴀɢᴍᴇɴᴛ ɪs ᴀʟʀᴇᴀᴅʏ ᴀᴄᴛɪᴠᴇ");
+                player.sendMessage(com.muzlik.util.Typography.formatError("This fragment is already active"));
                 return;
             }
             
@@ -141,7 +116,7 @@ public class FragmentGUIListener implements Listener {
                     boolean success = fragmentManager.activateChargedFragment(player, clickedType);
                     if (success) {
                         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
-                        player.sendMessage("§a§l✓ " + clickedType.getDisplayName() + " Fragment ACTIVATED!");
+                        player.sendMessage(com.muzlik.util.Typography.formatSuccess(clickedType.getDisplayName() + " Fragment ACTIVATED!"));
                         uiManager.spawnFragmentSwitchParticles(player, clickedType);
                         
                         // Refresh the GUI
@@ -154,8 +129,8 @@ public class FragmentGUIListener implements Listener {
                     }
                 } else {
                     uiManager.playLockedAbilitySound(player);
-                    player.sendMessage("§c✗ ʏᴏᴜ ɴᴇᴇᴅ ᴀ ꜰʀᴀɢᴍᴇɴᴛ ᴄʜᴀɴɢᴇʀ");
-                    player.sendMessage("§7ᴄʀᴀꜰᴛ ᴏɴᴇ ᴛᴏ ᴀᴄᴛɪᴠᴀᴛᴇ ᴄʜᴀʀɢᴇᴅ ꜰʀᴀɢᴍᴇɴᴛs");
+                    player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer"));
+                    player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft one to activate charged fragments"));
                 }
                 
             } else if (isOwned) {
@@ -163,7 +138,7 @@ public class FragmentGUIListener implements Listener {
                 if (hasFragmentChanger(player)) {
                     fragmentManager.setActiveFragment(player, clickedType);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-                    player.sendMessage("§a✓ sᴡɪᴛᴄʜᴇᴅ ᴛᴏ " + clickedType.getDisplayName());
+                    player.sendMessage(com.muzlik.util.Typography.formatSuccess("Switched to " + clickedType.getDisplayName()));
                     uiManager.spawnFragmentSwitchParticles(player, clickedType);
                     
                     // Refresh the GUI
@@ -175,13 +150,13 @@ public class FragmentGUIListener implements Listener {
                     );
                 } else {
                     uiManager.playLockedAbilitySound(player);
-                    player.sendMessage("§c✗ ʏᴏᴜ ɴᴇᴇᴅ ᴀ ꜰʀᴀɢᴍᴇɴᴛ ᴄʜᴀɴɢᴇʀ");
+                    player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer"));
                 }
                 
             } else {
                 // Locked
                 uiManager.playLockedAbilitySound(player);
-                player.sendMessage("§8ᴄᴏᴍᴘʟᴇᴛᴇ ʀɪᴛᴜᴀʟ ᴛᴏ ᴜɴʟᴏᴄᴋ ᴛʜɪs ꜰʀᴀɢᴍᴇɴᴛ");
+                player.sendMessage(com.muzlik.util.Typography.formatError("Complete ritual to unlock this fragment"));
             }
         }
     }
@@ -211,7 +186,7 @@ public class FragmentGUIListener implements Listener {
         // Strip color codes
         String strippedName = displayName.replaceAll("§[0-9a-fk-or]", "").toLowerCase();
         // Convert small caps
-        String normalizedStripped = convertSmallCapsToNormal(strippedName);
+        String normalizedStripped = com.muzlik.util.Typography.fromSmallCaps(strippedName);
         
         for (FragmentType type : FragmentType.values()) {
             String normalName = type.getDisplayName().toLowerCase();
@@ -247,13 +222,13 @@ public class FragmentGUIListener implements Listener {
         // Check if clicking on locked ability
         if (displayName.contains("✗") && displayName.contains("§c")) {
             uiManager.playLockedAbilitySound(player);
-            player.sendMessage("§8ᴛʜɪs ᴀʙɪʟɪᴛʏ ɪs ʟᴏᴄᴋᴇᴅ");
+            player.sendMessage(com.muzlik.util.Typography.formatError("This ability is locked"));
             return;
         }
         
         // Unlocked ability clicked - show usage hint
         if (displayName.contains("✓") || displayName.contains("§a")) {
-            player.sendMessage("§7ᴜsᴇ ᴠɪᴀ ʜᴏᴛʙᴀʀ §8(sɴᴇᴀᴋ + ᴄʟɪᴄᴋ)");
+            player.sendMessage(com.muzlik.util.Typography.formatTitle("Use via hotbar (Sneak + Click)"));
         }
     }
 }

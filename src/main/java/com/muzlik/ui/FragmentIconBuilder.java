@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.muzlik.util.Typography;
 
 /**
  * Builder class for creating enhanced Fragment icons with rich visual information.
@@ -135,43 +136,24 @@ public class FragmentIconBuilder {
     }
 
     /**
-     * Convert text to small caps unicode
-     */
-    private static String toSmallCaps(String text) {
-        String smallCaps = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
-        String normal = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder result = new StringBuilder();
-        
-        for (char c : text.toLowerCase().toCharArray()) {
-            int index = normal.indexOf(c);
-            if (index >= 0) {
-                result.append(smallCaps.charAt(index));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
-    
-    /**
      * Build display name with appropriate color coding - CLEAN MINIMAL STYLE
      * Priority: ACTIVATED > OWNED > CHARGED > LOCKED
      */
     private String buildDisplayName() {
-        String name = toSmallCaps(fragmentType.getDisplayName());
+        String name = Typography.toSmallCaps(fragmentType.getDisplayName());
         
         if (isActive) {
             // Currently active - GREEN
-            return "§a✓ §f" + name + " §a[ᴀᴄᴛɪᴠᴀᴛᴇᴅ]";
+            return Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " " + Typography.COLOR_HIGHLIGHT + name + " " + Typography.COLOR_SUCCESS + Typography.toSmallCaps("[activated]");
         } else if (isOwned) {
             // Owned but not active - WHITE
-            return "§f" + name + " §7[ᴏᴡɴᴇᴅ]";
+            return Typography.COLOR_HIGHLIGHT + name + " " + Typography.COLOR_TEXT + Typography.toSmallCaps("[owned]");
         } else if (isCharged) {
             // Charged, ready to activate - GOLD
-            return "§6⚡ §e" + name + " §6[ᴄʜᴀʀɢᴇᴅ]";
+            return Typography.COLOR_ACCENT + Typography.SYMBOL_LIGHTNING + " " + Typography.COLOR_SECONDARY + name + " " + Typography.COLOR_ACCENT + Typography.toSmallCaps("[charged]");
         } else {
             // Locked - GRAY
-            return "§8" + name + " §7[ʟᴏᴄᴋᴇᴅ]";
+            return Typography.COLOR_TEXT_DARK + name + " " + Typography.COLOR_TEXT + Typography.toSmallCaps("[locked]");
         }
     }
 
@@ -182,7 +164,7 @@ public class FragmentIconBuilder {
         List<String> lore = new ArrayList<>();
 
         // Description
-        lore.add("§8" + fragmentType.getDescription());
+        lore.add(Typography.COLOR_TEXT_DARK + fragmentType.getDescription());
         lore.add("");
 
         if (isActive) {
@@ -194,20 +176,20 @@ public class FragmentIconBuilder {
             double xp = levelManager.getXP(player, fragmentType);
             double xpRequired = levelManager.getXPForNextLevel(player, fragmentType);
 
-            lore.add("§7ʀᴀɴᴋ §f" + rank + "§8/§f" + maxRank);
-            lore.add("§7ʟᴇᴠᴇʟ §f" + level + "§8/§f" + maxLevel + " §8(" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
+            lore.add(Typography.formatLabel("Rank: ") + Typography.formatValue(rank + "/" + maxRank));
+            lore.add(Typography.formatLabel("Level: ") + Typography.formatValue(level + "/" + maxLevel) + Typography.COLOR_TEXT_DARK + " (" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
 
             // Mana display
             double currentMana = manaManager.getMana(player);
             double maxMana = manaManager.getMaxMana(player);
             lore.add("");
-            lore.add("§7ᴍᴀɴᴀ §f" + String.format("%.0f", currentMana) + "§8/§f" + String.format("%.0f", maxMana));
+            lore.add(Typography.formatLabel("Mana: ") + Typography.formatValue(String.format("%.0f", currentMana) + "/" + String.format("%.0f", maxMana)));
 
             // Status
             lore.add("");
-            lore.add("§a▸ ᴄᴜʀʀᴇɴᴛʟʏ ᴀᴄᴛɪᴠᴇ");
+            lore.add(Typography.COLOR_SUCCESS + Typography.SYMBOL_ARROW + " " + Typography.toSmallCaps("Currently Active"));
             lore.add("");
-            lore.add("§7[ʟᴇꜰᴛ-ᴄʟɪᴄᴋ] §8ᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs");
+            lore.add(Typography.formatLabel("[Left-Click] ") + Typography.COLOR_TEXT_DARK + Typography.toSmallCaps("View Abilities"));
             
         } else if (isOwned) {
             // OWNED state - can activate with changer
@@ -215,29 +197,29 @@ public class FragmentIconBuilder {
             int maxRank = rankManager.getMaxRank(fragmentType);
             int level = levelManager.getLevel(player, fragmentType);
 
-            lore.add("§7ʀᴀɴᴋ §f" + rank + "§8/§f" + maxRank);
-            lore.add("§7ʟᴇᴠᴇʟ §f" + level);
+            lore.add(Typography.formatLabel("Rank: ") + Typography.formatValue(rank + "/" + maxRank));
+            lore.add(Typography.formatLabel("Level: ") + Typography.formatValue(String.valueOf(level)));
 
             lore.add("");
-            lore.add("§7[ʟᴇꜰᴛ-ᴄʟɪᴄᴋ] §8ᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs");
-            lore.add("§7[ʀɪɢʜᴛ-ᴄʟɪᴄᴋ] §8ᴀᴄᴛɪᴠᴀᴛᴇ");
+            lore.add(Typography.formatLabel("[Left-Click] ") + Typography.COLOR_TEXT_DARK + Typography.toSmallCaps("View Abilities"));
+            lore.add(Typography.formatLabel("[Right-Click] ") + Typography.COLOR_TEXT_DARK + Typography.toSmallCaps("Activate"));
             
         } else if (isCharged) {
             // CHARGED state - ritual complete, ready to activate
-            lore.add("§e§l⚡ ʀɪᴛᴜᴀʟ ᴄᴏᴍᴘʟᴇᴛᴇ!");
+            lore.add(Typography.COLOR_SECONDARY + "§l" + Typography.SYMBOL_LIGHTNING + " " + Typography.toSmallCaps("Ritual Complete!"));
             lore.add("");
-            lore.add("§7ᴛʜɪs ꜰʀᴀɢᴍᴇɴᴛ ɪs ᴄʜᴀʀɢᴇᴅ");
-            lore.add("§7ᴀɴᴅ ʀᴇᴀᴅʏ ᴛᴏ ᴀᴄᴛɪᴠᴀᴛᴇ");
+            lore.add(Typography.COLOR_TEXT + Typography.toSmallCaps("This fragment is charged"));
+            lore.add(Typography.COLOR_TEXT + Typography.toSmallCaps("and ready to activate"));
             lore.add("");
-            lore.add("§7[ʟᴇꜰᴛ-ᴄʟɪᴄᴋ] §8ᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs");
-            lore.add("§e[ʀɪɢʜᴛ-ᴄʟɪᴄᴋ] §6ᴀᴄᴛɪᴠᴀᴛᴇ!");
+            lore.add(Typography.formatLabel("[Left-Click] ") + Typography.COLOR_TEXT_DARK + Typography.toSmallCaps("View Abilities"));
+            lore.add(Typography.COLOR_SECONDARY + Typography.toSmallCaps("[Right-Click] ") + Typography.COLOR_ACCENT + Typography.toSmallCaps("Activate!"));
             
         } else {
             // LOCKED state
-            lore.add("§c✗ ɴᴏᴛ ᴜɴʟᴏᴄᴋᴇᴅ");
+            lore.add(Typography.COLOR_ERROR + Typography.SYMBOL_CROSS + " " + Typography.toSmallCaps("Not Unlocked"));
             lore.add("");
-            lore.add("§7ᴄᴏᴍᴘʟᴇᴛᴇ ᴛʜᴇ ꜰʀᴀɢᴍᴇɴᴛ");
-            lore.add("§7ᴄʀᴇᴀᴛɪᴏɴ ʀɪᴛᴜᴀʟ ᴛᴏ ᴜɴʟᴏᴄᴋ");
+            lore.add(Typography.COLOR_TEXT + Typography.toSmallCaps("Complete the fragment"));
+            lore.add(Typography.COLOR_TEXT + Typography.toSmallCaps("creation ritual to unlock"));
         }
 
         return lore;

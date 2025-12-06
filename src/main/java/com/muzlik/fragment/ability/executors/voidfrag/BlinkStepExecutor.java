@@ -42,7 +42,6 @@ public class BlinkStepExecutor implements AbilityExecutor {
             player.getWorld().playSound(target, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f);
             player.getWorld().playSound(target, Sound.BLOCK_PORTAL_TRAVEL, 0.5f, 2.0f);
             
-            player.sendMessage("§5🌀 Blink Step!");
         } else {
             player.sendMessage("§c✗ Cannot teleport there!");
         }

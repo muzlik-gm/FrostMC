@@ -72,6 +72,5 @@ public class IronGolemGuardianExecutor implements AbilityExecutor {
         player.getWorld().playSound(loc, Sound.BLOCK_ANVIL_LAND, 1.5f, 1.0f);
         player.getWorld().playSound(loc, Sound.ENTITY_IRON_GOLEM_HURT, 1.0f, 0.8f);
         
-        player.sendMessage("§2🤖 Iron Golem Guardian! §7(" + (SUMMON_DURATION/20) + "s, " + String.format("%.0f", health) + " HP)");
     }
 }

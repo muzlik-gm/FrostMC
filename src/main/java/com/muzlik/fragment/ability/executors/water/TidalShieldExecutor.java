@@ -108,6 +108,5 @@ public class TidalShieldExecutor implements AbilityExecutor {
         player.getWorld().playSound(center, Sound.BLOCK_WATER_AMBIENT, 2.0f, 0.8f);
         player.getWorld().playSound(center, Sound.ENTITY_PLAYER_SPLASH, 1.5f, 1.0f);
         
-        player.sendMessage("§b💧 Tidal Shield! §8(" + blocksPlaced + " water blocks, " + (durationTicks/20) + "s)");
     }
 }

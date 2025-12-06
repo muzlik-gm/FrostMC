@@ -86,7 +86,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(80)
             .cooldown(3600000) // 1 hour
-            .rankRequirement(5)
+            .rankRequirement(4)
             .executor(new com.muzlik.fragment.ability.executors.fire.PhoenixRebirthExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.PASSIVE)
             .build());
@@ -97,7 +97,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(100)
             .cooldown(90000)
-            .rankRequirement(3)
+            .rankRequirement(5)
             .executor(new com.muzlik.fragment.ability.executors.fire.EternalFlameExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -200,7 +200,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(45)
             .cooldown(15000)
-            .rankRequirement(2)
+            .rankRequirement(4)
             .executor(new com.muzlik.fragment.ability.executors.air.CycloneArmorExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -211,7 +211,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(90)
             .cooldown(75000)
-            .rankRequirement(3)
+            .rankRequirement(5)
             .executor(new com.muzlik.fragment.ability.executors.air.StormSovereignExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -314,7 +314,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(55)
             .cooldown(20000)
-            .rankRequirement(3)
+            .rankRequirement(5)
             .executor(new com.muzlik.fragment.ability.executors.dark.ShadowCloneExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -325,7 +325,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(95)
             .cooldown(80000)
-            .rankRequirement(4)
+            .rankRequirement(6)
             .executor(new com.muzlik.fragment.ability.executors.dark.EternalDarknessExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -382,7 +382,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(50)
             .cooldown(18000)
-            .rankRequirement(3)
+            .rankRequirement(5)
             .executor(new com.muzlik.fragment.ability.executors.light.HolySanctuaryExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -393,7 +393,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(100)
             .cooldown(85000)
-            .rankRequirement(4)
+            .rankRequirement(6)
             .executor(new com.muzlik.fragment.ability.executors.light.SeraphAscensionExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());

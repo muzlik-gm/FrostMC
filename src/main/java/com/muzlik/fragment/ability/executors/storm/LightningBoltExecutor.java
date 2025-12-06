@@ -78,6 +78,5 @@ public class LightningBoltExecutor implements AbilityExecutor {
             }
         }
         
-        player.sendMessage("§b⚡ Lightning Bolt! §7(" + String.format("%.1f", damage) + " damage)");
     }
 }

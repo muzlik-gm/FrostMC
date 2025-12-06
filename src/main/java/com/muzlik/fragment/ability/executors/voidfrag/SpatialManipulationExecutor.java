@@ -72,7 +72,6 @@ public class SpatialManipulationExecutor implements AbilityExecutor {
             portal1.setLinkedPortal(portal2);
             portal2.setLinkedPortal(portal1);
             
-            player.sendMessage("§5⚡ Portals linked!");
         }
         
         // Start portal
@@ -94,7 +93,6 @@ public class SpatialManipulationExecutor implements AbilityExecutor {
         // Play sound
         player.getWorld().playSound(portalLoc, Sound.BLOCK_PORTAL_TRIGGER, 1.5f, 1.2f);
         
-        player.sendMessage("§5⚡ Spatial Manipulation! §7[Portal " + portals.size() + "/2]");
     }
     
     /**
@@ -184,7 +182,6 @@ public class SpatialManipulationExecutor implements AbilityExecutor {
             player.getWorld().playSound(dest, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
             player.getWorld().spawnParticle(Particle.PORTAL, dest, 50, 0.5, 1.0, 0.5, 0.2);
             
-            player.sendMessage("§5⚡ Teleported!");
         }
         
         public void cancel() {

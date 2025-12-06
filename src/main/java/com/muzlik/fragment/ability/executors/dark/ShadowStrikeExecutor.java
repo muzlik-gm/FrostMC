@@ -53,6 +53,5 @@ public class ShadowStrikeExecutor implements AbilityExecutor {
         
         float pitch = 1.5f - (rank * 0.05f); // Lower pitch at higher ranks (more ominous)
         player.getWorld().playSound(eyeLoc, Sound.ENTITY_WITHER_SHOOT, 1.0f + (rank * 0.15f), pitch);
-        player.sendMessage("§5⚫ Shadow Strike! §7(Rank " + rank + ")");
     }
 }

@@ -15,6 +15,5 @@ public class HolySanctuaryExecutor implements AbilityExecutor {
         
         player.getWorld().spawnParticle(Particle.END_ROD, player.getLocation(), 150, radius, 2, radius, 0.1);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1.0f, 1.0f);
-        player.sendMessage("§e✨ Holy Sanctuary created!");
     }
 }

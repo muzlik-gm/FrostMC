@@ -128,6 +128,5 @@ public class LegionOfShadowsExecutor implements AbilityExecutor {
         world.playSound(loc, Sound.ENTITY_WITHER_SPAWN, 1.0f + (rank * 0.1f), 0.8f);
         world.playSound(loc, Sound.ENTITY_ZOMBIE_AMBIENT, 1.5f, 0.6f);
         
-        player.sendMessage("§2💀 Legion of Shadows! §7(" + skeletonCount + " warriors, " + zombieCount + " brutes, " + (SUMMON_DURATION/20) + "s)");
     }
 }

@@ -39,20 +39,9 @@ public class BlazingStepExecutor implements AbilityExecutor {
         double baseRange = 8.0;
         double range = context.getScalingEngine().scaleRange(baseRange, rank);
         
-        // Get safe dash target
-        Location targetLoc = SafeTeleport.getSafeDashTarget(player, direction, range);
-        
-        // Teleport player safely
-        boolean success = SafeTeleport.teleportSafely(player, targetLoc);
-        
-        if (!success) {
-            player.sendMessage("§c✗ Cannot dash there!");
-            return;
-        }
-        
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // FOCUSED initial VFX at start location - clean dash burst
+        // Get safe dash target
         // Reduced counts for secondary ability
         int burstCore = 15 + (rank * 4);       // 15 → 27 at rank 3 (was 40 constant)
         int burstSecondary = 8 + (rank * 2);   // 8 → 14 at rank 3 (was 20 constant)
@@ -70,6 +59,13 @@ public class BlazingStepExecutor implements AbilityExecutor {
         }
         
         startVFX.spawn();
+        
+        // Perform safe dash
+        Location targetLoc = startLoc.clone().add(direction.multiply(range));
+        Location safeLoc = SafeTeleport.findSafeLocation(targetLoc);
+        if (safeLoc != null) {
+            player.teleport(safeLoc);
+        }
         
         // Create burning trail with FOCUSED VFX
         new BukkitRunnable() {
@@ -120,6 +116,6 @@ public class BlazingStepExecutor implements AbilityExecutor {
         // Sound effect
         player.getWorld().playSound(startLoc, Sound.ENTITY_BLAZE_AMBIENT, 1.0f, 1.5f);
         
-        player.sendMessage("§c🔥 Blazing Step!");
+
     }
 }
