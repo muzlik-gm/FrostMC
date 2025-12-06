@@ -169,14 +169,20 @@ public class FragmentActionBarHUD {
         message = message.append(Component.text(String.format("%.0f", maxMana), NamedTextColor.GRAY));
         message = message.append(Component.text(" ", NamedTextColor.DARK_GRAY));
         
-        // Ability slots (0-4) - CLEAN STYLE
+        // Get Fragment definition to check ability slots
+        com.muzlik.fragment.FragmentDefinition fragment = fragmentManager.getFragment(fragmentType);
+        
+        // Ability slots (0-4) - IMPROVED STYLE
+        // ■ = unlocked & ready (green)
+        // ○ = locked but CAN be unlocked (yellow) 
+        // ✗ = cannot be unlocked / no ability (dark red)
         for (int slot = 0; slot <= 4; slot++) {
             IFragmentAbility ability = fragmentManager.getAbility(player, fragmentType, slot);
             
             boolean isCurrentSlot = (slot == currentSlot);
             
             if (ability != null) {
-                // Ability exists
+                // ═══ UNLOCKED ABILITY ═══
                 String abilityId = fragmentType.name() + "_" + ability.getName();
                 boolean onCooldown = cooldownManager.isOnCooldown(player, abilityId);
                 
@@ -186,29 +192,60 @@ public class FragmentActionBarHUD {
                     
                     if (onCooldown) {
                         double remaining = cooldownManager.getRemainingCooldownSeconds(player, abilityId);
-                        message = message.append(Component.text(String.format("%.0f", remaining), NamedTextColor.DARK_GRAY));
+                        message = message.append(Component.text(String.format("%.0f", remaining), NamedTextColor.GOLD));
                     } else {
                         message = message.append(Component.text("■", NamedTextColor.GREEN));
                     }
                     
                     message = message.append(Component.text("]", NamedTextColor.WHITE));
                 } else {
-                    // Other slots
+                    // Other slots - show ready or cooldown
                     if (onCooldown) {
                         double remaining = cooldownManager.getRemainingCooldownSeconds(player, abilityId);
-                        message = message.append(Component.text(String.format("%.0f", remaining), NamedTextColor.DARK_GRAY));
+                        message = message.append(Component.text(String.format("%.0f", remaining), NamedTextColor.GRAY));
                     } else {
                         message = message.append(Component.text("■", NamedTextColor.DARK_GRAY));
                     }
                 }
             } else {
-                // Locked slot
-                if (isCurrentSlot) {
-                    message = message.append(Component.text("[", NamedTextColor.WHITE));
-                    message = message.append(Component.text("□", NamedTextColor.DARK_GRAY));
-                    message = message.append(Component.text("]", NamedTextColor.WHITE));
+                // ═══ LOCKED OR UNAVAILABLE SLOT ═══
+                // Check if there's an ability defined for this slot that could be unlocked
+                boolean canUnlock = false;
+                boolean hasAbilityDefined = false;
+                
+                if (fragment != null) {
+                    for (com.muzlik.fragment.ability.AbilityDefinition abilityDef : fragment.getAbilities()) {
+                        if (abilityDef.getSlot().getSlotIndex() == slot) {
+                            hasAbilityDefined = true;
+                            // There's an ability here, check if it can eventually be unlocked
+                            // (rank requirement is achievable)
+                            int maxRank = fragmentManager.getRankManager().getMaxRank(fragmentType);
+                            if (abilityDef.getRankRequirement() <= maxRank) {
+                                canUnlock = true;
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                if (hasAbilityDefined && canUnlock) {
+                    // ○ = Locked but CAN be unlocked (show as yellow circle)
+                    if (isCurrentSlot) {
+                        message = message.append(Component.text("[", NamedTextColor.WHITE));
+                        message = message.append(Component.text("○", NamedTextColor.YELLOW));
+                        message = message.append(Component.text("]", NamedTextColor.WHITE));
+                    } else {
+                        message = message.append(Component.text("○", NamedTextColor.GOLD));
+                    }
                 } else {
-                    message = message.append(Component.text("□", NamedTextColor.DARK_GRAY));
+                    // ✗ = Cannot unlock / No ability defined (show as dark red cross)
+                    if (isCurrentSlot) {
+                        message = message.append(Component.text("[", NamedTextColor.WHITE));
+                        message = message.append(Component.text("✗", NamedTextColor.DARK_RED));
+                        message = message.append(Component.text("]", NamedTextColor.WHITE));
+                    } else {
+                        message = message.append(Component.text("✗", NamedTextColor.DARK_GRAY));
+                    }
                 }
             }
             

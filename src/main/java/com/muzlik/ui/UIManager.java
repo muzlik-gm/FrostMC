@@ -86,11 +86,14 @@ public class UIManager {
             
             boolean isOwned = ownedFragments.contains(type);
             boolean isActive = type.equals(activeFragment);
+            boolean isCharged = fragmentManager.isCharged(player, type);
             
-            // Use FragmentIconBuilder for enhanced icons
+            // Use FragmentIconBuilder for enhanced icons with charged state
             ItemStack item = new FragmentIconBuilder(type, player, levelManager, rankManager, manaManager)
+                    .fragmentManager(fragmentManager)
                     .owned(isOwned)
                     .active(isActive)
+                    .charged(isCharged)
                     .build();
             
             inv.setItem(slots[slotIndex++], item);
@@ -105,9 +108,10 @@ public class UIManager {
 
     /**
      * Open Ability Detail View GUI for a specific Fragment
+     * Enhanced layout with better spacing and typography
      */
     public void openAbilityDetails(Player player, FragmentType type) {
-        // Play CLICK sound on Fragment selection (Requirement 4.5)
+        // Play CLICK sound on Fragment selection
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
         
         FragmentDefinition fragment = fragmentManager.getFragment(type);
@@ -119,21 +123,40 @@ public class UIManager {
         Inventory inv = Bukkit.createInventory(null, 54, 
                 Component.text("§8" + toSmallCaps(type.getDisplayName() + " abilities")));
         
-        // Fill border
+        // Fill border with decorative glass
         fillBorder(inv);
         
-        // Fragment info icon (top center)
+        // ═══════════════════════════════════════════════════════════
+        // ROW 1 (slots 10-16): Fragment info + Stats
+        // ═══════════════════════════════════════════════════════════
+        
+        // Fragment icon (slot 10-11)
         ItemStack fragmentIcon = new FragmentIconBuilder(type, player, levelManager, rankManager, manaManager)
+                .fragmentManager(fragmentManager)
                 .owned(fragmentManager.hasFragment(player, type))
                 .active(type.equals(fragmentManager.getActiveFragment(player)))
+                .charged(fragmentManager.isCharged(player, type))
                 .build();
-        inv.setItem(13, fragmentIcon);
+        inv.setItem(10, fragmentIcon);
         
-        // Ability icons (center area)
-        int[] abilitySlots = {19, 20, 21, 22, 23, 24, 25};
+        // Stats panel (slot 13-15)
+        inv.setItem(13, createStatsPanel(player, type));
+        inv.setItem(15, createLevelBonusPanel(player, type));
+        
+        // ═══════════════════════════════════════════════════════════
+        // ROW 2-3 (slots 19-25, 28-34): Abilities
+        // ═══════════════════════════════════════════════════════════
+        
+        // Get abilities
+        java.util.List<AbilityDefinition> abilities = fragment.getAbilities();
+        
+        // Layout: abilities spread across center with spacing
+        // Row 2: slots 20, 22, 24 (primary, secondary, ultimate)
+        // Row 3: slots 29, 31, 33 (advanced, mastery, if available)
+        int[] abilitySlots = {20, 22, 24, 29, 31};
         int slotIndex = 0;
         
-        for (AbilityDefinition ability : fragment.getAbilities()) {
+        for (AbilityDefinition ability : abilities) {
             if (slotIndex >= abilitySlots.length) break;
             
             ItemStack abilityIcon = new AbilityIconBuilder(ability, player, type, 
@@ -143,11 +166,67 @@ public class UIManager {
             inv.setItem(abilitySlots[slotIndex++], abilityIcon);
         }
         
-        // Back button
+        // ═══════════════════════════════════════════════════════════
+        // BOTTOM ROW: Back button
+        // ═══════════════════════════════════════════════════════════
+        
         ItemStack backButton = createBackButton();
         inv.setItem(45, backButton);
         
         player.openInventory(inv);
+    }
+    
+    /**
+     * Create stats panel for ability view
+     */
+    private ItemStack createStatsPanel(Player player, FragmentType type) {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§e§l" + toSmallCaps("Stats"));
+        
+        int rank = rankManager.getRank(player, type);
+        int maxRank = rankManager.getMaxRank(type);
+        int level = levelManager.getLevel(player, type);
+        int maxLevel = levelManager.getMaxLevel(type);
+        double xp = levelManager.getXP(player, type);
+        double xpReq = levelManager.getXPForNextLevel(player, type);
+        
+        meta.setLore(Arrays.asList(
+                "",
+                "§7ʀᴀɴᴋ §f" + rank + "§8/§f" + maxRank,
+                "§7ʟᴇᴠᴇʟ §f" + level + "§8/§f" + maxLevel,
+                "",
+                "§7xᴘ §f" + String.format("%.0f", xp) + "§8/§f" + String.format("%.0f", xpReq),
+                ""
+        ));
+        
+        item.setItemMeta(meta);
+        return item;
+    }
+    
+    /**
+     * Create level bonus panel for ability view
+     */
+    private ItemStack createLevelBonusPanel(Player player, FragmentType type) {
+        ItemStack item = new ItemStack(Material.EXPERIENCE_BOTTLE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§b§l" + toSmallCaps("Level Bonuses"));
+        
+        double cdReduction = levelManager.getCooldownReduction(player, type) * 100;
+        double manaReduction = levelManager.getManaCostReduction(player, type) * 100;
+        double dmgBonus = levelManager.getDamageBonus(player, type) * 100;
+        
+        meta.setLore(Arrays.asList(
+                "",
+                "§7⏱ ᴄᴏᴏʟᴅᴏᴡɴ §a-" + String.format("%.0f", cdReduction) + "%",
+                "§7⚡ ᴍᴀɴᴀ ᴄᴏsᴛ §a-" + String.format("%.0f", manaReduction) + "%",
+                "§7⚔ ᴅᴀᴍᴀɢᴇ §a+" + String.format("%.0f", dmgBonus) + "%",
+                "",
+                "§8ʟᴇᴠᴇʟ ᴜᴘ ᴛᴏ ɪɴᴄʀᴇᴀsᴇ!"
+        ));
+        
+        item.setItemMeta(meta);
+        return item;
     }
     
     /**
@@ -243,14 +322,18 @@ public class UIManager {
     private ItemStack createInfoButton() {
         ItemStack item = new ItemStack(Material.BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§e§lFragment Information");
+        meta.setDisplayName("§e§l" + toSmallCaps("Fragment Guide"));
         meta.setLore(Arrays.asList(
-                "§7Click on a Fragment to view",
-                "§7detailed ability information",
                 "",
-                "§7Green checkmark §a✓ §7= Unlocked",
-                "§7Red lock §c✗ §7= Locked",
-                "§7Yellow warning §e⚠ §7= Nearly unlocked"
+                "§7ʟᴇꜰᴛ-ᴄʟɪᴄᴋ §8→ §fᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs",
+                "§7ʀɪɢʜᴛ-ᴄʟɪᴄᴋ §8→ §fᴀᴄᴛɪᴠᴀᴛᴇ",
+                "",
+                "§7§m                    ",
+                "",
+                "§a✓ ᴀᴄᴛɪᴠᴀᴛᴇᴅ §8- §7Currently using",
+                "§f○ ᴏᴡɴᴇᴅ §8- §7Can switch to",
+                "§6⚡ ᴄʜᴀʀɢᴇᴅ §8- §7Ready to activate",
+                "§8✗ ʟᴏᴄᴋᴇᴅ §8- §7Need ritual"
         ));
         item.setItemMeta(meta);
         return item;

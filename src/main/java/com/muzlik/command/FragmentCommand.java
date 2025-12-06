@@ -154,6 +154,18 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
                 setCharacterLevel(player, args[1]);
                 break;
+            
+            case "setfraglevel":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /fragment setfraglevel <level>");
+                    return true;
+                }
+                setFragmentLevel(player, args[1]);
+                break;
 
             default:
                 sendHelp(player);
@@ -439,7 +451,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment abilities §8- List abilities");
         player.sendMessage("  §f/fragment activate <type> §8- Switch");
         player.sendMessage("");
-        player.sendMessage("  §8Admin: §7/fragment give/grant/setlevel");
+        player.sendMessage("  §8Admin: §7/fragment give/grant/setlevel/setfraglevel");
         player.sendMessage("");
     }
     
@@ -516,6 +528,46 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             
             player.sendMessage("§a✦ Character level set to §b" + level);
             player.sendMessage("§a⚡ Max Mana is now §b" + String.format("%.0f", newMaxMana));
+            
+        } catch (NumberFormatException e) {
+            player.sendMessage("§cInvalid level: " + levelStr);
+        }
+    }
+    
+    /**
+     * Set Fragment level (admin command) - for the active Fragment
+     */
+    private void setFragmentLevel(Player player, String levelStr) {
+        FragmentType activeFragment = fragmentManager.getActiveFragment(player);
+        
+        if (activeFragment == null) {
+            player.sendMessage("§c✗ No Fragment active");
+            return;
+        }
+        
+        try {
+            int level = Integer.parseInt(levelStr);
+            int maxLevel = levelManager.getMaxLevel(activeFragment);
+            
+            if (level < 1 || level > maxLevel) {
+                player.sendMessage("§cLevel must be between 1 and " + maxLevel);
+                return;
+            }
+            
+            levelManager.setLevel(player, activeFragment, level);
+            levelManager.setXP(player, activeFragment, 0); // Reset XP
+            
+            // Get bonuses at this level
+            double cdReduction = levelManager.getCooldownReduction(player, activeFragment) * 100;
+            double manaReduction = levelManager.getManaCostReduction(player, activeFragment) * 100;
+            double dmgBonus = levelManager.getDamageBonus(player, activeFragment) * 100;
+            
+            player.sendMessage("§a⬆ " + activeFragment.getDisplayName() + " Fragment level set to §b" + level + "/" + maxLevel);
+            player.sendMessage("");
+            player.sendMessage("§7Bonuses:");
+            player.sendMessage("  §b⏱ §fCooldown: §a-" + String.format("%.0f", cdReduction) + "%");
+            player.sendMessage("  §b⚡ §fMana Cost: §a-" + String.format("%.0f", manaReduction) + "%");
+            player.sendMessage("  §b⚔ §fDamage: §a+" + String.format("%.0f", dmgBonus) + "%");
             
         } catch (NumberFormatException e) {
             player.sendMessage("§cInvalid level: " + levelStr);
@@ -692,7 +744,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "forceactivate", "setlevel", "generatepack"));
+            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "forceactivate", "setlevel", "setfraglevel", "generatepack"));
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("give")) {
                 completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));

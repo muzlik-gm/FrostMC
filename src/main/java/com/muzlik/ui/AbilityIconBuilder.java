@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * Builder class for creating ability icons with status indicators.
- * Shows unlock status, cooldowns, and detailed ability information.
+ * Clean minimal design matching the Fragment GUI style.
  */
 public class AbilityIconBuilder {
     private final AbilityDefinition ability;
@@ -42,6 +42,25 @@ public class AbilityIconBuilder {
         this.levelManager = levelManager;
         this.cooldownManager = cooldownManager;
         this.scalingEngine = new AbilityScalingEngine();
+    }
+
+    /**
+     * Convert text to small caps unicode
+     */
+    private static String toSmallCaps(String text) {
+        String smallCaps = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
+        String normal = "abcdefghijklmnopqrstuvwxyz";
+        StringBuilder result = new StringBuilder();
+        
+        for (char c : text.toLowerCase().toCharArray()) {
+            int index = normal.indexOf(c);
+            if (index >= 0) {
+                result.append(smallCaps.charAt(index));
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 
     /**
@@ -103,135 +122,108 @@ public class AbilityIconBuilder {
     }
 
     /**
-     * Build display name with status indicator and slot symbol
+     * Build display name with status indicator - CLEAN MINIMAL STYLE
      */
     private String buildDisplayName(boolean isUnlocked, boolean isOnCooldown) {
-        String statusSymbol;
-        String color;
+        String name = toSmallCaps(ability.getDisplayName());
+        String slotNum = String.valueOf(ability.getSlot().getSlotIndex() + 1);
         
         if (!isUnlocked) {
-            statusSymbol = "§c" + com.muzlik.texture.FragmentSymbols.LOCKED + " ";
-            color = "§7";
+            return "§8§l" + slotNum + " §c✗ §8" + name;
         } else if (isOnCooldown) {
-            statusSymbol = "§e" + com.muzlik.texture.FragmentSymbols.COOLDOWN + " ";
-            color = "§7";
+            return "§8§l" + slotNum + " §e⏱ §7" + name;
         } else {
-            statusSymbol = "§a" + com.muzlik.texture.FragmentSymbols.UNLOCKED + " ";
-            color = "§b";
+            return "§8§l" + slotNum + " §a✓ §f" + name;
         }
-        
-        String slotSymbol = com.muzlik.texture.FragmentSymbols.getAbilitySlotSymbol(ability.getSlot());
-        return statusSymbol + color + slotSymbol + " " + ability.getDisplayName();
     }
 
     /**
-     * Build comprehensive lore with ability details and status
+     * Build comprehensive lore with ability details - CLEAN MINIMAL STYLE
      */
     private List<String> buildLore(boolean isUnlocked, boolean isOnCooldown, 
                                    int playerRank, int playerLevel) {
         List<String> lore = new ArrayList<>();
         
-        // Ability description
-        lore.add("§7" + ability.getDescription());
+        // Description
+        lore.add("§8" + ability.getDescription());
         lore.add("");
         
-        // Slot information
-        lore.add("§7Slot: §e" + ability.getSlot().getDisplayName() + " §8(Slot " + 
-                ability.getSlot().getSlotIndex() + ")");
+        // Slot info
+        lore.add("§7sʟᴏᴛ §f" + ability.getSlot().getDisplayName());
         lore.add("");
         
         if (isUnlocked) {
-            // Show scaled stats for unlocked abilities
-            addUnlockedAbilityStats(lore, playerRank);
+            // Stats for unlocked abilities
+            double baseMana = ability.getManaCost();
+            double scaledMana = scalingEngine.scaleManaCost(baseMana, playerRank);
+            double cooldownSeconds = ability.getCooldown() / 1000.0;
             
-            // Cooldown status
+            // Apply level bonuses
+            double manaReduction = levelManager.getManaCostReduction(player, fragmentType);
+            double cdReduction = levelManager.getCooldownReduction(player, fragmentType);
+            double finalMana = scaledMana * (1 - manaReduction);
+            double finalCooldown = cooldownSeconds * (1 - cdReduction);
+            
+            lore.add("§7ᴍᴀɴᴀ §b" + String.format("%.0f", finalMana));
+            if (manaReduction > 0) {
+                lore.add("  §8(-" + String.format("%.0f", manaReduction * 100) + "% from level)");
+            }
+            
+            lore.add("§7ᴄᴏᴏʟᴅᴏᴡɴ §e" + String.format("%.1f", finalCooldown) + "s");
+            if (cdReduction > 0) {
+                lore.add("  §8(-" + String.format("%.0f", cdReduction * 100) + "% from level)");
+            }
+            
+            // Show current cooldown if on cooldown
             if (isOnCooldown) {
                 double remaining = cooldownManager.getRemainingCooldownSeconds(player, ability.getId());
                 lore.add("");
-                lore.add("§c⏱ Cooldown: §e" + formatTime(remaining));
-                lore.add("§7Please wait before using again");
+                lore.add("§c⏱ " + formatTime(remaining) + " §7ʀᴇᴍᴀɪɴɪɴɢ");
             } else {
                 lore.add("");
-                lore.add("§a§l✓ READY");
-                lore.add("§7This ability is ready to use");
+                lore.add("§a▸ ʀᴇᴀᴅʏ ᴛᴏ ᴜsᴇ");
             }
             
+            // Usage hint
+            lore.add("");
+            lore.add("§8sɴᴇᴀᴋ + ᴄʟɪᴄᴋ ᴏɴ ʜᴏᴛʙᴀʀ");
+            
         } else {
-            // Show unlock requirements for locked abilities
-            addLockedAbilityInfo(lore, playerRank, playerLevel);
+            // Requirements for locked abilities
+            lore.add("§c✗ ʟᴏᴄᴋᴇᴅ");
+            lore.add("");
+            
+            int rankReq = ability.getRankRequirement();
+            int levelReq = ability.getLevelRequirement();
+            
+            // Rank requirement
+            if (playerRank < rankReq) {
+                int ranksAway = rankReq - playerRank;
+                if (ranksAway == 1) {
+                    lore.add("§e⚠ ʀᴀɴᴋ " + rankReq + " §8(1 ᴀᴡᴀʏ)");
+                } else {
+                    lore.add("§c✗ ʀᴀɴᴋ " + rankReq + " §8(" + ranksAway + " ᴀᴡᴀʏ)");
+                }
+            } else {
+                lore.add("§a✓ ʀᴀɴᴋ " + rankReq);
+            }
+            
+            // Level requirement
+            if (levelReq > 0) {
+                if (playerLevel < levelReq) {
+                    int levelsAway = levelReq - playerLevel;
+                    if (levelsAway <= 2) {
+                        lore.add("§e⚠ ʟᴇᴠᴇʟ " + levelReq + " §8(" + levelsAway + " ᴀᴡᴀʏ)");
+                    } else {
+                        lore.add("§c✗ ʟᴇᴠᴇʟ " + levelReq + " §8(" + levelsAway + " ᴀᴡᴀʏ)");
+                    }
+                } else {
+                    lore.add("§a✓ ʟᴇᴠᴇʟ " + levelReq);
+                }
+            }
         }
         
         return lore;
-    }
-
-    /**
-     * Add stats for unlocked abilities
-     */
-    private void addUnlockedAbilityStats(List<String> lore, int playerRank) {
-        // Base mana cost
-        double baseMana = ability.getManaCost();
-        double scaledMana = scalingEngine.scaleManaCost(baseMana, playerRank);
-        
-        lore.add("§7Mana Cost:");
-        lore.add("  §b" + String.format("%.0f", scaledMana) + " §7mana");
-        
-        // Cooldown
-        double cooldownSeconds = ability.getCooldown() / 1000.0;
-        lore.add("§7Cooldown:");
-        lore.add("  §e" + String.format("%.1f", cooldownSeconds) + "s");
-        
-        // Rank scaling info
-        if (playerRank > 1) {
-            lore.add("");
-            lore.add("§7Rank Scaling: §6" + playerRank);
-            lore.add("§7Power increased by rank bonuses");
-        }
-    }
-
-    /**
-     * Add unlock requirements for locked abilities
-     */
-    private void addLockedAbilityInfo(List<String> lore, int playerRank, int playerLevel) {
-        int rankReq = ability.getRankRequirement();
-        int levelReq = ability.getLevelRequirement();
-        
-        lore.add("§c§l✗ LOCKED");
-        lore.add("");
-        lore.add("§7Requirements:");
-        
-        // Rank requirement
-        if (playerRank < rankReq) {
-            int ranksAway = rankReq - playerRank;
-            String rankColor = ranksAway == 1 ? "§e⚠" : "§c✗";
-            lore.add("  " + rankColor + " §7Rank §6" + rankReq + " §7(you are §6" + playerRank + "§7)");
-            
-            if (ranksAway == 1) {
-                lore.add("    §e§l⚠ Only 1 rank away!");
-            } else {
-                lore.add("    §7" + ranksAway + " ranks away");
-            }
-        } else {
-            lore.add("  §a✓ §7Rank §6" + rankReq);
-        }
-        
-        // Level requirement
-        if (levelReq > 0) {
-            if (playerLevel < levelReq) {
-                int levelsAway = levelReq - playerLevel;
-                String levelColor = levelsAway <= 2 ? "§e⚠" : "§c✗";
-                lore.add("  " + levelColor + " §7Level §e" + levelReq + " §7(you are §e" + playerLevel + "§7)");
-                
-                if (levelsAway == 1) {
-                    lore.add("    §e§l⚠ Only 1 level away!");
-                } else if (levelsAway == 2) {
-                    lore.add("    §e§l⚠ Only 2 levels away!");
-                } else {
-                    lore.add("    §7" + levelsAway + " levels away");
-                }
-            } else {
-                lore.add("  §a✓ §7Level §e" + levelReq);
-            }
-        }
     }
 
     /**

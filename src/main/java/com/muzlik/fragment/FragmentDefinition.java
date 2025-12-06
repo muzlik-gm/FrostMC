@@ -63,6 +63,21 @@ public class FragmentDefinition {
     }
 
     /**
+     * Get the maximum level for this Fragment based on base rank.
+     * Higher base rank Fragments have higher level caps.
+     * Base Rank 2-3: Max Level 5
+     * Base Rank 4-5: Max Level 8
+     * Base Rank 6-7: Max Level 10
+     * Base Rank 8+:  Max Level 12
+     */
+    public int getMaxLevel() {
+        if (baseRank <= 3) return 5;
+        if (baseRank <= 5) return 8;
+        if (baseRank <= 7) return 10;
+        return 12;
+    }
+
+    /**
      * Builder for FragmentDefinition
      */
     public static class Builder {

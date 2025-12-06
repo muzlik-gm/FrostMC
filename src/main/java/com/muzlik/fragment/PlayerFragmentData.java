@@ -6,17 +6,34 @@ import java.util.Set;
 
 /**
  * Stores all Fragment-related data for a single player.
+ * 
+ * Fragment States:
+ * - LOCKED: No ritual completed for this fragment
+ * - CHARGED: Ritual completed, ready to activate with Fragment Changer
+ * - ACTIVATED: Currently active (only one can be active at a time)
+ * 
+ * Flow:
+ * 1. Complete Fragment Creation Ritual → Fragment becomes CHARGED
+ * 2. Use Fragment Changer → Fragment becomes ACTIVATED (added to owned)
+ * 3. If you switch to another fragment, the previous one is no longer owned
+ *    and you must re-craft + re-ritual to use it again
  */
 public class PlayerFragmentData {
-    private final Set<FragmentType> ownedFragments;
+    private final Set<FragmentType> ownedFragments;  // Currently usable fragments
+    private final Set<FragmentType> chargedFragments; // Rituals completed, ready to activate
     private FragmentType activeFragment;
     private long lastFragmentSwitch;
 
     public PlayerFragmentData() {
         this.ownedFragments = new HashSet<>();
+        this.chargedFragments = new HashSet<>();
         this.activeFragment = null;
         this.lastFragmentSwitch = 0;
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // OWNED FRAGMENTS (currently usable)
+    // ═══════════════════════════════════════════════════════════════
 
     /**
      * Add a Fragment to owned Fragments
@@ -26,7 +43,14 @@ public class PlayerFragmentData {
     }
 
     /**
-     * Check if player owns a Fragment
+     * Remove a Fragment from owned Fragments
+     */
+    public void removeFragment(FragmentType type) {
+        ownedFragments.remove(type);
+    }
+
+    /**
+     * Check if player owns a Fragment (can use it)
      */
     public boolean hasFragment(FragmentType type) {
         return ownedFragments.contains(type);
@@ -38,6 +62,42 @@ public class PlayerFragmentData {
     public Collection<FragmentType> getOwnedFragments() {
         return new HashSet<>(ownedFragments);
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // CHARGED FRAGMENTS (ritual complete, ready to activate)
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Charge a Fragment (ritual completed)
+     */
+    public void chargeFragment(FragmentType type) {
+        chargedFragments.add(type);
+    }
+
+    /**
+     * Uncharge a Fragment (activated or expired)
+     */
+    public void unchargeFragment(FragmentType type) {
+        chargedFragments.remove(type);
+    }
+
+    /**
+     * Check if a Fragment is charged
+     */
+    public boolean isCharged(FragmentType type) {
+        return chargedFragments.contains(type);
+    }
+
+    /**
+     * Get all charged Fragments
+     */
+    public Collection<FragmentType> getChargedFragments() {
+        return new HashSet<>(chargedFragments);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // ACTIVE FRAGMENT
+    // ═══════════════════════════════════════════════════════════════
 
     /**
      * Get active Fragment

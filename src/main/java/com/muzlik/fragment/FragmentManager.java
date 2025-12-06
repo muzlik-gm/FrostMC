@@ -72,6 +72,13 @@ public class FragmentManager {
     }
 
     /**
+     * Get the RankManager
+     */
+    public RankManager getRankManager() {
+        return rankManager;
+    }
+
+    /**
      * Grant a Fragment to a player
      */
     public void grantFragment(Player player, FragmentType type) {
@@ -106,12 +113,75 @@ public class FragmentManager {
     }
 
     /**
-     * Check if player has a Fragment
+     * Check if player has a Fragment (owns it and can use it)
      */
     public boolean hasFragment(Player player, FragmentType type) {
         PlayerFragmentData data = playerFragmentData.get(player.getUniqueId());
         return data != null && data.hasFragment(type);
     }
+
+    /**
+     * Charge a Fragment (ritual completed, ready to activate)
+     */
+    public void chargeFragment(Player player, FragmentType type) {
+        if (!registeredFragments.containsKey(type)) {
+            player.sendMessage("§c✗ Fragment not found");
+            return;
+        }
+        
+        PlayerFragmentData data = getOrCreatePlayerData(player);
+        data.chargeFragment(type);
+        
+        FragmentDefinition fragment = getFragment(type);
+        player.sendMessage("§a§l✓ " + fragment.getDisplayName() + " Fragment CHARGED!");
+        player.sendMessage("§7Use a §eFragment Changer §7to activate it");
+    }
+
+    /**
+     * Check if a Fragment is charged for a player
+     */
+    public boolean isCharged(Player player, FragmentType type) {
+        PlayerFragmentData data = playerFragmentData.get(player.getUniqueId());
+        return data != null && data.isCharged(type);
+    }
+
+    /**
+     * Activate a charged Fragment using Fragment Changer
+     * This grants the fragment and makes it active
+     */
+    public boolean activateChargedFragment(Player player, FragmentType type) {
+        PlayerFragmentData data = getOrCreatePlayerData(player);
+        
+        // Check if fragment is charged
+        if (!data.isCharged(type)) {
+            player.sendMessage("§c✗ This Fragment is not charged");
+            player.sendMessage("§7Complete a Fragment Creation Ritual first");
+            return false;
+        }
+        
+        // If player already has an active fragment that's not this one,
+        // they lose the previous fragment when switching
+        FragmentType previousActive = data.getActiveFragment();
+        if (previousActive != null && previousActive != type) {
+            // Remove the previous fragment - they need to re-craft and re-ritual
+            data.removeFragment(previousActive);
+            player.sendMessage("§6⚠ §e" + previousActive.getDisplayName() + " §6Fragment deactivated");
+            player.sendMessage("§7Re-complete the ritual to use it again");
+        }
+        
+        // Grant the fragment
+        data.addFragment(type);
+        rankManager.initializeRank(player, type);
+        
+        // Remove from charged (used up)
+        data.unchargeFragment(type);
+        
+        // Set as active
+        setActiveFragment(player, type);
+        
+        return true;
+    }
+
 
     /**
      * Get player's active Fragment

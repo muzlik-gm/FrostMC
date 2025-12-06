@@ -31,31 +31,21 @@ public class ManaDisplay {
 
     /**
      * Update mana display for player
-     * Always uses boss bar to avoid conflict with power HUD
+     * DISABLED: Mana is now shown in FragmentActionBarHUD instead of boss bar
      */
     public void updateDisplay(Player player, double currentMana, double maxMana) {
-        updateBossBar(player, currentMana, maxMana);
+        // DISABLED - Mana is now displayed in the action bar HUD
+        // Do NOT create or update boss bars
     }
 
     /**
-     * Update boss bar display
+     * Update boss bar display - DISABLED
+     * @deprecated Boss bar mana display has been removed. Mana is shown in action bar.
      */
+    @Deprecated
     private void updateBossBar(Player player, double currentMana, double maxMana) {
-        BossBar bossBar = playerBossBars.computeIfAbsent(player.getUniqueId(), uuid -> {
-            BossBar bar = BossBar.bossBar(
-                Component.text("Mana"),
-                1.0f,
-                BossBar.Color.BLUE,
-                BossBar.Overlay.PROGRESS
-            );
-            player.showBossBar(bar);
-            return bar;
-        });
-
-        float progress = (float) Math.max(0.0, Math.min(1.0, currentMana / maxMana));
-        bossBar.progress(progress);
-        bossBar.name(Component.text("⚡ Mana: ", NamedTextColor.AQUA)
-            .append(Component.text(String.format("%.0f/%.0f", currentMana, maxMana), NamedTextColor.BLUE)));
+        // DISABLED - No longer creating boss bars for mana
+        // This method is kept for compatibility but does nothing
     }
 
     /**

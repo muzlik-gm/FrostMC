@@ -181,8 +181,13 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 playerPowerListener,
                 this
         );
+        
+        // Create and register FragmentAbilityListener with LevelManager for level bonuses
+        com.muzlik.listener.FragmentAbilityListener fragmentAbilityListener = 
+            new com.muzlik.listener.FragmentAbilityListener(fragmentManager, manaManager, powerManager.getCooldownManager());
+        fragmentAbilityListener.setLevelManager(levelManager);
         getServer().getPluginManager().registerEvents(
-                new com.muzlik.listener.FragmentAbilityListener(fragmentManager, manaManager, powerManager.getCooldownManager()),
+                fragmentAbilityListener,
                 this
         );
         getServer().getPluginManager().registerEvents(
@@ -224,6 +229,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         );
         getServer().getPluginManager().registerEvents(
                 new com.muzlik.listener.FlightControlListener(flightManager),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.listener.FragmentChangerListener(uiManager),
                 this
         );
         

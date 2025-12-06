@@ -210,14 +210,19 @@ public class RitualManager {
 
     /**
      * Complete Fragment Creation ritual
+     * This CHARGES the fragment - player needs Fragment Changer to activate it
      */
     private void completeFragmentCreation(Player player, RitualInstance ritual) {
         // Determine Fragment type from catalyst item
         FragmentType fragmentType = determineFragmentType(ritual);
         
         if (fragmentType != null) {
-            fragmentManager.grantFragment(player, fragmentType);
+            // CHARGE the fragment instead of granting directly
+            fragmentManager.chargeFragment(player, fragmentType);
             player.sendMessage("§a✓ Fragment Creation complete!");
+            player.sendMessage("");
+            player.sendMessage("§e§l⚡ Fragment is now CHARGED!");
+            player.sendMessage("§7Right-click a §eFragment Changer §7to activate it");
         } else {
             player.sendMessage("§c✗ Failed to determine Fragment type");
         }

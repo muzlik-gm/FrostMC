@@ -1,5 +1,6 @@
 package com.muzlik.ui;
 
+import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.fragment.rank.RankManager;
@@ -16,7 +17,12 @@ import java.util.List;
 
 /**
  * Builder class for creating enhanced Fragment icons with rich visual information.
- * Displays rank badges, level progress bars, mana, and status indicators.
+ * 
+ * Fragment States:
+ * - LOCKED (gray/dark) - Not available, no ritual completed
+ * - CHARGED (gold/yellow) - Ritual complete, ready to activate
+ * - ACTIVATED (green) - Currently active and usable
+ * - OWNED (white) - Previously activated, can switch to with changer
  */
 public class FragmentIconBuilder {
     private final FragmentType fragmentType;
@@ -24,9 +30,11 @@ public class FragmentIconBuilder {
     private final LevelManager levelManager;
     private final RankManager rankManager;
     private final ManaManager manaManager;
+    private FragmentManager fragmentManager;
     
     private boolean isOwned;
     private boolean isActive;
+    private boolean isCharged;
     private Material customMaterial;
     private Integer customModelData;
 
@@ -40,6 +48,15 @@ public class FragmentIconBuilder {
         this.manaManager = manaManager;
         this.isOwned = false;
         this.isActive = false;
+        this.isCharged = false;
+    }
+
+    /**
+     * Set FragmentManager reference for charge checking
+     */
+    public FragmentIconBuilder fragmentManager(FragmentManager fragmentManager) {
+        this.fragmentManager = fragmentManager;
+        return this;
     }
 
     /**
@@ -55,6 +72,14 @@ public class FragmentIconBuilder {
      */
     public FragmentIconBuilder active(boolean active) {
         this.isActive = active;
+        return this;
+    }
+
+    /**
+     * Set whether the Fragment is charged (ritual complete)
+     */
+    public FragmentIconBuilder charged(boolean charged) {
+        this.isCharged = charged;
         return this;
     }
 
@@ -102,10 +127,6 @@ public class FragmentIconBuilder {
                 com.muzlik.texture.TextureRegistry.getFragmentTexture(fragmentType);
         meta.setCustomModelData(textureId);
         
-        // Debug logging for GUI items
-        org.bukkit.Bukkit.getLogger().info("[FragmentGUI] Creating icon for " + fragmentType.name() + 
-                " with CustomModelData: " + textureId + " (owned=" + isOwned + ", active=" + isActive + ")");
-        
         // Hide all item flags for clean display
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
@@ -134,15 +155,22 @@ public class FragmentIconBuilder {
     
     /**
      * Build display name with appropriate color coding - CLEAN MINIMAL STYLE
+     * Priority: ACTIVATED > OWNED > CHARGED > LOCKED
      */
     private String buildDisplayName() {
         String name = toSmallCaps(fragmentType.getDisplayName());
         
         if (isActive) {
-            return "§f" + name + " §a[ᴀᴄᴛɪᴠᴇ]";
+            // Currently active - GREEN
+            return "§a✓ §f" + name + " §a[ᴀᴄᴛɪᴠᴀᴛᴇᴅ]";
         } else if (isOwned) {
-            return "§f" + name;
+            // Owned but not active - WHITE
+            return "§f" + name + " §7[ᴏᴡɴᴇᴅ]";
+        } else if (isCharged) {
+            // Charged, ready to activate - GOLD
+            return "§6⚡ §e" + name + " §6[ᴄʜᴀʀɢᴇᴅ]";
         } else {
+            // Locked - GRAY
             return "§8" + name + " §7[ʟᴏᴄᴋᴇᴅ]";
         }
     }
@@ -153,41 +181,63 @@ public class FragmentIconBuilder {
     private List<String> buildLore() {
         List<String> lore = new ArrayList<>();
 
+        // Description
         lore.add("§8" + fragmentType.getDescription());
         lore.add("");
 
-        if (isOwned) {
-            // Get player stats
+        if (isActive) {
+            // ACTIVATED state - show full stats
             int rank = rankManager.getRank(player, fragmentType);
             int maxRank = rankManager.getMaxRank(fragmentType);
             int level = levelManager.getLevel(player, fragmentType);
+            int maxLevel = levelManager.getMaxLevel(fragmentType);
             double xp = levelManager.getXP(player, fragmentType);
             double xpRequired = levelManager.getXPForNextLevel(player, fragmentType);
 
-            // Clean stats
             lore.add("§7ʀᴀɴᴋ §f" + rank + "§8/§f" + maxRank);
-            lore.add("§7ʟᴇᴠᴇʟ §f" + level + " §8(" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
+            lore.add("§7ʟᴇᴠᴇʟ §f" + level + "§8/§f" + maxLevel + " §8(" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
 
-            // Mana display (only for active Fragment)
-            if (isActive) {
-                double currentMana = manaManager.getMana(player);
-                double maxMana = manaManager.getMaxMana(player);
-                
-                lore.add("");
-                lore.add("§7ᴍᴀɴᴀ §f" + String.format("%.0f", currentMana) + "§8/§f" + String.format("%.0f", maxMana));
-            }
-
-            // Status indicator
+            // Mana display
+            double currentMana = manaManager.getMana(player);
+            double maxMana = manaManager.getMaxMana(player);
             lore.add("");
-            if (isActive) {
-                lore.add("§a> ᴄᴜʀʀᴇɴᴛʟʏ ᴀᴄᴛɪᴠᴇ");
-            } else {
-                lore.add("§7ᴄʟɪᴄᴋ ᴛᴏ ᴀᴄᴛɪᴠᴀᴛᴇ");
-            }
+            lore.add("§7ᴍᴀɴᴀ §f" + String.format("%.0f", currentMana) + "§8/§f" + String.format("%.0f", maxMana));
 
+            // Status
+            lore.add("");
+            lore.add("§a▸ ᴄᴜʀʀᴇɴᴛʟʏ ᴀᴄᴛɪᴠᴇ");
+            lore.add("");
+            lore.add("§7[ʟᴇꜰᴛ-ᴄʟɪᴄᴋ] §8ᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs");
+            
+        } else if (isOwned) {
+            // OWNED state - can activate with changer
+            int rank = rankManager.getRank(player, fragmentType);
+            int maxRank = rankManager.getMaxRank(fragmentType);
+            int level = levelManager.getLevel(player, fragmentType);
+
+            lore.add("§7ʀᴀɴᴋ §f" + rank + "§8/§f" + maxRank);
+            lore.add("§7ʟᴇᴠᴇʟ §f" + level);
+
+            lore.add("");
+            lore.add("§7[ʟᴇꜰᴛ-ᴄʟɪᴄᴋ] §8ᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs");
+            lore.add("§7[ʀɪɢʜᴛ-ᴄʟɪᴄᴋ] §8ᴀᴄᴛɪᴠᴀᴛᴇ");
+            
+        } else if (isCharged) {
+            // CHARGED state - ritual complete, ready to activate
+            lore.add("§e§l⚡ ʀɪᴛᴜᴀʟ ᴄᴏᴍᴘʟᴇᴛᴇ!");
+            lore.add("");
+            lore.add("§7ᴛʜɪs ꜰʀᴀɢᴍᴇɴᴛ ɪs ᴄʜᴀʀɢᴇᴅ");
+            lore.add("§7ᴀɴᴅ ʀᴇᴀᴅʏ ᴛᴏ ᴀᴄᴛɪᴠᴀᴛᴇ");
+            lore.add("");
+            lore.add("§7[ʟᴇꜰᴛ-ᴄʟɪᴄᴋ] §8ᴠɪᴇᴡ ᴀʙɪʟɪᴛɪᴇs");
+            lore.add("§e[ʀɪɢʜᴛ-ᴄʟɪᴄᴋ] §6ᴀᴄᴛɪᴠᴀᴛᴇ!");
+            
         } else {
-            // Locked Fragment - CLEAN STYLE
-            lore.add("§7ᴄᴏᴍᴘʟᴇᴛᴇ ʀɪᴛᴜᴀʟ ᴛᴏ ᴜɴʟᴏᴄᴋ");
+            // LOCKED state
+            lore.add("§c✗ ɴᴏᴛ ᴜɴʟᴏᴄᴋᴇᴅ");
+            lore.add("");
+            lore.add("§7ᴄᴏᴍᴘʟᴇᴛᴇ ᴛʜᴇ ꜰʀᴀɢᴍᴇɴᴛ");
+            lore.add("§7ᴄʀᴇᴀᴛɪᴏɴ ʀɪᴛᴜᴀʟ ᴛᴏ ᴜɴʟᴏᴄᴋ");
         }
 
         return lore;
@@ -201,19 +251,15 @@ public class FragmentIconBuilder {
         String symbol;
         
         if (rank >= maxRank) {
-            // Max rank - Gold/Diamond
             color = "§6§l";
             symbol = "★";
         } else if (rank >= maxRank - 1) {
-            // Near max - Gold
             color = "§6";
             symbol = "◆";
         } else if (rank >= (maxRank / 2)) {
-            // Mid rank - Yellow
             color = "§e";
             symbol = "◆";
         } else {
-            // Low rank - Gray
             color = "§7";
             symbol = "◆";
         }
@@ -222,8 +268,7 @@ public class FragmentIconBuilder {
     }
 
     /**
-     * Build progress bar for XP/Level display using FragmentSymbols
-     * Example: [████████░░] 80%
+     * Build progress bar for XP/Level display
      */
     private String buildProgressBar(double current, double max, int barLength) {
         String bar = com.muzlik.texture.FragmentSymbols.buildProgressBar(current, max, barLength);

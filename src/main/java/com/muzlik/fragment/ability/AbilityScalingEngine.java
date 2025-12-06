@@ -1,15 +1,29 @@
 package com.muzlik.fragment.ability;
 
 /**
- * Engine for scaling ability effects based on Fragment rank.
+ * Engine for scaling ability effects based on Fragment rank AND level.
  * Implements anime-style power progression where higher ranks feel significantly stronger.
+ * 
+ * RANK affects: Base damage, range, duration, defense, healing
+ * LEVEL affects: Cooldown reduction, mana cost reduction, small damage bonus
  */
 public class AbilityScalingEngine {
 
     /**
-     * Scale damage based on rank
+     * Scale damage based on rank AND level bonus
+     * Formula: BASE_DAMAGE * (1 + (Rank * 0.10)) * (1 + levelDamageBonus)
+     * @param baseDamage The base damage value
+     * @param rank The Fragment rank
+     * @param levelDamageBonus The damage bonus from level (0.0 to 0.15)
+     * @return The scaled damage
+     */
+    public double scaleDamageWithLevel(double baseDamage, int rank, double levelDamageBonus) {
+        return baseDamage * (1 + (rank * 0.10)) * (1 + levelDamageBonus);
+    }
+
+    /**
+     * Scale damage based on rank only (legacy method)
      * Formula: BASE_DAMAGE * (1 + (Rank * 0.10))
-     * REBALANCED: Reduced from 15% to 10% per rank for PvP balance
      * @param baseDamage The base damage value
      * @param rank The Fragment rank
      * @return The scaled damage
@@ -63,13 +77,35 @@ public class AbilityScalingEngine {
     }
 
     /**
-     * Scale mana cost based on rank (increases by 8% per rank)
-     * REBALANCED: Reduced from 10% to 8% per rank
+     * Scale mana cost based on rank (increases) but reduced by level
+     * Formula: BASE_MANA * (1 + (Rank * 0.08)) * (1 - levelManaReduction)
+     * @param baseManaCost The base mana cost
+     * @param rank The Fragment rank
+     * @param levelManaReduction The mana reduction from level (0.0 to 0.20)
+     * @return The scaled mana cost
+     */
+    public double scaleManaCostWithLevel(double baseManaCost, int rank, double levelManaReduction) {
+        return baseManaCost * (1 + (rank * 0.08)) * (1 - levelManaReduction);
+    }
+
+    /**
+     * Scale mana cost based on rank only (legacy method)
      * @param baseManaCost The base mana cost
      * @param rank The Fragment rank
      * @return The scaled mana cost
      */
     public double scaleManaCost(double baseManaCost, int rank) {
         return baseManaCost * (1 + (rank * 0.08));
+    }
+
+    /**
+     * Scale cooldown based on level reduction
+     * Formula: BASE_COOLDOWN * (1 - levelCooldownReduction)
+     * @param baseCooldown The base cooldown in milliseconds
+     * @param levelCooldownReduction The cooldown reduction from level (0.0 to 0.25)
+     * @return The scaled cooldown
+     */
+    public long scaleCooldown(long baseCooldown, double levelCooldownReduction) {
+        return (long) (baseCooldown * (1 - levelCooldownReduction));
     }
 }

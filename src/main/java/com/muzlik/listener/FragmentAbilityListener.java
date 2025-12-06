@@ -4,15 +4,17 @@ import com.muzlik.cooldown.CooldownManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.IFragmentAbility;
+import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.mana.ManaManager;
+import com.muzlik.FrostSMPPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
 import java.util.Set;
@@ -21,12 +23,17 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Listener for Fragment ability interactions
  * Handles Sneak + Right-Click and Sneak + Left-Click for ability activation
+ * 
+ * Fragment Level affects:
+ * - Mana cost reduction (up to 20% at max level)
+ * - Cooldown reduction (up to 25% at max level)
  */
 public class FragmentAbilityListener implements Listener {
 
     private final FragmentManager fragmentManager;
     private final ManaManager manaManager;
     private final CooldownManager cooldownManager;
+    private LevelManager levelManager;
     
     // Track which players are currently sneaking
     private final Set<String> sneakingPlayers = ConcurrentHashMap.newKeySet();
@@ -37,10 +44,18 @@ public class FragmentAbilityListener implements Listener {
     // Minimum delay between ability activations (milliseconds)
     private static final long ABILITY_SPAM_DELAY = 500; // 0.5 seconds
 
-    public FragmentAbilityListener(FragmentManager fragmentManager, ManaManager manaManager, CooldownManager cooldownManager) {
+    public FragmentAbilityListener(FragmentManager fragmentManager, ManaManager manaManager, 
+                                   CooldownManager cooldownManager) {
         this.fragmentManager = fragmentManager;
         this.manaManager = manaManager;
         this.cooldownManager = cooldownManager;
+    }
+    
+    /**
+     * Set LevelManager reference (called from FrostSMPPlugin)
+     */
+    public void setLevelManager(LevelManager levelManager) {
+        this.levelManager = levelManager;
     }
 
     /**
@@ -151,6 +166,7 @@ public class FragmentAbilityListener implements Listener {
 
     /**
      * Execute a Fragment ability
+     * Applies Fragment Level bonuses to mana cost and cooldown
      */
     private void executeAbility(Player player, FragmentType fragmentType, int slotIndex, 
                                IFragmentAbility ability, 
@@ -177,14 +193,21 @@ public class FragmentAbilityListener implements Listener {
             return;
         }
 
-        // Check mana cost
-        double manaCost = ability.getManaCost();
+        // ═══ APPLY LEVEL-BASED MANA COST REDUCTION ═══
+        double baseManaCost = ability.getManaCost();
+        double manaCostReduction = 0.0;
+        
+        if (levelManager != null) {
+            manaCostReduction = levelManager.getManaCostReduction(player, fragmentType);
+        }
+        
+        double finalManaCost = baseManaCost * (1 - manaCostReduction);
         double currentMana = manaManager.getMana(player);
         
-        if (currentMana < manaCost) {
+        if (currentMana < finalManaCost) {
             player.sendMessage("§c✗ Not enough mana: §9" + 
                              String.format("%.0f", currentMana) + "/" + 
-                             String.format("%.0f", manaCost));
+                             String.format("%.0f", finalManaCost));
             return;
         }
 
@@ -202,16 +225,29 @@ public class FragmentAbilityListener implements Listener {
             // Record ability use time (anti-spam)
             lastAbilityUse.put(playerUUID, currentTime);
             
-            // Consume mana
-            manaManager.consumeMana(player, manaCost);
+            // Consume mana (with level reduction applied)
+            manaManager.consumeMana(player, finalManaCost);
             
-            // Show success message
+            // Show success message (show savings if any)
+            String manaMsg = manaCostReduction > 0 ? 
+                "[-" + String.format("%.0f", finalManaCost) + " mana §7(§a-" + String.format("%.0f", manaCostReduction * 100) + "%%§7)]" :
+                "[-" + String.format("%.0f", finalManaCost) + " mana]";
+            
             player.sendMessage("§a✓ §b" + ability.getDisplayName() + 
-                             "§a used (§b" + interactionType + "§a) §7[-" + 
-                             String.format("%.0f", manaCost) + " mana]");
+                             "§a used (§b" + interactionType + "§a) §7" + manaMsg);
             
-            // Start cooldown
-            cooldownManager.startCooldown(player, abilityId, ability.getCooldown());
+            // ═══ APPLY LEVEL-BASED COOLDOWN REDUCTION ═══
+            long baseCooldown = ability.getCooldown();
+            double cooldownReduction = 0.0;
+            
+            if (levelManager != null) {
+                cooldownReduction = levelManager.getCooldownReduction(player, fragmentType);
+            }
+            
+            long finalCooldown = (long) (baseCooldown * (1 - cooldownReduction));
+            
+            // Start cooldown (with level reduction applied)
+            cooldownManager.startCooldown(player, abilityId, finalCooldown);
             
             // Show action bar with remaining mana
             double remainingMana = manaManager.getMana(player);
@@ -223,3 +259,4 @@ public class FragmentAbilityListener implements Listener {
         }
     }
 }
+
