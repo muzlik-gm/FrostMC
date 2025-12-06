@@ -38,26 +38,36 @@ public class VoidSlashExecutor implements AbilityExecutor {
                     // Deal true damage (ignores armor)
                     living.damage(damage, player);
                     
-                    // VFX on hit - FIXED: Use particles that don't require data
-                    living.getWorld().spawnParticle(Particle.PORTAL, living.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.2);
-                    living.getWorld().spawnParticle(Particle.SPELL_MOB, living.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.05);
-                    living.getWorld().spawnParticle(Particle.END_ROD, living.getLocation().add(0, 1, 0), 10, 0.2, 0.4, 0.2, 0.03);
+                    // FOCUSED hit VFX - clean void impact
+                    // Reduced counts for primary ability
+                    int portalCount = 10 + (rank * 2);    // 10 → 18 at rank 4 (was 30 constant)
+                    int spellCount = 5 + rank;            // 5 → 9 at rank 4 (was 15 constant)
+                    int rodCount = 3 + rank;              // 3 → 7 at rank 4 (was 10 constant)
+                    
+                    living.getWorld().spawnParticle(Particle.PORTAL, living.getLocation().add(0, 1, 0), portalCount, 0.2, 0.4, 0.2, 0.1);
+                    living.getWorld().spawnParticle(Particle.SPELL_MOB, living.getLocation().add(0, 1, 0), spellCount, 0.2, 0.3, 0.2, 0.03);
+                    living.getWorld().spawnParticle(Particle.END_ROD, living.getLocation().add(0, 1, 0), rodCount, 0.15, 0.3, 0.15, 0.02);
                     
                     hitCount++;
                 }
             }
         }
         
-        // Slash VFX - arc in front of player - FIXED: Use safe particles
-        for (double d = 0; d < range; d += 0.3) {
-            for (double angle = -30; angle <= 30; angle += 10) {
+        // FOCUSED slash VFX - clean arc with reduced particle density
+        // Increased step sizes for cleaner visual with less particles
+        for (double d = 0; d < range; d += 0.5) {  // Was 0.3, now 0.5 (60% fewer iterations)
+            for (double angle = -30; angle <= 30; angle += 15) {  // Was 10, now 15 (50% fewer iterations)
                 Vector slashDir = direction.clone();
                 slashDir = rotateAroundY(slashDir, Math.toRadians(angle));
                 Location particleLoc = origin.clone().add(slashDir.multiply(d));
                 
-                player.getWorld().spawnParticle(Particle.PORTAL, particleLoc, 3, 0.1, 0.1, 0.1, 0.5);
-                player.getWorld().spawnParticle(Particle.SPELL_MOB, particleLoc, 2, 0.1, 0.1, 0.1, 0.3);
-                player.getWorld().spawnParticle(Particle.SMOKE_LARGE, particleLoc, 1, 0.05, 0.05, 0.05, 0.01);
+                // Minimal particles per position - rift aesthetic
+                player.getWorld().spawnParticle(Particle.PORTAL, particleLoc, 2, 0.05, 0.05, 0.05, 0.3);
+                player.getWorld().spawnParticle(Particle.SPELL_MOB, particleLoc, 1, 0.05, 0.05, 0.05, 0.15);
+                // Smoke only every other position for visual rhythm
+                if (d % 1.0 < 0.5) {
+                    player.getWorld().spawnParticle(Particle.SMOKE_LARGE, particleLoc, 1, 0.03, 0.03, 0.03, 0.005);
+                }
             }
         }
         

@@ -88,35 +88,41 @@ public class InfernoMaelstromExecutor implements AbilityExecutor {
                     cancel();
                     return;
                 }
-                // More chaotic rotation at higher ranks
-                double angle = ticks * (0.5 + rank * 0.1);
                 
-                // More spiral arms at higher ranks
-                int spiralArms = 8 + (rank * 2); // 8 → 14 at rank 3
+                // Smooth rotation - constant visual rhythm
+                double angle = ticks * (0.4 + rank * 0.05);
                 
-                // Spiral VFX every tick - MORE CHAOTIC AT HIGHER RANKS
+                // REDUCED spiral arms for visual clarity (quality over quantity)
+                int spiralArms = 4 + rank;  // 4 → 7 at rank 3 (was 8 → 14)
+                
+                // Phase progression - VFX builds intensity over time
+                double phaseMultiplier = 0.5 + (ticks / 100.0) * 0.5; // 0.5 at start, 1.0 at end
+                
+                // Spiral VFX - purposeful positioning
                 for (int i = 0; i < spiralArms; i++) {
-                    double x = Math.cos(angle + i * Math.PI * 2 / spiralArms) * radius * (1 - ticks / 100.0);
-                    double z = Math.sin(angle + i * Math.PI * 2 / spiralArms) * radius * (1 - ticks / 100.0);
+                    double spiralProgress = (1 - ticks / 100.0);
+                    double x = Math.cos(angle + i * Math.PI * 2 / spiralArms) * radius * spiralProgress;
+                    double z = Math.sin(angle + i * Math.PI * 2 / spiralArms) * radius * spiralProgress;
                     Location particleLoc = center.clone().add(x, ticks * 0.05, z);
                     
-                    // More particles per spiral at higher ranks
-                    int spiralParticles = 3 + rank; // 3 → 6 at rank 3
+                    // Minimal particles per spiral - quality placement
+                    int spiralParticles = 2 + (int)(rank * phaseMultiplier);  // 2 → 4 at rank 3 (was 3 → 6)
                     
-                    // Core and secondary particles
                     new VFXLayerBuilder(plugin, particleLoc, rank, player)
                         .withPerformanceManager(plugin.getVFXPerformanceManager())
-                        .core(Particle.FLAME, spiralParticles, ParticlePattern.POINT, 0.1 + (rank * 0.05), 0.1 + (rank * 0.05), 0.1 + (rank * 0.05), 0.02 + (rank * 0.01), null)
-                        .secondary(Particle.END_ROD, 1 + (rank / 2), ParticlePattern.POINT, 0.05, 0.05, 0.05, 0.01, null)
+                        .core(Particle.FLAME, spiralParticles, ParticlePattern.POINT, 0.05, 0.05, 0.05, 0.015, null)
+                        .secondary(Particle.END_ROD, 1, ParticlePattern.POINT, 0.02, 0.02, 0.02, 0.005, null)
                         .spawn();
                 }
                 
-                // Ambient smoke more frequently at higher ranks
-                int smokeInterval = Math.max(5, 10 - rank); // Every 10 ticks → every 7 ticks at rank 3
+                // Ambient smoke pulses - less frequent, more impactful
+                int smokeInterval = 15 - rank;  // Every 15 ticks → 12 at rank 3 (was 10 → 7)
                 if (ticks % smokeInterval == 0) {
+                    // Reduced smoke count for cleaner visuals
+                    int smokeCount = 8 + (rank * 3);  // 8 → 17 at rank 3 (was 20 → 50)
                     new VFXLayerBuilder(plugin, center.clone().add(0, 1, 0), rank, player)
                         .withPerformanceManager(plugin.getVFXPerformanceManager())
-                        .ambient(Particle.SMOKE_LARGE, 20 + (rank * 10), ParticlePattern.SPHERE, radius * 0.5, 1 + (rank * 0.3), radius * 0.5, 0.02 + (rank * 0.01), null)
+                        .ambient(Particle.SMOKE_LARGE, smokeCount, ParticlePattern.SPHERE, radius * 0.4, 0.8 + (rank * 0.2), radius * 0.4, 0.01, null)
                         .spawn();
                 }
                 

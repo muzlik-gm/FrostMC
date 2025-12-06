@@ -60,21 +60,26 @@ public class ChainLightningExecutor implements AbilityExecutor {
         // VFX: Lightning strike effect
         target.getWorld().strikeLightningEffect(target.getLocation());
         
-        // VFX: Multi-layer particles
+        // FOCUSED chain hit VFX - clean electric impact per chain
+        // Reduced counts since this fires multiple times per ability use
         Location loc = target.getLocation().add(0, 1, 0);
         World world = target.getWorld();
         
-        // Layer 1: Electric sparks (core)
-        world.spawnParticle(Particle.ELECTRIC_SPARK, loc, 40, 0.5, 0.5, 0.5, 0.15);
+        // Layer 1: Electric sparks (core) - reduced for chain efficiency
+        int sparkCount = 12 + (rank * 3);      // 12 → 30 at rank 6 (was 40 constant)
+        world.spawnParticle(Particle.ELECTRIC_SPARK, loc, sparkCount, 0.3, 0.4, 0.3, 0.08);
         
-        // Layer 2: Soul fire flame (blue glow)
-        world.spawnParticle(Particle.SOUL_FIRE_FLAME, loc, 20, 0.3, 0.5, 0.3, 0.05);
+        // Layer 2: Soul fire flame (blue glow) - subtle accent
+        int flameCount = 6 + (rank * 2);       // 6 → 18 at rank 6 (was 20 constant)
+        world.spawnParticle(Particle.SOUL_FIRE_FLAME, loc, flameCount, 0.2, 0.35, 0.2, 0.03);
         
-        // Layer 3: End rod (white flash)
-        world.spawnParticle(Particle.END_ROD, loc, 15, 0.4, 0.6, 0.4, 0.1);
+        // Layer 3: End rod (white flash) - minimal highlight
+        int rodCount = 4 + rank;               // 4 → 10 at rank 6 (was 15 constant)
+        world.spawnParticle(Particle.END_ROD, loc, rodCount, 0.25, 0.4, 0.25, 0.05);
         
-        // Layer 4: Crit particles (impact effect)
-        world.spawnParticle(Particle.CRIT, loc, 25, 0.6, 0.6, 0.6, 0.2);
+        // Layer 4: Crit particles - brief impact acknowledgment
+        int critCount = 8 + (rank * 2);        // 8 → 20 at rank 6 (was 25 constant)
+        world.spawnParticle(Particle.CRIT, loc, critCount, 0.4, 0.4, 0.4, 0.1);
         
         // Sound layers
         world.playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.6f, 1.5f);
