@@ -2,12 +2,12 @@
 
 rituals:
   fragment_creation:
-    duration: 600  # 10 minutes in seconds
-    proximity_distance: 5.0
+    duration: 180  # 3 minutes in seconds
+    proximity_distance: 12.0
   fragment_changer:
-    duration: 300  # 5 minutes
+    duration: 150  # 2.5 minutes
     cooldown: 3600  # 1 hour
-    proximity_distance: 5.0
+    proximity_distance: 10.0
 
 mana:
   base_max: 100.0
@@ -15,10 +15,19 @@ mana:
   base_regen_rate: 1.0
   level_regen_bonus: 0.1
 
+# Character Level - Determines max mana capacity
+# Separate from Fragment Level which handles ability progression
+character:
+  max_level: 100           # Maximum character level
+  mana_per_level: 10.0     # Mana gained per level
+  base_mana: 160         # Base mana at level 1
+  base_xp_required: 120.0  # XP required from level 1 to 2
+  xp_scaling: 1.15         # XP requirement multiplier per level
+
 leveling:
   max_level: 50
   prestige_enabled: true
-  death_xp_loss_enabled: true
+  death_xp_loss_enabled: false
 
 ui:
   default_mode: STANDARD

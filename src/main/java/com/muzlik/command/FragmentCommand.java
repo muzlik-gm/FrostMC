@@ -1,5 +1,6 @@
 package com.muzlik.command;
 
+import com.muzlik.character.CharacterLevelManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.level.LevelManager;
@@ -7,6 +8,7 @@ import com.muzlik.fragment.rank.RankManager;
 import com.muzlik.mana.ManaManager;
 import com.muzlik.recipe.RecipeManager;
 import com.muzlik.ui.UIManager;
+import com.muzlik.FrostSMPPlugin;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -34,6 +36,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     private final LevelManager levelManager;
     private final RankManager rankManager;
     private final com.muzlik.cooldown.CooldownManager cooldownManager;
+    private CharacterLevelManager characterLevelManager;
 
     public FragmentCommand(JavaPlugin plugin, FragmentManager fragmentManager, RecipeManager recipeManager, 
                           UIManager uiManager, ManaManager manaManager, LevelManager levelManager, RankManager rankManager,
@@ -46,6 +49,11 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         this.manaManager = manaManager;
         this.levelManager = levelManager;
         this.rankManager = rankManager;
+        
+        // Get CharacterLevelManager from main plugin
+        if (plugin instanceof FrostSMPPlugin) {
+            this.characterLevelManager = ((FrostSMPPlugin) plugin).getCharacterLevelManager();
+        }
     }
 
     @Override
@@ -129,6 +137,22 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 generateResourcePack(player);
+                break;
+            
+            case "level":
+                showCharacterLevel(player);
+                break;
+            
+            case "setlevel":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
+                if (args.length < 2) {
+                    player.sendMessage("§cUsage: /fragment setlevel <level>");
+                    return true;
+                }
+                setCharacterLevel(player, args[1]);
                 break;
 
             default:
@@ -411,11 +435,91 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment gui §8- Open GUI");
         player.sendMessage("  §f/fragment list §8- View fragments");
         player.sendMessage("  §f/fragment info §8- Fragment stats");
+        player.sendMessage("  §f/fragment level §8- Character level");
         player.sendMessage("  §f/fragment abilities §8- List abilities");
         player.sendMessage("  §f/fragment activate <type> §8- Switch");
         player.sendMessage("");
-        player.sendMessage("  §8Admin: §7/fragment give/grant");
+        player.sendMessage("  §8Admin: §7/fragment give/grant/setlevel");
         player.sendMessage("");
+    }
+    
+    /**
+     * Show character level info
+     */
+    private void showCharacterLevel(Player player) {
+        if (characterLevelManager == null) {
+            player.sendMessage("§cCharacter level system not initialized");
+            return;
+        }
+        
+        int charLevel = characterLevelManager.getCharacterLevel(player);
+        int maxLevel = characterLevelManager.getMaxCharacterLevel();
+        double charXP = characterLevelManager.getCharacterXP(player);
+        double xpForNext = characterLevelManager.getXPForNextLevel(player);
+        double maxMana = characterLevelManager.getMaxMana(player);
+        
+        // Calculate XP progress
+        double xpPercent = xpForNext > 0 ? (charXP / xpForNext) : 1.0;
+        String xpBar = buildProgressBar(xpPercent, 20);
+        
+        player.sendMessage("");
+        player.sendMessage("§8§m                                        ");
+        player.sendMessage("  §f§l✦ CHARACTER LEVEL");
+        player.sendMessage("§8§m                                        ");
+        player.sendMessage("");
+        
+        // Level display
+        if (charLevel >= maxLevel) {
+            player.sendMessage("  §6§lLevel: " + charLevel + " §e★ MAX LEVEL");
+        } else {
+            player.sendMessage("  §fLevel: §b" + charLevel + " §8/ §7" + maxLevel);
+        }
+        
+        // XP display
+        if (charLevel < maxLevel) {
+            player.sendMessage("");
+            player.sendMessage("  §7XP: " + xpBar);
+            player.sendMessage("  §e" + String.format("%.0f", charXP) + " §8/ §e" + String.format("%.0f", xpForNext));
+        }
+        
+        // Max Mana display
+        player.sendMessage("");
+        player.sendMessage("  §7Max Mana: §b⚡" + String.format("%.0f", maxMana));
+        player.sendMessage("  §8(Based on character level)");
+        
+        player.sendMessage("");
+        player.sendMessage("§8§m                                        ");
+    }
+    
+    /**
+     * Set character level (admin command)
+     */
+    private void setCharacterLevel(Player player, String levelStr) {
+        if (characterLevelManager == null) {
+            player.sendMessage("§cCharacter level system not initialized");
+            return;
+        }
+        
+        try {
+            int level = Integer.parseInt(levelStr);
+            int maxLevel = characterLevelManager.getMaxCharacterLevel();
+            
+            if (level < 1 || level > maxLevel) {
+                player.sendMessage("§cLevel must be between 1 and " + maxLevel);
+                return;
+            }
+            
+            characterLevelManager.setCharacterLevel(player, level);
+            characterLevelManager.setCharacterXP(player, 0); // Reset XP
+            
+            double newMaxMana = characterLevelManager.getMaxMana(player);
+            
+            player.sendMessage("§a✦ Character level set to §b" + level);
+            player.sendMessage("§a⚡ Max Mana is now §b" + String.format("%.0f", newMaxMana));
+            
+        } catch (NumberFormatException e) {
+            player.sendMessage("§cInvalid level: " + levelStr);
+        }
     }
 
     private void giveItem(Player player, String itemName) {
@@ -588,7 +692,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("gui", "give", "list", "info", "abilities", "mana", "grant", "activate", "forceactivate", "generatepack"));
+            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "forceactivate", "setlevel", "generatepack"));
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("give")) {
                 completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));

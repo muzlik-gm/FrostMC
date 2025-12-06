@@ -146,6 +146,10 @@ public class DataPersistence {
         public String uiMode;
         public long lastFragmentChange;
         public Map<String, FragmentDataContainer> fragments;
+        
+        // Character Level progression (separate from Fragment level)
+        public int characterLevel = 1;
+        public double characterXp = 0;
     }
 
     /**

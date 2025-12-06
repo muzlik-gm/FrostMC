@@ -1,8 +1,10 @@
 package com.muzlik.listener;
 
+import com.muzlik.character.CharacterLevelManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.level.LevelManager;
+import com.muzlik.FrostSMPPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,11 +14,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Handles XP gain from kills and ability usage
+ * Awards XP to BOTH Fragment Level and Character Level
  */
 public class XPGainListener implements Listener {
     private final JavaPlugin plugin;
     private final FragmentManager fragmentManager;
     private final LevelManager levelManager;
+    private CharacterLevelManager characterLevelManager;
     
     // XP values
     private static final double XP_PER_MOB_KILL = 10.0;
@@ -35,6 +39,11 @@ public class XPGainListener implements Listener {
         this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.levelManager = levelManager;
+        
+        // Get CharacterLevelManager reference from main plugin
+        if (plugin instanceof FrostSMPPlugin) {
+            this.characterLevelManager = ((FrostSMPPlugin) plugin).getCharacterLevelManager();
+        }
     }
     
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -84,8 +93,14 @@ public class XPGainListener implements Listener {
             }
         }
         
-        // Add XP
+        // Add XP to Fragment Level
         levelManager.addXP(killer, activeFragment, xpGain);
+        
+        // Add XP to Character Level (same amount)
+        if (characterLevelManager != null) {
+            boolean leveledUp = characterLevelManager.awardCharacterXP(killer, xpGain);
+            // Level up notification is handled by CharacterLevelManager
+        }
         
         // Show XP gain message - special message for bosses
         if (xpGain >= 100) {

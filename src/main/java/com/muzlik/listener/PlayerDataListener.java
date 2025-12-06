@@ -1,11 +1,13 @@
 package com.muzlik.listener;
 
+import com.muzlik.character.CharacterLevelManager;
 import com.muzlik.data.DataPersistence;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.fragment.rank.RankManager;
 import com.muzlik.mana.ManaManager;
+import com.muzlik.FrostSMPPlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * Handles loading and saving player data on join/quit
  * FIXES: Mana resetting to 165/185 on server restart
+ * NOW INCLUDES: Character Level persistence
  */
 public class PlayerDataListener implements Listener {
     private final JavaPlugin plugin;
@@ -25,6 +28,7 @@ public class PlayerDataListener implements Listener {
     private final ManaManager manaManager;
     private final LevelManager levelManager;
     private final RankManager rankManager;
+    private CharacterLevelManager characterLevelManager;
 
     public PlayerDataListener(JavaPlugin plugin, DataPersistence dataPersistence,
                              FragmentManager fragmentManager, ManaManager manaManager,
@@ -35,6 +39,11 @@ public class PlayerDataListener implements Listener {
         this.manaManager = manaManager;
         this.levelManager = levelManager;
         this.rankManager = rankManager;
+        
+        // Get CharacterLevelManager from main plugin
+        if (plugin instanceof FrostSMPPlugin) {
+            this.characterLevelManager = ((FrostSMPPlugin) plugin).getCharacterLevelManager();
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -109,6 +118,15 @@ public class PlayerDataListener implements Listener {
                     }
                 }
                 
+                // Load Character Level data
+                if (characterLevelManager != null) {
+                    int charLevel = data.characterLevel > 0 ? data.characterLevel : 1;
+                    double charXP = data.characterXp >= 0 ? data.characterXp : 0;
+                    characterLevelManager.loadCharacterData(player, charLevel, charXP);
+                    plugin.getLogger().info("Loaded Character Level for " + player.getName() + 
+                        ": Level=" + charLevel + ", XP=" + String.format("%.1f", charXP));
+                }
+                
                 plugin.getLogger().info("Loaded " + (data.fragments != null ? data.fragments.size() : 0) + 
                     " fragments for " + player.getName());
             });
@@ -145,8 +163,8 @@ public class PlayerDataListener implements Listener {
             if (fragmentType == activeFragment) {
                 fragmentData.currentMana = manaManager.getCurrentManaForSave(player);
             } else {
-                // For inactive fragments, save max mana based on their rank/level
-                fragmentData.currentMana = manaManager.calculateMaxMana(fragmentData.rank, fragmentData.level);
+                // For inactive fragments, save max mana (based on character level now)
+                fragmentData.currentMana = manaManager.getMaxMana(player);
             }
             
             fragmentData.abilityCooldowns = new java.util.HashMap<>();
@@ -161,6 +179,14 @@ public class PlayerDataListener implements Listener {
         data.uiMode = "STANDARD";
         data.lastFragmentChange = 0;
         
+        // Save Character Level data
+        if (characterLevelManager != null) {
+            data.characterLevel = characterLevelManager.getCharacterLevelForSave(player);
+            data.characterXp = characterLevelManager.getCharacterXPForSave(player);
+            plugin.getLogger().info("Saving Character Level for " + player.getName() + 
+                ": Level=" + data.characterLevel + ", XP=" + String.format("%.1f", data.characterXp));
+        }
+        
         // Save asynchronously
         dataPersistence.savePlayerDataAsync(player.getUniqueId(), data);
         
@@ -170,5 +196,8 @@ public class PlayerDataListener implements Listener {
         // Clean up managers
         manaManager.removePlayer(player);
         fragmentManager.removePlayer(player);
+        if (characterLevelManager != null) {
+            characterLevelManager.removePlayer(player);
+        }
     }
 }

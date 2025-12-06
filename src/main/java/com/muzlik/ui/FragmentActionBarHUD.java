@@ -1,5 +1,6 @@
 package com.muzlik.ui;
 
+import com.muzlik.character.CharacterLevelManager;
 import com.muzlik.cooldown.CooldownManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
@@ -15,7 +16,9 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Displays Fragment ability information on the action bar
- * Shows: Fragment name, current slot, all abilities, cooldowns, lock status
+ * Shows: Character Level, Fragment name, Mana, all abilities, cooldowns, lock status
+ * 
+ * Format: ✦ LVL: X/MAX | Fragment ⚡ Mana [abilities]
  */
 public class FragmentActionBarHUD {
     
@@ -23,6 +26,7 @@ public class FragmentActionBarHUD {
     private final FragmentManager fragmentManager;
     private final ManaManager manaManager;
     private final CooldownManager cooldownManager;
+    private CharacterLevelManager characterLevelManager;
     private BukkitRunnable updateTask;
     
     public FragmentActionBarHUD(JavaPlugin plugin, FragmentManager fragmentManager, 
@@ -31,6 +35,13 @@ public class FragmentActionBarHUD {
         this.fragmentManager = fragmentManager;
         this.manaManager = manaManager;
         this.cooldownManager = cooldownManager;
+    }
+    
+    /**
+     * Set CharacterLevelManager reference
+     */
+    public void setCharacterLevelManager(CharacterLevelManager characterLevelManager) {
+        this.characterLevelManager = characterLevelManager;
     }
     
     /**
@@ -105,20 +116,55 @@ public class FragmentActionBarHUD {
     }
     
     /**
-     * Build the HUD message component - CLEAN MINIMAL STYLE
+     * Build the HUD message component - PREMIUM STYLE WITH LEVEL + MANA
+     * Format: ✦ LVL: X/MAX | Fragment ⚡ Mana/Max [abilities]
      */
     private Component buildHUDMessage(Player player, FragmentType fragmentType, int currentSlot) {
         Component message = Component.empty();
         
-        // Fragment name with color - CLEAN STYLE
+        // ═══ CHARACTER LEVEL SECTION ═══
+        // Format: ✦ LVL: X/MAX
+        if (characterLevelManager != null) {
+            int characterLevel = characterLevelManager.getCharacterLevel(player);
+            int maxLevel = characterLevelManager.getMaxCharacterLevel();
+            
+            // Star emoji for level indicator
+            message = message.append(Component.text("✦ ", NamedTextColor.GOLD));
+            message = message.append(Component.text("ʟᴠʟ ", NamedTextColor.GRAY));
+            
+            // Current level - gold if max, otherwise white
+            if (characterLevel >= maxLevel) {
+                message = message.append(Component.text(String.valueOf(characterLevel), NamedTextColor.GOLD)
+                    .decorate(TextDecoration.BOLD));
+            } else {
+                message = message.append(Component.text(String.valueOf(characterLevel), NamedTextColor.WHITE));
+            }
+            
+            message = message.append(Component.text("/", NamedTextColor.DARK_GRAY));
+            message = message.append(Component.text(String.valueOf(maxLevel), NamedTextColor.GRAY));
+            
+            // Separator
+            message = message.append(Component.text(" │ ", NamedTextColor.DARK_GRAY));
+        }
+        
+        // ═══ FRAGMENT SECTION ═══
+        // Format: FragmentName ⚡ Mana/Max
         TextColor fragmentColor = getFragmentColor(fragmentType);
         String fragmentName = toSmallCaps(fragmentType.getDisplayName());
         message = message.append(Component.text(fragmentName + " ", fragmentColor));
         
-        // Mana display - CLEAN STYLE
+        // ═══ MANA DISPLAY ═══
+        // Format: ⚡ Current/Max
         double currentMana = manaManager.getMana(player);
         double maxMana = manaManager.getMaxMana(player);
-        message = message.append(Component.text(String.format("%.0f", currentMana), NamedTextColor.WHITE));
+        
+        // Calculate mana percentage for color coding
+        double manaPercent = currentMana / maxMana;
+        TextColor manaColor = manaPercent >= 0.5 ? NamedTextColor.AQUA : 
+                             (manaPercent >= 0.25 ? NamedTextColor.YELLOW : NamedTextColor.RED);
+        
+        message = message.append(Component.text("⚡", NamedTextColor.AQUA));
+        message = message.append(Component.text(String.format("%.0f", currentMana), manaColor));
         message = message.append(Component.text("/", NamedTextColor.DARK_GRAY));
         message = message.append(Component.text(String.format("%.0f", maxMana), NamedTextColor.GRAY));
         message = message.append(Component.text(" ", NamedTextColor.DARK_GRAY));

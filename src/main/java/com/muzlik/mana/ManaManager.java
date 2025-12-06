@@ -1,5 +1,6 @@
 package com.muzlik.mana;
 
+import com.muzlik.character.CharacterLevelManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -10,18 +11,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages mana for all players with passive regeneration.
- * Handles mana consumption, regeneration, and temporary boosts.
+ * Max mana is now determined by CharacterLevelManager.
  */
 public class ManaManager {
     private final JavaPlugin plugin;
     private final Map<UUID, PlayerManaData> playerManaData;
     private final ManaDisplay manaDisplay;
     private BukkitRunnable regenTask;
+    
+    // Reference to CharacterLevelManager for max mana calculation
+    private CharacterLevelManager characterLevelManager;
 
     // Configuration constants (Anime RPG Style)
     private static final double BASE_MAX_MANA = 100.0;
-    private static final double MANA_PER_RANK = 20.0;
-    private static final double MANA_PER_LEVEL = 5.0;
     private static final double BASE_REGEN_RATE = 2.0;
     private static final double REGEN_PER_RANK = 0.5;
 
@@ -30,6 +32,13 @@ public class ManaManager {
         this.playerManaData = new ConcurrentHashMap<>();
         this.manaDisplay = new ManaDisplay(plugin);
         startManaRegeneration();
+    }
+    
+    /**
+     * Set the CharacterLevelManager reference (called after initialization)
+     */
+    public void setCharacterLevelManager(CharacterLevelManager characterLevelManager) {
+        this.characterLevelManager = characterLevelManager;
     }
 
     /**
@@ -41,22 +50,19 @@ public class ManaManager {
     }
 
     /**
-     * Get player's maximum mana based on rank and level
+     * Get player's maximum mana based on CHARACTER LEVEL
+     * Now uses CharacterLevelManager instead of rank/level formula
      */
     public double getMaxMana(Player player) {
-        PlayerManaData data = getOrCreateManaData(player);
-        return calculateMaxMana(data.getRank(), data.getLevel());
+        if (characterLevelManager != null) {
+            return characterLevelManager.getMaxMana(player);
+        }
+        // Fallback if CharacterLevelManager not set yet
+        return BASE_MAX_MANA;
     }
 
-    /**
-     * Calculate max mana using the formula: 100 + (Rank * 20) + (Level * 5)
-     * @param rank The Fragment rank
-     * @param level The player level
-     * @return The calculated max mana
-     */
-    public double calculateMaxMana(int rank, int level) {
-        return BASE_MAX_MANA + (rank * MANA_PER_RANK) + (level * MANA_PER_LEVEL);
-    }
+    // NOTE: calculateMaxMana was removed - max mana is now based on CharacterLevel only
+    // Use characterLevelManager.getMaxMana(player) instead
 
     /**
      * Set player's mana to a specific value
@@ -76,7 +82,8 @@ public class ManaManager {
             triggerManaFullEvent(player);
         }
         
-        manaDisplay.updateDisplay(player, clampedMana, maxMana);
+        // NOTE: Removed bossbar display - mana now shown in action bar HUD
+        // manaDisplay.updateDisplay(player, clampedMana, maxMana);
     }
 
     /**
@@ -233,15 +240,14 @@ public class ManaManager {
         data.setRank(rank);
         data.setLevel(level);
         
-        // Calculate max mana based on rank and level
-        double maxMana = calculateMaxMana(rank, level);
+        // Get max mana from CharacterLevelManager (not rank/level anymore)
+        double maxMana = getMaxMana(player);
         
         // Set current mana to saved value, clamped to max
         double clampedMana = Math.max(0, Math.min(savedMana, maxMana));
         data.setCurrentMana(clampedMana);
         
-        // Update display
-        manaDisplay.updateDisplay(player, clampedMana, maxMana);
+        // NOTE: Removed bossbar display - mana now shown in action bar HUD
         
         plugin.getLogger().info("Loaded mana for " + player.getName() + ": " + clampedMana + "/" + maxMana);
     }

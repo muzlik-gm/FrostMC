@@ -31,6 +31,7 @@ import com.muzlik.vfx.VFXEngine;
 import com.muzlik.vfx.SoundEngine;
 import com.muzlik.vfx.environment.EnvironmentManager;
 import com.muzlik.vfx.AbilityVFXHelper;
+import com.muzlik.character.CharacterLevelManager;
 
 /**
  * Main plugin class for FrostSMP Power Plugin
@@ -74,6 +75,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
     // Flight System
     private com.muzlik.fragment.ability.FlightManager flightManager;
+    
+    // Character Level System (affects max mana)
+    private CharacterLevelManager characterLevelManager;
 
     @Override
     public void onEnable() {
@@ -109,6 +113,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         manaManager = new ManaManager(this);
         levelManager = new LevelManager(this);
         rankManager = new RankManager(this);
+        
+        // Initialize Character Level system (affects max mana)
+        characterLevelManager = new CharacterLevelManager(this);
+        manaManager.setCharacterLevelManager(characterLevelManager);
         
         // Initialize Fragment manager
         fragmentManager = new FragmentManager(this, manaManager, levelManager, rankManager);
@@ -162,8 +170,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         powerHUD = new com.muzlik.ui.PowerHUD(this, powerManager);
         powerHUD.start();
         
-        // Initialize Fragment HUD
+        // Initialize Fragment HUD (with CharacterLevelManager)
         fragmentHUD = new com.muzlik.ui.FragmentActionBarHUD(this, fragmentManager, manaManager, powerManager.getCooldownManager());
+        fragmentHUD.setCharacterLevelManager(characterLevelManager);
         fragmentHUD.start();
 
         // Register listeners
@@ -312,6 +321,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         if (abilityRegistry != null) {
             abilityRegistry.shutdown();
         }
+        if (characterLevelManager != null) {
+            characterLevelManager.shutdown();
+        }
         if (cooldownAPI != null) {
             cooldownAPI.shutdown();
         }
@@ -357,6 +369,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public AbilityVFXHelper getAbilityVFXHelper() { return abilityVFXHelper; }
     public com.muzlik.vfx.VFXPerformanceManager getVFXPerformanceManager() { return vfxPerformanceManager; }
     public com.muzlik.fragment.ability.FlightManager getFlightManager() { return flightManager; }
+    public CharacterLevelManager getCharacterLevelManager() { return characterLevelManager; }
 }
 
 
