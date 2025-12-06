@@ -1,0 +1,50 @@
+# Maven
+target/
+dependency-reduced-pom.xml
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.kiro/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.jar
+!FrostSMP.jar
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# Resource pack build artifacts
+textures_final/
+textures_x32/
+*.zip
+
+# Console history
+console_history.txt

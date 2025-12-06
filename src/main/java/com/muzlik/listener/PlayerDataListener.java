@@ -1,0 +1,174 @@
+package com.muzlik.listener;
+
+import com.muzlik.data.DataPersistence;
+import com.muzlik.fragment.FragmentManager;
+import com.muzlik.fragment.FragmentType;
+import com.muzlik.fragment.level.LevelManager;
+import com.muzlik.fragment.rank.RankManager;
+import com.muzlik.mana.ManaManager;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * Handles loading and saving player data on join/quit
+ * FIXES: Mana resetting to 165/185 on server restart
+ */
+public class PlayerDataListener implements Listener {
+    private final JavaPlugin plugin;
+    private final DataPersistence dataPersistence;
+    private final FragmentManager fragmentManager;
+    private final ManaManager manaManager;
+    private final LevelManager levelManager;
+    private final RankManager rankManager;
+
+    public PlayerDataListener(JavaPlugin plugin, DataPersistence dataPersistence,
+                             FragmentManager fragmentManager, ManaManager manaManager,
+                             LevelManager levelManager, RankManager rankManager) {
+        this.plugin = plugin;
+        this.dataPersistence = dataPersistence;
+        this.fragmentManager = fragmentManager;
+        this.manaManager = manaManager;
+        this.levelManager = levelManager;
+        this.rankManager = rankManager;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        
+        // Load player data asynchronously
+        dataPersistence.loadPlayerDataAsync(player.getUniqueId()).thenAccept(data -> {
+            // Run on main thread
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                // CRITICAL FIX: Load ALL owned fragments first
+                if (data.fragments != null && !data.fragments.isEmpty()) {
+                    for (java.util.Map.Entry<String, DataPersistence.FragmentDataContainer> entry : data.fragments.entrySet()) {
+                        try {
+                            FragmentType fragmentType = FragmentType.valueOf(entry.getKey());
+                            DataPersistence.FragmentDataContainer fragmentData = entry.getValue();
+                            
+                            // Grant the fragment to the player
+                            if (fragmentData.unlocked) {
+                                // Directly add to player's owned fragments without triggering grant message
+                                com.muzlik.fragment.PlayerFragmentData playerData = fragmentManager.getPlayerData(player);
+                                if (playerData == null) {
+                                    playerData = new com.muzlik.fragment.PlayerFragmentData();
+                                    // Store it in FragmentManager (need to access private field, so we'll use grantFragment)
+                                }
+                                
+                                // Use hasFragment check to avoid duplicate grants
+                                if (!fragmentManager.hasFragment(player, fragmentType)) {
+                                    fragmentManager.grantFragment(player, fragmentType);
+                                }
+                                
+                                // Load rank, level, and XP
+                                rankManager.setRank(player, fragmentType, fragmentData.rank);
+                                levelManager.setLevel(player, fragmentType, fragmentData.level);
+                                levelManager.setXP(player, fragmentType, fragmentData.xp);
+                                
+                                plugin.getLogger().info("Loaded Fragment " + fragmentType.name() + " for " + player.getName() + 
+                                    ": Rank=" + fragmentData.rank + ", Level=" + fragmentData.level + 
+                                    ", XP=" + fragmentData.xp);
+                            }
+                        } catch (IllegalArgumentException e) {
+                            plugin.getLogger().warning("Invalid Fragment type for " + player.getName() + ": " + entry.getKey());
+                        }
+                    }
+                }
+                
+                // Now activate the saved active fragment
+                if (data.activeFragment != null) {
+                    try {
+                        FragmentType activeType = FragmentType.valueOf(data.activeFragment);
+                        
+                        // Set as active fragment
+                        fragmentManager.setActiveFragment(player, activeType);
+                        
+                        // Load Fragment-specific data for active fragment
+                        if (data.fragments != null && data.fragments.containsKey(data.activeFragment)) {
+                            DataPersistence.FragmentDataContainer fragmentData = data.fragments.get(data.activeFragment);
+                            
+                            // Load rank and level (already set above, but ensure they're current)
+                            int rank = fragmentData.rank;
+                            int level = fragmentData.level;
+                            
+                            // Load mana for active fragment
+                            double savedMana = fragmentData.currentMana;
+                            manaManager.loadPlayerMana(player, savedMana, rank, level);
+                            
+                            plugin.getLogger().info("Activated Fragment " + activeType.name() + " for " + player.getName() + 
+                                " with Mana=" + savedMana);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().warning("Invalid active Fragment type for " + player.getName() + ": " + data.activeFragment);
+                    }
+                }
+                
+                plugin.getLogger().info("Loaded " + (data.fragments != null ? data.fragments.size() : 0) + 
+                    " fragments for " + player.getName());
+            });
+        });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        
+        // Save player data
+        DataPersistence.PlayerDataContainer data = new DataPersistence.PlayerDataContainer();
+        data.playerId = player.getUniqueId().toString();
+        
+        // Save active Fragment
+        FragmentType activeFragment = fragmentManager.getActiveFragment(player);
+        if (activeFragment != null) {
+            data.activeFragment = activeFragment.name();
+        }
+        
+        // CRITICAL FIX: Save ALL owned fragments, not just the active one!
+        java.util.Collection<FragmentType> ownedFragments = fragmentManager.getPlayerFragments(player);
+        data.fragments = new java.util.HashMap<>();
+        
+        for (FragmentType fragmentType : ownedFragments) {
+            DataPersistence.FragmentDataContainer fragmentData = new DataPersistence.FragmentDataContainer();
+            
+            fragmentData.unlocked = true;
+            fragmentData.rank = rankManager.getRank(player, fragmentType);
+            fragmentData.level = levelManager.getLevel(player, fragmentType);
+            fragmentData.xp = levelManager.getXP(player, fragmentType);
+            
+            // Save current mana only for active fragment
+            if (fragmentType == activeFragment) {
+                fragmentData.currentMana = manaManager.getCurrentManaForSave(player);
+            } else {
+                // For inactive fragments, save max mana based on their rank/level
+                fragmentData.currentMana = manaManager.calculateMaxMana(fragmentData.rank, fragmentData.level);
+            }
+            
+            fragmentData.abilityCooldowns = new java.util.HashMap<>();
+            
+            data.fragments.put(fragmentType.name(), fragmentData);
+            
+            plugin.getLogger().info("Saving Fragment " + fragmentType.name() + " for " + player.getName() + 
+                ": Rank=" + fragmentData.rank + ", Level=" + fragmentData.level + 
+                ", XP=" + fragmentData.xp + ", Mana=" + fragmentData.currentMana);
+        }
+        
+        data.uiMode = "STANDARD";
+        data.lastFragmentChange = 0;
+        
+        // Save asynchronously
+        dataPersistence.savePlayerDataAsync(player.getUniqueId(), data);
+        
+        plugin.getLogger().info("Saved " + ownedFragments.size() + " fragments for " + player.getName() + 
+            " (Active: " + (activeFragment != null ? activeFragment.name() : "none") + ")");
+        
+        // Clean up managers
+        manaManager.removePlayer(player);
+        fragmentManager.removePlayer(player);
+    }
+}

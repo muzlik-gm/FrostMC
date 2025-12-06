@@ -1,0 +1,88 @@
+# Fragment Abilities Configuration
+# Anime RPG Style Ability System
+
+# Mana Economy
+mana:
+  base: 100
+  per_rank: 20
+  per_level: 5
+  regen_base: 2.0
+  regen_per_rank: 0.5
+
+# Ability Tiers
+tiers:
+  basic:
+    mana_min: 15
+    mana_max: 25
+    cooldown_min: 3000
+    cooldown_max: 6000
+  skill:
+    mana_min: 30
+    mana_max: 40
+    cooldown_min: 8000
+    cooldown_max: 12000
+  ultimate:
+    mana_min: 50
+    mana_max: 70
+    cooldown_min: 15000
+    cooldown_max: 25000
+  advanced:
+    mana_min: 45
+    mana_max: 65
+    cooldown_min: 15000
+    cooldown_max: 20000
+  mastery:
+    mana_min: 80
+    mana_max: 100
+    cooldown_min: 60000
+    cooldown_max: 90000
+
+# Scaling Formulas
+scaling:
+  damage: 0.15
+  defense: 0.10
+  healing: 0.12
+  duration: 0.08
+  range: 0.05
+  mana_cost: 0.10
+
+# Ritual Durations (seconds)
+rituals:
+  fragment_creation: 60
+  fragment_changer: 30
+  rank_up: 45
+  ability_expansion: 120
+  mastery_expansion: 180
+
+# Slot Unlock Thresholds
+unlock_thresholds:
+  fire:
+    slot_3: 5
+    slot_4: 7
+  water:
+    slot_3: -1  # Cannot unlock
+    slot_4: -1
+  air:
+    slot_3: 5
+    slot_4: 7
+  earth:
+    slot_3: -1
+    slot_4: -1
+  dark:
+    slot_3: 6
+    slot_4: 8
+  light:
+    slot_3: 6
+    slot_4: 8
+  storm:
+    slot_3: 8
+    slot_4: 10
+  void:
+    slot_3: 9
+    slot_4: 11
+  mob:
+    slot_3: 7
+    slot_4: 9
+  dragon:
+    slot_3: 10
+    slot_4: 12

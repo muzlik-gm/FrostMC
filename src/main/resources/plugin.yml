@@ -1,0 +1,32 @@
+name: FrostSMP
+version: 1.0.0
+main: com.muzlik.FrostSMPPlugin
+api-version: 1.21
+description: A power token plugin with 10 unique powers and 3 abilities each
+authors: [muzlik]
+website: https://muzlik.com
+
+commands:
+  power:
+    description: Manage and activate powers
+    usage: /power <list|activate|random|deactivate|info>
+    aliases: [pw]
+    permission: frostmc.power
+    permission-message: You don't have permission to use powers
+  fragment:
+    description: Fragment system commands
+    usage: /fragment <give|list|mana|grant|activate>
+    aliases: [frag, f]
+    permission: frostmc.fragment
+    permission-message: You don't have permission to use fragments
+
+permissions:
+  frostmc.power:
+    description: Allows using powers
+    default: true
+  frostmc.fragment:
+    description: Allows using fragments
+    default: true
+  frostmc.admin:
+    description: Admin access to power commands
+    default: op
