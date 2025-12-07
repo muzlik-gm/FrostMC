@@ -55,8 +55,6 @@ public class VFXEngine {
         updateTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             updateEffects();
         }, 1L, 1L);
-        
-        plugin.getLogger().info("VFXEngine update task started");
     }
     
     /**
@@ -235,7 +233,6 @@ public class VFXEngine {
      */
     public void clearAll() {
         activeEffects.clear();
-        plugin.getLogger().info("Cleared all VFX effects");
     }
     
     /**
@@ -244,7 +241,6 @@ public class VFXEngine {
     public void shutdown() {
         stopUpdateTask();
         clearAll();
-        plugin.getLogger().info("VFXEngine shutdown complete");
     }
     
     /**

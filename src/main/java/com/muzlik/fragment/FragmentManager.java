@@ -102,8 +102,10 @@ public class FragmentManager {
         
         // FIXED: Only send acquisition message if NOT auto-activating (to avoid duplicate messages)
         if (!isFirstFragment) {
-            player.sendMessage("§a✓ Fragment acquired: §b" + fragment.getDisplayName());
-            player.sendMessage("§7" + fragment.getDescription());
+            player.sendMessage(
+                com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                com.muzlik.util.Typography.COLOR_SECONDARY + fragment.getDisplayName()
+            );
         }
         
         // Auto-activate if this is the first Fragment
@@ -224,11 +226,9 @@ public class FragmentManager {
             manaManager.updatePlayerRank(player, rank);
             manaManager.updatePlayerLevel(player, level);
             
-            FragmentDefinition fragment = getFragment(type);
-            player.sendMessage("§a✓ Fragment activated: §b" + fragment.getDisplayName());
-            player.sendMessage("§7Use abilities with §eSneak + Right/Left Click §7while holding hotbar slots 0-4");
+            // Silent activation - message shown by caller if needed
         } else {
-            player.sendMessage("§7Fragment deactivated");
+            // Silent deactivation
         }
     }
     

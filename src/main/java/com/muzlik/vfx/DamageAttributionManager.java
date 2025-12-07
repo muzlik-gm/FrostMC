@@ -66,8 +66,6 @@ public class DamageAttributionManager implements Listener {
             }
         };
         cleanupTask.runTaskTimer(plugin, 100L, 100L);
-        
-        plugin.getLogger().info("DamageAttributionManager cleanup task started");
     }
     
     /**
@@ -442,7 +440,6 @@ public class DamageAttributionManager implements Listener {
     public void clearAll() {
         projectileOwners.clear();
         damageSources.clear();
-        plugin.getLogger().info("Cleared all damage attribution data");
     }
     
     /**
@@ -451,6 +448,5 @@ public class DamageAttributionManager implements Listener {
     public void shutdown() {
         stopCleanupTask();
         clearAll();
-        plugin.getLogger().info("DamageAttributionManager shutdown complete");
     }
 }

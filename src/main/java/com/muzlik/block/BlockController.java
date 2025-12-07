@@ -73,13 +73,28 @@ public class BlockController {
         
         updateVelocity();
         
-        Location newLoc = controllerEntity.getLocation().add(velocity);
-        controllerEntity.teleport(newLoc);
-        
-        if (shellType == ShellType.PARTICLE_SHELL && particleRenderer != null) {
+        if (shellType == ShellType.FALLING_BLOCK && fallingBlock != null && fallingBlock.isValid()) {
+            // Apply velocity to the falling block for smooth movement
+            fallingBlock.setVelocity(velocity);
+            
+            // Update controller position to match falling block
+            controllerEntity.teleport(fallingBlock.getLocation());
+            
+            // Spawn subtle particle trail for visibility (only every 3 ticks to reduce spam)
+            if (ticksActive % 3 == 0) {
+                Location blockLoc = fallingBlock.getLocation();
+                if (blockLoc.getWorld() != null) {
+                    // Different particles based on block type
+                    org.bukkit.Particle trailParticle = getTrailParticle(blockType);
+                    blockLoc.getWorld().spawnParticle(trailParticle, blockLoc, 1, 0.05, 0.05, 0.05, 0.01);
+                }
+            }
+        } else if (shellType == ShellType.PARTICLE_SHELL && particleRenderer != null) {
+            // For particle shell, teleport the controller
+            Location newLoc = controllerEntity.getLocation().add(velocity);
+            controllerEntity.teleport(newLoc);
+            // Render particle shell
             particleRenderer.renderShell(newLoc, blockType);
-        } else if (fallingBlock != null && fallingBlock.isValid()) {
-            fallingBlock.teleport(newLoc);
         }
         
         checkCollision();
@@ -93,7 +108,10 @@ public class BlockController {
     public boolean checkCollision() {
         if (hasCollided) return true;
         
-        Location loc = controllerEntity.getLocation();
+        // Use falling block location if available, otherwise controller location
+        Location loc = (fallingBlock != null && fallingBlock.isValid()) 
+            ? fallingBlock.getLocation() 
+            : controllerEntity.getLocation();
         
         for (Entity entity : loc.getWorld().getNearbyEntities(loc, collisionRadius, collisionRadius, collisionRadius)) {
             if (entity.getUniqueId().equals(ownerUUID)) continue;
@@ -118,7 +136,10 @@ public class BlockController {
         if (hasCollided) return;
         hasCollided = true;
         
-        Location impactLoc = controllerEntity.getLocation();
+        // Use falling block location if available
+        Location impactLoc = (fallingBlock != null && fallingBlock.isValid()) 
+            ? fallingBlock.getLocation() 
+            : controllerEntity.getLocation();
         
         // Use impact handler if available
         if (impactHandler != null) {
@@ -151,7 +172,10 @@ public class BlockController {
         if (hasCollided) return;
         hasCollided = true;
         
-        Location impactLoc = controllerEntity.getLocation();
+        // Use falling block location if available
+        Location impactLoc = (fallingBlock != null && fallingBlock.isValid()) 
+            ? fallingBlock.getLocation() 
+            : controllerEntity.getLocation();
         
         // Use impact handler if available
         if (impactHandler != null) {
@@ -238,5 +262,18 @@ public class BlockController {
     
     public void setImpactHandler(ImpactHandler impactHandler) {
         this.impactHandler = impactHandler;
+    }
+    
+    /**
+     * Get appropriate trail particle for block type
+     */
+    private org.bukkit.Particle getTrailParticle(Material blockType) {
+        return switch (blockType) {
+            case MAGMA_BLOCK, NETHERRACK -> org.bukkit.Particle.FLAME;
+            case OBSIDIAN, BLACKSTONE -> org.bukkit.Particle.SMOKE_LARGE;
+            case ICE, PACKED_ICE -> org.bukkit.Particle.SNOWFLAKE;
+            case STONE, COBBLESTONE -> org.bukkit.Particle.SMOKE_NORMAL; // Changed from BLOCK_CRACK
+            default -> org.bukkit.Particle.CLOUD;
+        };
     }
 }

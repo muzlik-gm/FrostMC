@@ -51,6 +51,40 @@ public class TsunamiWaveExecutor implements AbilityExecutor {
         
         initialVFX.spawn();
         
+        // Launch ice blocks that travel with the wave
+        com.muzlik.block.BlockManipulationEngine blockEngine = plugin.getBlockManipulationEngine();
+        int blockCount = 3 + rank; // 3-5 blocks based on rank
+        
+        for (int i = 0; i < blockCount; i++) {
+            // Spread blocks across the wave width
+            Vector perpendicular = direction.clone().crossProduct(new Vector(0, 1, 0)).normalize();
+            double offset = (i - blockCount / 2.0) * 1.5;
+            Location spawnLoc = start.clone().add(perpendicular.multiply(offset)).add(0, 1, 0);
+            
+            // Create ice block controller config
+            com.muzlik.block.BlockControllerConfig config = new com.muzlik.block.BlockControllerConfig.Builder()
+                .ownerUUID(player.getUniqueId())
+                .abilityId("water_tsunami_wave")
+                .startLocation(spawnLoc)
+                .direction(direction.clone().setY(0.2))
+                .baseSpeed(0.5)
+                .accelerationFactor(1.02)
+                .maxSpeed(1.5)
+                .maxLifeTicks((int)(range * 2)) // Travel with wave
+                .shellType(com.muzlik.block.ShellType.FALLING_BLOCK)
+                .blockType(org.bukkit.Material.PACKED_ICE)
+                .collisionRadius(0.8)
+                .baseDamage(2.0) // Minor damage
+                .fragmentRank(rank)
+                .build();
+            
+            // Spawn block projectile with slight delay
+            int delay = i * 2;
+            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                blockEngine.spawnController(config);
+            }, delay);
+        }
+        
         // Animated wave
         new BukkitRunnable() {
             double distance = 0;

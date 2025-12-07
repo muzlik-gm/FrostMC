@@ -2,6 +2,7 @@ package com.muzlik.block;
 
 import com.muzlik.vfx.DamageAttributionManager;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -75,6 +76,22 @@ public class DefaultImpactHandler implements ImpactHandler {
         );
         target.setVelocity(knockback);
         
+        // Special effects based on block type
+        Material blockType = controller.getBlockType();
+        if (blockType == Material.MAGMA_BLOCK || blockType == Material.NETHERRACK) {
+            // Set target on fire
+            living.setFireTicks(60); // 3 seconds
+            // Explosion effect
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_LARGE, impactLocation, 1, 0, 0, 0, 0);
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.FLAME, impactLocation, 15, 0.5, 0.5, 0.5, 0.1);
+            impactLocation.getWorld().playSound(impactLocation, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.8f, 1.2f);
+        } else if (blockType == Material.ICE || blockType == Material.PACKED_ICE) {
+            // Slow effect
+            living.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.SLOW, 40, 1, false, false));
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.SNOWFLAKE, impactLocation, 10, 0.5, 0.5, 0.5, 0);
+        }
+        
         // Spawn impact VFX
         if (particleRenderer != null) {
             particleRenderer.renderImpact(impactLocation, controller.getBlockType());
@@ -87,6 +104,25 @@ public class DefaultImpactHandler implements ImpactHandler {
     
     @Override
     public void onBlockImpact(BlockController controller, Location impactLocation) {
+        // Special effects based on block type
+        Material blockType = controller.getBlockType();
+        if (blockType == Material.MAGMA_BLOCK || blockType == Material.NETHERRACK) {
+            // Explosion effect on ground
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_LARGE, impactLocation, 1, 0, 0, 0, 0);
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.FLAME, impactLocation, 10, 0.5, 0.5, 0.5, 0.05);
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.LAVA, impactLocation, 5, 0.3, 0.3, 0.3, 0);
+            impactLocation.getWorld().playSound(impactLocation, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.6f, 1.2f);
+        } else if (blockType == Material.ICE || blockType == Material.PACKED_ICE) {
+            // Ice shatter effect
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.SNOWFLAKE, impactLocation, 15, 0.5, 0.5, 0.5, 0);
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.CLOUD, impactLocation, 10, 0.3, 0.3, 0.3, 0);
+            impactLocation.getWorld().playSound(impactLocation, org.bukkit.Sound.BLOCK_GLASS_BREAK, 0.8f, 1.5f);
+        } else {
+            // Stone/earth impact
+            impactLocation.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, impactLocation, 8, 0.3, 0.3, 0.3, 0);
+            impactLocation.getWorld().playSound(impactLocation, org.bukkit.Sound.BLOCK_STONE_HIT, 0.8f, 0.8f);
+        }
+        
         // Spawn impact VFX
         if (particleRenderer != null) {
             particleRenderer.renderImpact(impactLocation, controller.getBlockType());

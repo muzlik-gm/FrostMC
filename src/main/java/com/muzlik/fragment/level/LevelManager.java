@@ -3,6 +3,7 @@ package com.muzlik.fragment.level;
 import com.muzlik.fragment.FragmentDefinition;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
+import com.muzlik.fragment.rank.RankManager;
 import com.muzlik.FrostSMPPlugin;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Each Fragment has independent progression.
  * 
  * Fragment Level now affects:
- * - Cooldown reduction (up to 25% at max level)
+ * - Cooldown reduction (up to 10% at max level)
  * - Mana cost reduction (up to 20% at max level)
  * - Small damage bonus (up to 15% at max level)
  * 
@@ -26,10 +27,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * - Base Rank 4-5: Max Level 8
  * - Base Rank 6-7: Max Level 10
  * - Base Rank 8+:  Max Level 12
+ * 
+ * AUTO RANK-UP: Every 2 levels, fragment rank increases automatically
  */
 public class LevelManager {
     private final JavaPlugin plugin;
     private final Map<UUID, Map<FragmentType, FragmentLevelData>> playerLevelData;
+    private RankManager rankManager;
     
     // Default fallback max level (if Fragment not registered)
     private static final int DEFAULT_MAX_LEVEL = 5;
@@ -40,6 +44,13 @@ public class LevelManager {
     public LevelManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.playerLevelData = new ConcurrentHashMap<>();
+    }
+    
+    /**
+     * Set RankManager reference (called after initialization)
+     */
+    public void setRankManager(RankManager rankManager) {
+        this.rankManager = rankManager;
     }
 
     /**
@@ -211,43 +222,43 @@ public class LevelManager {
         
         if (currentXP >= xpRequired) {
             // Level up!
-            data.setLevel(currentLevel + 1);
+            int newLevel = currentLevel + 1;
+            data.setLevel(newLevel);
             data.setXp(currentXP - xpRequired); // Carry over excess XP
             
-            triggerLevelUpNotification(player, type, currentLevel + 1, maxLevel);
+            triggerLevelUpNotification(player, type, newLevel, maxLevel);
+            
+            // AUTO RANK-UP: Every 2 levels, increase rank (silent, shown in rank-up notification)
+            if (rankManager != null && newLevel % 2 == 0) {
+                if (rankManager.canRankUp(player, type)) {
+                    rankManager.rankUp(player, type);
+                }
+            }
             
             // Check for another level up (in case of large XP gain)
             checkLevelUp(player, type, data);
         }
     }
     private void triggerLevelUpNotification(Player player, FragmentType type, int newLevel, int maxLevel) {
-        // Calculate bonuses at this level
-        double cooldownReduction = getCooldownReduction(newLevel, maxLevel) * 100;
-        double manaCostReduction = getManaCostReduction(newLevel, maxLevel) * 100;
-        double damageBonus = getDamageBonus(newLevel, maxLevel) * 100;
+        // Minimal clean notification
+        player.sendMessage(
+            com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+            com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + " " +
+            com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.SYMBOL_ARROW + " " +
+            com.muzlik.util.Typography.COLOR_HIGHLIGHT + com.muzlik.util.Typography.toSmallCaps("level") + " " +
+            com.muzlik.util.Typography.COLOR_PRIMARY + newLevel
+        );
         
-        player.sendMessage("");
-        player.sendMessage(com.muzlik.util.Typography.COLOR_SUCCESS + "§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        player.sendMessage(com.muzlik.util.Typography.COLOR_ACCENT + "§l   ⬆ " + com.muzlik.util.Typography.toSmallCaps("Fragment Level Up!"));
-        player.sendMessage("");
-        player.sendMessage(com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + com.muzlik.util.Typography.COLOR_TEXT + " " + com.muzlik.util.Typography.SYMBOL_ARROW + " " + com.muzlik.util.Typography.COLOR_PRIMARY + "Level " + newLevel + "/" + maxLevel);
-        player.sendMessage("");
-        player.sendMessage(com.muzlik.util.Typography.COLOR_TEXT + "Bonuses:");
-        player.sendMessage("  " + com.muzlik.util.Typography.COLOR_PRIMARY + com.muzlik.util.Typography.SYMBOL_COOLDOWN + " " + com.muzlik.util.Typography.COLOR_HIGHLIGHT + "Cooldown: " + com.muzlik.util.Typography.COLOR_SUCCESS + "-" + String.format("%.0f", cooldownReduction) + "%");
-        player.sendMessage("  " + com.muzlik.util.Typography.COLOR_PRIMARY + com.muzlik.util.Typography.SYMBOL_LIGHTNING + " " + com.muzlik.util.Typography.COLOR_HIGHLIGHT + "Mana Cost: " + com.muzlik.util.Typography.COLOR_SUCCESS + "-" + String.format("%.0f", manaCostReduction) + "%");
-        player.sendMessage("  " + com.muzlik.util.Typography.COLOR_PRIMARY + com.muzlik.util.Typography.SYMBOL_SWORD + " " + com.muzlik.util.Typography.COLOR_HIGHLIGHT + "Damage: " + com.muzlik.util.Typography.COLOR_SUCCESS + "+" + String.format("%.0f", damageBonus) + "%");
-        player.sendMessage(com.muzlik.util.Typography.COLOR_SUCCESS + "§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
     }
 
     /**
-     * Get cooldown reduction multiplier based on level (0 to 0.25 = 0% to 25%)
+     * Get cooldown reduction multiplier based on level (0 to 0.10 = 0% to 10%)
      */
     public double getCooldownReduction(int level, int maxLevel) {
         if (level <= 1 || maxLevel <= 1) return 0.0;
-        // Linear scaling: Level 1 = 0%, Max Level = 25%
-        return 0.25 * ((double)(level - 1) / (maxLevel - 1));
+        // Linear scaling: Level 1 = 0%, Max Level = 10%
+        return 0.10 * ((double)(level - 1) / (maxLevel - 1));
     }
     
     /**

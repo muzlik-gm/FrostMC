@@ -63,8 +63,6 @@ public class FragmentActionBarHUD {
         
         // Update every 10 ticks (0.5 seconds)
         updateTask.runTaskTimer(plugin, 0L, 10L);
-        
-        plugin.getLogger().info("FragmentActionBarHUD started");
     }
     
     /**
@@ -267,9 +265,9 @@ public class FragmentActionBarHUD {
             case WATER -> NamedTextColor.BLUE;
             case AIR -> NamedTextColor.WHITE;
             case EARTH -> NamedTextColor.GOLD;
-            case DARK -> NamedTextColor.DARK_PURPLE;
+            case DARK -> NamedTextColor.BLACK; // Changed from DARK_PURPLE
             case LIGHT -> NamedTextColor.YELLOW;
-            case VOID -> NamedTextColor.DARK_GRAY;
+            case VOID -> NamedTextColor.DARK_PURPLE; // Changed from DARK_GRAY
             case MOB -> NamedTextColor.GREEN;
             case DRAGON -> NamedTextColor.DARK_RED;
             case STORM -> NamedTextColor.AQUA;

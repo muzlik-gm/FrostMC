@@ -29,28 +29,26 @@ import java.util.*;
  */
 public class DragonMeteorExecutor implements AbilityExecutor {
     
-    private final FrostSMPPlugin plugin;
-    private final BlockManipulationEngine blockEngine;
-    private final PacketBlockManager packetBlockManager;
-    
     // Track active meteors per player (max 1)
     private static final Map<UUID, UUID> activeMeteors = new HashMap<>();
     
-    private static final double BASE_DAMAGE = 12.0;  // Reduced from 40 to 12
-    private static final double IMPACT_RADIUS = 6.0;  // Reduced from 8 to 6
+    private static final double BASE_DAMAGE = 18.0;  // Increased for more power
+    private static final double IMPACT_RADIUS = 7.0;  // Increased radius
     private static final int SPAWN_HEIGHT = 50;
-    
-    public DragonMeteorExecutor(FrostSMPPlugin plugin, BlockManipulationEngine blockEngine,
-                               PacketBlockManager packetBlockManager) {
-        this.plugin = plugin;
-        this.blockEngine = blockEngine;
-        this.packetBlockManager = packetBlockManager;
-    }
     
     @Override
     public void execute(AbilityContext context) {
         Player player = context.getPlayer();
         int rank = context.getRank();
+        
+        // Get plugin instance
+        FrostSMPPlugin plugin = (FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
+        if (plugin == null) {
+            player.sendMessage("§4✗ Plugin error!");
+            return;
+        }
+        
+        BlockManipulationEngine blockEngine = plugin.getBlockManipulationEngine();
         
         // Check if player already has an active meteor
         if (activeMeteors.containsKey(player.getUniqueId())) {
@@ -67,19 +65,21 @@ public class DragonMeteorExecutor implements AbilityExecutor {
         // Calculate damage with rank scaling
         double damage = com.muzlik.fragment.ability.AbilityScaling.scaleDamage(BASE_DAMAGE, rank, 9);
         
+        player.sendMessage("§6☄ Summoning meteor...");
+        
         // Create meteor using BlockManipulationEngine
         BlockControllerConfig config = new BlockControllerConfig.Builder()
             .ownerUUID(player.getUniqueId())
             .abilityId("dragon_meteor")
             .startLocation(spawnLoc)
             .direction(new Vector(0, -1, 0))
-            .baseSpeed(2.0)
-            .accelerationFactor(0.1)
-            .maxSpeed(4.0)
+            .baseSpeed(1.0)
+            .accelerationFactor(0.15)
+            .maxSpeed(3.0)
             .maxLifeTicks(100)
             .shellType(ShellType.FALLING_BLOCK)
             .blockType(Material.MAGMA_BLOCK)
-            .collisionRadius(1.5)
+            .collisionRadius(2.0)
             .baseDamage(damage)
             .fragmentRank(rank)
             .build();
@@ -105,7 +105,7 @@ public class DragonMeteorExecutor implements AbilityExecutor {
                 // Check if meteor still exists
                 if (blockEngine.getController(meteorId) == null || ticks > 100) {
                     // Meteor impacted or expired
-                    handleImpact(player, targetLoc, damage, rank);
+                    handleImpact(player, targetLoc, damage, rank, plugin);
                     activeMeteors.remove(player.getUniqueId());
                     cancel();
                     return;
@@ -133,7 +133,7 @@ public class DragonMeteorExecutor implements AbilityExecutor {
     /**
      * Handle meteor impact
      */
-    private void handleImpact(Player player, Location impactLoc, double damage, int rank) {
+    private void handleImpact(Player player, Location impactLoc, double damage, int rank, FrostSMPPlugin plugin) {
         // Deal damage in radius
         for (Entity entity : impactLoc.getWorld().getNearbyEntities(impactLoc, IMPACT_RADIUS, IMPACT_RADIUS, IMPACT_RADIUS)) {
             if (entity instanceof LivingEntity && entity != player) {
@@ -155,28 +155,6 @@ public class DragonMeteorExecutor implements AbilityExecutor {
                 entity.setVelocity(knockback);
             }
         }
-        
-        // Create packet-only crater
-        UUID craterGroupId = packetBlockManager.createBlockGroup(player.getUniqueId(), 60); // 3 seconds
-        BlockData airData = Material.AIR.createBlockData();
-        
-        // Create crater pattern
-        for (int x = -3; x <= 3; x++) {
-            for (int z = -3; z <= 3; z++) {
-                double distance = Math.sqrt(x * x + z * z);
-                if (distance <= 3.0) {
-                    Location crateLoc = impactLoc.clone().add(x, -1, z);
-                    packetBlockManager.addBlock(craterGroupId, crateLoc, airData);
-                }
-            }
-        }
-        
-        packetBlockManager.sendToNearbyPlayers(craterGroupId, impactLoc, 32.0);
-        
-        // Schedule crater cleanup
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            packetBlockManager.revertGroup(craterGroupId);
-        }, 60L);
         
         // Spawn massive impact VFX
         VFXLayerBuilder vfx = new VFXLayerBuilder(plugin, impactLoc, rank, player);

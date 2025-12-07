@@ -180,16 +180,16 @@ public class RankManager {
      * Trigger rank-up notification
      */
     private void triggerRankUpNotification(Player player, FragmentType type, int newRank) {
-        player.sendMessage("§6§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        player.sendMessage("§e§l                    RANK UP!");
-        player.sendMessage("");
-        player.sendMessage("§e" + type.getDisplayName() + " Fragment §7→ §6Rank " + newRank);
-        player.sendMessage("§7Max Mana increased!");
-        player.sendMessage("§7Power strength increased!");
-        player.sendMessage("");
-        player.sendMessage("§6§l▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        // Minimal clean notification
+        player.sendMessage(
+            com.muzlik.util.Typography.COLOR_ACCENT + "★ " +
+            com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + " " +
+            com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.SYMBOL_ARROW + " " +
+            com.muzlik.util.Typography.COLOR_HIGHLIGHT + com.muzlik.util.Typography.toSmallCaps("rank") + " " +
+            com.muzlik.util.Typography.COLOR_ACCENT + newRank
+        );
         
-        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
+        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.7f, 1.2f);
     }
 
     /**

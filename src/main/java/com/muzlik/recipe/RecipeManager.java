@@ -32,8 +32,6 @@ public class RecipeManager {
         registerFragmentChangerRecipe();
         registerRitualCatalystRecipe();
         registerManaFlaskRecipe();
-        
-        plugin.getLogger().info("All recipes registered successfully");
     }
 
     /**

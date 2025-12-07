@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 
  * Fragment Level affects:
  * - Mana cost reduction (up to 20% at max level)
- * - Cooldown reduction (up to 25% at max level)
+ * - Cooldown reduction (up to 10% at max level)
  */
 public class FragmentAbilityListener implements Listener {
 
@@ -182,13 +182,14 @@ public class FragmentAbilityListener implements Listener {
             return;
         }
 
-        // Check cooldown
+        // Check cooldown - show in action bar only
         if (cooldownManager.isOnCooldown(player, abilityId)) {
             double remaining = cooldownManager.getRemainingCooldownSeconds(player, abilityId);
-            // Only show cooldown message if not spamming
+            // Show in action bar to avoid chat spam
             if (lastUse == null || (currentTime - lastUse) >= 1000) {
-                player.sendMessage("§c✗ Ability on cooldown: §b" + 
-                                 String.format("%.1f", remaining) + "s");
+                player.sendActionBar(com.muzlik.util.Typography.COLOR_ERROR + 
+                    com.muzlik.util.Typography.SYMBOL_COOLDOWN + " " + 
+                    String.format("%.1fs", remaining));
             }
             return;
         }
@@ -205,9 +206,12 @@ public class FragmentAbilityListener implements Listener {
         double currentMana = manaManager.getMana(player);
         
         if (currentMana < finalManaCost) {
-            player.sendMessage("§c✗ Not enough mana: §9" + 
-                             String.format("%.0f", currentMana) + "/" + 
-                             String.format("%.0f", finalManaCost));
+            // Show in action bar to avoid chat spam
+            player.sendActionBar(com.muzlik.util.Typography.COLOR_ERROR + 
+                com.muzlik.util.Typography.SYMBOL_CROSS + " " + 
+                com.muzlik.util.Typography.toSmallCaps("not enough mana") + " " +
+                com.muzlik.util.Typography.COLOR_PRIMARY + 
+                String.format("%.0f", currentMana) + "/" + String.format("%.0f", finalManaCost));
             return;
         }
 
@@ -228,14 +232,6 @@ public class FragmentAbilityListener implements Listener {
             // Consume mana (with level reduction applied)
             manaManager.consumeMana(player, finalManaCost);
             
-            // Show success message (show savings if any)
-            String manaMsg = manaCostReduction > 0 ? 
-                "[-" + String.format("%.0f", finalManaCost) + " mana §7(§a-" + String.format("%.0f", manaCostReduction * 100) + "%%§7)]" :
-                "[-" + String.format("%.0f", finalManaCost) + " mana]";
-            
-            player.sendMessage("§a✓ §b" + ability.getDisplayName() + 
-                             "§a used (§b" + interactionType + "§a) §7" + manaMsg);
-            
             // ═══ APPLY LEVEL-BASED COOLDOWN REDUCTION ═══
             long baseCooldown = ability.getCooldown();
             double cooldownReduction = 0.0;
@@ -249,13 +245,16 @@ public class FragmentAbilityListener implements Listener {
             // Start cooldown (with level reduction applied)
             cooldownManager.startCooldown(player, abilityId, finalCooldown);
             
-            // Show action bar with remaining mana
+            // Show clean action bar with mana info
             double remainingMana = manaManager.getMana(player);
             double maxMana = manaManager.getMaxMana(player);
-            player.sendActionBar("§9Mana: " + String.format("%.0f", remainingMana) + "/" + 
-                               String.format("%.0f", maxMana));
-        } else {
-            player.sendMessage("§c✗ Ability failed to execute");
+            player.sendActionBar(
+                com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                com.muzlik.util.Typography.COLOR_PRIMARY + 
+                String.format("%.0f", remainingMana) + "/" + String.format("%.0f", maxMana) + " " +
+                com.muzlik.util.Typography.COLOR_TEXT_DARK + 
+                com.muzlik.util.Typography.toSmallCaps("mana")
+            );
         }
     }
 }

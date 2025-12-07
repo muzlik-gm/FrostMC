@@ -248,8 +248,6 @@ public class ManaManager {
         data.setCurrentMana(clampedMana);
         
         // NOTE: Removed bossbar display - mana now shown in action bar HUD
-        
-        plugin.getLogger().info("Loaded mana for " + player.getName() + ": " + clampedMana + "/" + maxMana);
     }
     
     /**

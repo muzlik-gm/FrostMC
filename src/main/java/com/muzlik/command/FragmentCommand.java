@@ -161,6 +161,16 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         }
         if (configManager != null) {
             configManager.reloadConfig();
+            
+            // Reload block manipulation engine configuration
+            if (plugin instanceof FrostSMPPlugin) {
+                FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+                com.muzlik.block.BlockManipulationEngine blockEngine = frostPlugin.getBlockManipulationEngine();
+                if (blockEngine != null) {
+                    blockEngine.reloadConfiguration();
+                }
+            }
+            
             sender.sendMessage("§aConfiguration reloaded successfully");
         } else {
             sender.sendMessage("§cConfigManager not initialized");
@@ -297,7 +307,13 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 levelManager.setLevel(target, type, 1);
                 levelManager.setXP(target, type, 0);
                 rankManager.initializeRank(target, type);
-                player.sendMessage("§aReset " + type.getDisplayName() + " progress for " + target.getName());
+                player.sendMessage(
+                    com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                    com.muzlik.util.Typography.toSmallCaps("reset") + " " +
+                    com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + " " +
+                    com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.toSmallCaps("for") + " " +
+                    com.muzlik.util.Typography.COLOR_HIGHLIGHT + target.getName()
+                );
             } catch (IllegalArgumentException e) {
                 player.sendMessage("§cInvalid fragment type: " + args[2]);
             }
@@ -311,7 +327,11 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 levelManager.setXP(target, type, 0);
                 rankManager.initializeRank(target, type);
             }
-            player.sendMessage("§aReset ALL fragment progress for " + target.getName());
+            player.sendMessage(
+                com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                com.muzlik.util.Typography.toSmallCaps("reset all fragments for") + " " +
+                com.muzlik.util.Typography.COLOR_HIGHLIGHT + target.getName()
+            );
         }
     }
     

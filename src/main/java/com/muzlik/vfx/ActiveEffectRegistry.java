@@ -58,8 +58,6 @@ public class ActiveEffectRegistry {
         cleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             cleanupExpiredEffects();
         }, 100L, 100L);
-        
-        plugin.getLogger().info("ActiveEffectRegistry cleanup task started");
     }
     
     /**
@@ -158,8 +156,6 @@ public class ActiveEffectRegistry {
                 totalEffectsCleaned++;
             }
         }
-        
-        plugin.getLogger().info("Cleaned up " + cleaned + " effects for player " + playerId);
         
         return cleaned;
     }
@@ -330,8 +326,6 @@ public class ActiveEffectRegistry {
      * Clear all effects (for shutdown or testing)
      */
     public void clearAll() {
-        plugin.getLogger().info("Clearing all effects from registry...");
-        
         // Cleanup all effects
         for (EffectEntry entry : effects.values()) {
             entry.cleanup();
@@ -339,8 +333,6 @@ public class ActiveEffectRegistry {
         
         effects.clear();
         playerEffects.clear();
-        
-        plugin.getLogger().info("All effects cleared");
     }
     
     /**
@@ -350,9 +342,5 @@ public class ActiveEffectRegistry {
     public void shutdown() {
         stopCleanupTask();
         clearAll();
-        
-        plugin.getLogger().info("ActiveEffectRegistry shutdown complete. " +
-                "Total effects spawned: " + totalEffectsSpawned + ", " +
-                "Total cleaned: " + totalEffectsCleaned);
     }
 }

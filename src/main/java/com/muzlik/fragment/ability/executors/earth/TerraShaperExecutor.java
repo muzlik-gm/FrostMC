@@ -59,6 +59,44 @@ public class TerraShaperExecutor implements AbilityExecutor {
         
         Location startLoc = player.getLocation().clone();
         
+        // Launch block projectiles that rise up to form the ramp
+        com.muzlik.block.BlockManipulationEngine blockEngine = plugin.getBlockManipulationEngine();
+        int blocksLaunched = 0;
+        int maxBlocks = 3 + rank; // 3-6 blocks based on rank
+        
+        for (int i = 0; i < Math.min(length, maxBlocks); i++) {
+            Location blockSpawn = startLoc.clone().add(direction.clone().multiply(i));
+            blockSpawn.setY(blockSpawn.getY() - 1); // Start below ground
+            
+            // Calculate upward direction with slight forward motion
+            Vector upDirection = new Vector(direction.getX() * 0.2, 1.0, direction.getZ() * 0.2).normalize();
+            
+            // Create block controller config
+            com.muzlik.block.BlockControllerConfig config = new com.muzlik.block.BlockControllerConfig.Builder()
+                .ownerUUID(player.getUniqueId())
+                .abilityId("earth_terra_shaper")
+                .startLocation(blockSpawn)
+                .direction(upDirection)
+                .baseSpeed(0.2)
+                .accelerationFactor(1.02)
+                .maxSpeed(0.6)
+                .maxLifeTicks(30) // 1.5 seconds
+                .shellType(com.muzlik.block.ShellType.FALLING_BLOCK)
+                .blockType(Material.STONE)
+                .collisionRadius(0.5)
+                .baseDamage(0) // No damage, just visual
+                .fragmentRank(rank)
+                .build();
+            
+            // Spawn block projectile with slight delay
+            int delay = i * 2; // Stagger spawns
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                blockEngine.spawnController(config);
+            }, delay);
+            
+            blocksLaunched++;
+        }
+        
         // Create packet block group
         UUID groupId = packetBlockManager.createBlockGroup(player.getUniqueId(), durationTicks);
         

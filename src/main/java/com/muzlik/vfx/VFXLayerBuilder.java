@@ -194,27 +194,26 @@ public class VFXLayerBuilder {
         // Get rank scaling multiplier from config
         double rankScalingMultiplier = plugin.getConfig().getDouble("vfx.rank_scaling_multiplier", 0.06);
         
-        // OVERHAUL: Drastically reduce particles at low ranks, quality-focused at high ranks
-        // Low ranks (1-4): Minimal, clean particles - players are still learning
-        // High ranks (5-8): Quality-focused with meaningful patterns, not just spam
+        // ULTRA MINIMAL PARTICLES - Quality over quantity, clean aesthetic
+        // Philosophy: Less is more. Clean, visible effects without particle spam.
         // 
-        // Rank 1: 0.25x particles (75% reduction - minimal starter VFX)
-        // Rank 2: 0.35x particles (65% reduction)
-        // Rank 3: 0.45x particles (55% reduction)
-        // Rank 4: 0.60x particles (40% reduction - transitional)
-        // Rank 5: 0.80x particles (baseline-ish, quality focus)
-        // Rank 6: 1.0x particles (full baseline)
-        // Rank 7: 1.2x particles (meaningful increase)
-        // Rank 8: 1.4x particles (cap - quality over quantity)
+        // Rank 1: 0.15x particles (85% reduction - ultra minimal)
+        // Rank 2: 0.20x particles (80% reduction)
+        // Rank 3: 0.25x particles (75% reduction)
+        // Rank 4: 0.35x particles (65% reduction)
+        // Rank 5: 0.45x particles (55% reduction)
+        // Rank 6: 0.55x particles (45% reduction)
+        // Rank 7: 0.70x particles (30% reduction)
+        // Rank 8: 0.85x particles (15% reduction - still conservative)
         double rankMultiplier;
         if (rank <= 4) {
-            // Low ranks: Drastically reduced, clean VFX proportional to power
-            // Formula: 0.25 + (rank - 1) * 0.117 = 0.25, 0.37, 0.48, 0.60
-            rankMultiplier = 0.25 + ((rank - 1) * 0.117);
+            // Low ranks: Ultra minimal, clean VFX
+            // Formula: 0.15 + (rank - 1) * 0.067 = 0.15, 0.22, 0.28, 0.35
+            rankMultiplier = 0.15 + ((rank - 1) * 0.067);
         } else {
-            // High ranks (5+): Quality-focused scaling with diminishing returns
-            // Formula: 0.80 + (rank - 5) * 0.20 = 0.80, 1.0, 1.2, 1.4
-            rankMultiplier = 0.80 + ((rank - 5) * 0.20);
+            // High ranks (5-8): Conservative scaling, quality focus
+            // Formula: 0.45 + (rank - 5) * 0.133 = 0.45, 0.58, 0.71, 0.85
+            rankMultiplier = 0.45 + ((rank - 5) * 0.133);
         }
         
         double perfMultiplier = perfManager != null ? perfManager.getParticleDensityMultiplier() : 1.0;

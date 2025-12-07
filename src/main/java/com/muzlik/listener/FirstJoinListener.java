@@ -4,6 +4,7 @@ import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -46,7 +47,7 @@ public class FirstJoinListener implements Listener {
         this.hasJoinedBefore = new HashSet<>();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST) // Run AFTER data loading
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
@@ -56,8 +57,14 @@ public class FirstJoinListener implements Listener {
             return;
         }
         
-        // Check if player already has any Fragments
+        // Check if player already has any Fragments (loaded from disk)
         if (!fragmentManager.getPlayerFragments(player).isEmpty()) {
+            hasJoinedBefore.add(playerId);
+            return;
+        }
+        
+        // Check if player has played before (Bukkit API)
+        if (player.hasPlayedBefore()) {
             hasJoinedBefore.add(playerId);
             return;
         }
@@ -67,16 +74,16 @@ public class FirstJoinListener implements Listener {
         fragmentManager.grantFragment(player, randomFragment);
         fragmentManager.setActiveFragment(player, randomFragment);
         
-        // Welcome message - CLEAN MINIMAL DESIGN
+        // Welcome message - MINIMAL
         player.sendMessage("");
-        player.sendMessage("§8§m                                        ");
-        player.sendMessage("  §6§lWELCOME TO FROSTSMP");
-        player.sendMessage("§8§m                                        ");
-        player.sendMessage("");
-        player.sendMessage("  §7Fragment: §f" + randomFragment.getDisplayName());
-        player.sendMessage("  §8" + randomFragment.getDescription());
-        player.sendMessage("");
-        player.sendMessage("  §7Type §f/fragment list §7to continue");
+        player.sendMessage(
+            com.muzlik.util.Typography.COLOR_ACCENT + "★ " +
+            com.muzlik.util.Typography.COLOR_HIGHLIGHT + com.muzlik.util.Typography.toSmallCaps("welcome to frostsmp")
+        );
+        player.sendMessage(
+            com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.toSmallCaps("fragment") + ": " +
+            com.muzlik.util.Typography.COLOR_SECONDARY + randomFragment.getDisplayName()
+        );
         player.sendMessage("");
         
         // Mark as joined

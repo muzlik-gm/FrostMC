@@ -148,10 +148,6 @@ public class FXLibrary {
                 colors.getPrimaryDust(1.0f)
             );
         }
-        
-        if (debugMode) {
-            plugin.getLogger().info("FX: Particle Line - Density: " + adjustedDensity + ", Length: " + length);
-        }
     }
 
     /**
@@ -177,10 +173,6 @@ public class FXLibrary {
                 0,
                 colors.getSecondaryDust(1.5f)
             );
-        }
-        
-        if (debugMode) {
-            plugin.getLogger().info("FX: Shockwave - Radius: " + radius + ", Particles: " + particles);
         }
     }
 
@@ -211,10 +203,6 @@ public class FXLibrary {
                 dust
             );
         }
-        
-        if (debugMode) {
-            plugin.getLogger().info("FX: Beam - Length: " + length + ", Particles: " + particles);
-        }
     }
 
     /**
@@ -244,10 +232,6 @@ public class FXLibrary {
                 colors.getPrimaryDust(0.8f)
             );
         }
-        
-        if (debugMode) {
-            plugin.getLogger().info("FX: Aura - Player: " + player.getName() + ", Particles: " + particles);
-        }
     }
 
     /**
@@ -258,10 +242,6 @@ public class FXLibrary {
         
         Sound sound = preset.getSound();
         location.getWorld().playSound(location, sound, volume, pitch);
-        
-        if (debugMode) {
-            plugin.getLogger().info("FX: Sound - " + preset + " at " + location);
-        }
     }
 
     /**
@@ -389,7 +369,6 @@ public class FXLibrary {
      */
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
-        plugin.getLogger().info("FX Debug Mode: " + (debugMode ? "ENABLED" : "DISABLED"));
     }
 
     /**

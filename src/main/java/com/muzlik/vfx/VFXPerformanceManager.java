@@ -54,8 +54,6 @@ public class VFXPerformanceManager {
         
         // Run every 100 ticks (5 seconds)
         monitorTask = Bukkit.getScheduler().runTaskTimer(plugin, this::updatePerformance, 100L, 100L);
-        
-        plugin.getLogger().info("VFXPerformanceManager monitoring started");
     }
     
     /**
@@ -163,6 +161,5 @@ public class VFXPerformanceManager {
      */
     public void shutdown() {
         stopMonitoring();
-        plugin.getLogger().info("VFXPerformanceManager shutdown complete");
     }
 }

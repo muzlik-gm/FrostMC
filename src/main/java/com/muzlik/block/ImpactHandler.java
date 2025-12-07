@@ -62,12 +62,18 @@ public interface ImpactHandler {
                                                        Location targetLocation, 
                                                        double strength) {
         org.bukkit.util.Vector knockback = targetLocation.toVector()
-            .subtract(impactLocation.toVector())
-            .normalize()
-            .multiply(strength);
+            .subtract(impactLocation.toVector());
         
-        // Add upward component for better feel
-        knockback.setY(Math.max(knockback.getY(), 0.3));
+        // Check if vector is zero or too small (prevents NaN from normalize())
+        double lengthSquared = knockback.lengthSquared();
+        if (lengthSquared < 0.0001) {
+            // Use a default upward knockback if locations are identical
+            knockback = new org.bukkit.util.Vector(0, 1, 0).multiply(strength);
+        } else {
+            knockback = knockback.normalize().multiply(strength);
+            // Add upward component for better feel
+            knockback.setY(Math.max(knockback.getY(), 0.3));
+        }
         
         return knockback;
     }

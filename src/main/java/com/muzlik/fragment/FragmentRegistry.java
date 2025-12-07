@@ -34,7 +34,7 @@ public class FragmentRegistry {
         registerDragonFragment();
         registerStormFragment();
         
-        plugin.getLogger().info("All 10 Fragments registered successfully");
+        // Logging removed for cleaner console
     }
 
     private void registerFireFragment() {
@@ -512,7 +512,7 @@ public class FragmentRegistry {
             .description("Unleashes devastating dragon breath in 12-block cone, ignites enemies, 9 hearts damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(40)
-            .cooldown(6000)
+            .cooldown(10000) // Increased from 6s to 10s
             .executor(new com.muzlik.fragment.ability.executors.dragon.DragonsRoarExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -522,7 +522,7 @@ public class FragmentRegistry {
             .description("§7Fly freely for §530 minutes§7, +80% speed, immune to fall damage. §8Hold sneak+left click 10s to cancel (no cooldown)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(50)
-            .cooldown(12000)
+            .cooldown(18000) // Increased from 12s to 18s
             .executor(new com.muzlik.fragment.ability.executors.dragon.DraconicWingsExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -532,13 +532,36 @@ public class FragmentRegistry {
             .description("Transform into dragon form for 10s: all abilities cost 0 mana, +100% damage, AOE attacks")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(100)
-            .cooldown(35000)
+            .cooldown(120000) // Increased from 90s to 120s (2 minutes) for balance
             // FIXED: Ultimate slot should be available from rank 1
             .executor(new com.muzlik.fragment.ability.executors.dragon.CataclysmExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
-        // Note: DRAGON Fragment unlocks Slot 3 at Rank 10, Slot 4 at Rank 12 (not implemented yet)
+        // Rank 9 Ability - Slot 3 (ADVANCED)
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_dragonic_fury", FragmentType.DRAGON)
+            .displayName("Dragonic Fury")
+            .description("Summon 5 explosive homing fireballs that track enemies within 30 blocks")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
+            .manaCost(80)
+            .cooldown(30000) // Increased from 20s to 30s
+            .rankRequirement(9)
+            .executor(new com.muzlik.fragment.ability.executors.dragon.DragonicFuryExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+        
+        // Rank 10 Ability - Slot 4 (MASTERY)
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_ascension", FragmentType.DRAGON)
+            .displayName("Dragon Ascension")
+            .description("§5§lULTIMATE: §7Become a true dragon for 15s - Strength IV, Resistance IV, AOE damage aura, flight")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
+            .manaCost(150)
+            .cooldown(120000) // Increased from 90s to 120s (2 minutes)
+            .rankRequirement(10)
+            .executor(new com.muzlik.fragment.ability.executors.dragon.DragonAscensionExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+        
         fragmentManager.registerFragment(builder.build());
     }
 

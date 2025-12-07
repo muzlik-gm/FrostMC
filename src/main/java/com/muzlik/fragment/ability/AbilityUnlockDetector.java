@@ -77,10 +77,6 @@ public class AbilityUnlockDetector {
                 if (ability != null) {
                     // Trigger unlock notification
                     uiManager.showAbilityUnlockNotification(player, ability.getDisplayName());
-                    
-                    // Log for debugging
-                    plugin.getLogger().info("Player " + player.getName() + " unlocked ability: " + 
-                            ability.getDisplayName() + " (" + fragmentType.getDisplayName() + ")");
                 }
             }
         }

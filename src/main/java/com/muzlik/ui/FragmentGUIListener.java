@@ -115,8 +115,12 @@ public class FragmentGUIListener implements Listener {
                     // Activate the charged fragment
                     boolean success = fragmentManager.activateChargedFragment(player, clickedType);
                     if (success) {
-                        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 1.2f);
-                        player.sendMessage(com.muzlik.util.Typography.formatSuccess(clickedType.getDisplayName() + " Fragment ACTIVATED!"));
+                        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.5f, 1.2f);
+                        player.sendMessage(
+                            com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                            com.muzlik.util.Typography.COLOR_SECONDARY + clickedType.getDisplayName() + " " +
+                            com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.toSmallCaps("activated")
+                        );
                         uiManager.spawnFragmentSwitchParticles(player, clickedType);
                         
                         // Refresh the GUI
@@ -137,8 +141,11 @@ public class FragmentGUIListener implements Listener {
                 // Can switch to owned fragments with changer
                 if (hasFragmentChanger(player)) {
                     fragmentManager.setActiveFragment(player, clickedType);
-                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
-                    player.sendMessage(com.muzlik.util.Typography.formatSuccess("Switched to " + clickedType.getDisplayName()));
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
+                    player.sendMessage(
+                        com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                        com.muzlik.util.Typography.COLOR_SECONDARY + clickedType.getDisplayName()
+                    );
                     uiManager.spawnFragmentSwitchParticles(player, clickedType);
                     
                     // Refresh the GUI

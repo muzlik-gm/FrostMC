@@ -30,19 +30,15 @@ public class DraconicWingsExecutor implements AbilityExecutor {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1800 * 20, 3, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 1800 * 20, 0, false, false));
         
-        // 5-Layer VFX System for activation
+        // Reduced VFX for activation
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            // Core: DRAGON_BREATH
-            .core(Particle.DRAGON_BREATH, 150, ParticlePattern.SPHERE, 2, 2, 2, 0.15, null)
+            // Core: SOUL_FIRE_FLAME (replaces DRAGON_BREATH)
+            .core(Particle.SOUL_FIRE_FLAME, 30, ParticlePattern.SPHERE, 2, 2, 2, 0.15, null)
             // Secondary: FLAME wings
-            .secondary(Particle.FLAME, 100, ParticlePattern.SPIRAL, 2.5, 3.0, 2.5, 0.12, null)
+            .secondary(Particle.FLAME, 20, ParticlePattern.SPIRAL, 2.5, 3.0, 2.5, 0.12, null)
             // Ambient: END_ROD aura
-            .ambient(Particle.END_ROD, 80, ParticlePattern.RING, 3, 2, 3, 0.08, null)
-            // Impact: LAVA burst
-            .impact(Particle.LAVA, 60, ParticlePattern.BURST, 2, 2, 2, 0.15, null)
-            // Cinematic: Screen shake
-            .cinematic(0.4, CinematicEffect.SCREEN_SHAKE);
+            .ambient(Particle.END_ROD, 15, ParticlePattern.RING, 3, 2, 3, 0.08, null);
         
         vfxBuilder.spawn();
         

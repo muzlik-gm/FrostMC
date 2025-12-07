@@ -82,9 +82,9 @@ public class FragmentSymbols {
             case WATER -> "§9";     // Blue
             case AIR -> "§f";       // White
             case EARTH -> "§6";     // Gold/Brown
-            case DARK -> "§5";      // Purple
+            case DARK -> "§0";      // Black (was Purple)
             case LIGHT -> "§e";     // Yellow
-            case VOID -> "§d";      // Magenta
+            case VOID -> "§5";      // Purple (was Magenta)
             case MOB -> "§a";       // Green
             case DRAGON -> "§c";    // Red
             case STORM -> "§b";     // Cyan

@@ -73,6 +73,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     private AbilityVFXHelper abilityVFXHelper;
     private com.muzlik.vfx.VFXPerformanceManager vfxPerformanceManager;
     
+    // Block Manipulation System
+    private com.muzlik.block.BlockManipulationEngine blockManipulationEngine;
+    
     // Flight System
     private com.muzlik.fragment.ability.FlightManager flightManager;
     
@@ -107,12 +110,20 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         environmentManager = new EnvironmentManager(this, effectRegistry);
         environmentManager.startRevertTask();
         
+        // Initialize block manipulation system
+        blockManipulationEngine = new com.muzlik.block.BlockManipulationEngine(this, effectRegistry, damageAttributionManager);
+        blockManipulationEngine.registerCleanupListener();
+        blockManipulationEngine.startUpdateTask();
+        
         abilityVFXHelper = new AbilityVFXHelper(this, vfxEngine, soundEngine);
         
         // Initialize core managers
         manaManager = new ManaManager(this);
         levelManager = new LevelManager(this);
         rankManager = new RankManager(this);
+        
+        // Set cross-references for auto rank-up
+        levelManager.setRankManager(rankManager);
         
         // Initialize Character Level system (affects max mana)
         characterLevelManager = new CharacterLevelManager(this);
@@ -292,6 +303,11 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
             flightManager.shutdown();
         }
         
+        // Shutdown Block Manipulation system
+        if (blockManipulationEngine != null) {
+            blockManipulationEngine.shutdown();
+        }
+        
         // Shutdown VFX system
         if (environmentManager != null) {
             environmentManager.shutdown();
@@ -381,6 +397,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public VFXEngine getVFXEngine() { return vfxEngine; }
     public SoundEngine getSoundEngine() { return soundEngine; }
     public EnvironmentManager getEnvironmentManager() { return environmentManager; }
+    public com.muzlik.block.BlockManipulationEngine getBlockManipulationEngine() { return blockManipulationEngine; }
     public AbilityVFXHelper getAbilityVFXHelper() { return abilityVFXHelper; }
     public com.muzlik.vfx.VFXPerformanceManager getVFXPerformanceManager() { return vfxPerformanceManager; }
     public com.muzlik.fragment.ability.FlightManager getFlightManager() { return flightManager; }

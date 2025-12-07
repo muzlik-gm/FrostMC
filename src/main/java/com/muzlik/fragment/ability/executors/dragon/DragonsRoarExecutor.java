@@ -13,15 +13,60 @@ public class DragonsRoarExecutor implements AbilityExecutor {
         Location eyeLoc = player.getEyeLocation();
         int rank = context.getRank();
         Vector direction = context.getDirection().clone().normalize();
-        double baseDamage = 6.0;
+        double baseDamage = 8.0; // Increased from 6.0
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
         // Cone parameters scale with rank
-        double baseRange = 12.0;
+        double baseRange = 15.0; // Increased from 12.0
         double range = baseRange + (rank * 1.5); // 12 → 24 at rank 8
         double coneWidth = 2.0 + (rank * 0.3); // 2 → 4.4 at rank 8
         
         java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
+        
+        // Get plugin and block manipulation engine
+        com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
+        if (plugin != null && plugin.getBlockManipulationEngine() != null) {
+            com.muzlik.block.BlockManipulationEngine blockEngine = plugin.getBlockManipulationEngine();
+            
+            // Spawn 4-7 magma/netherrack blocks shooting forward in the breath cone
+            int blockCount = 4 + (rank / 2); // 4-8 blocks based on rank
+            
+            for (int i = 0; i < blockCount; i++) {
+                // Spread blocks across the cone width
+                double spreadAngle = (Math.random() - 0.5) * Math.toRadians(30); // ±15 degrees
+                Vector spreadDir = direction.clone();
+                
+                // Rotate direction for spread
+                double cos = Math.cos(spreadAngle);
+                double sin = Math.sin(spreadAngle);
+                double x = spreadDir.getX() * cos - spreadDir.getZ() * sin;
+                double z = spreadDir.getX() * sin + spreadDir.getZ() * cos;
+                spreadDir.setX(x).setZ(z);
+                
+                Location blockLoc = eyeLoc.clone().add(direction.clone().multiply(2));
+                
+                // Alternate between magma and netherrack
+                Material blockType = (i % 2 == 0) ? Material.MAGMA_BLOCK : Material.NETHERRACK;
+                
+                com.muzlik.block.BlockControllerConfig config = new com.muzlik.block.BlockControllerConfig.Builder()
+                    .ownerUUID(player.getUniqueId())
+                    .abilityId("dragons_roar")
+                    .startLocation(blockLoc)
+                    .direction(spreadDir)
+                    .baseSpeed(1.2)
+                    .accelerationFactor(0.08)
+                    .maxSpeed(2.5)
+                    .maxLifeTicks(50)
+                    .shellType(com.muzlik.block.ShellType.FALLING_BLOCK)
+                    .blockType(blockType)
+                    .collisionRadius(1.5)
+                    .baseDamage(3.0)
+                    .fragmentRank(rank)
+                    .build();
+                
+                blockEngine.spawnController(config);
+            }
+        }
         
         // Create dragon breath cone - MEANINGFUL, REACTIVE VFX
         // Particles scale with rank but focus on quality, not spam
@@ -46,28 +91,23 @@ public class DragonsRoarExecutor implements AbilityExecutor {
                 }
             }
             
-            // QUALITY VFX - reduced counts, focused pattern
-            // Core flame - main visual indicator of breath
-            int flameCount = 10 + (rank * 3);      // 10 → 34 at rank 8 (was 20 → 84)
-            checkLoc.getWorld().spawnParticle(Particle.FLAME, checkLoc, flameCount, currentWidth * 0.6, currentWidth * 0.6, currentWidth * 0.6, 0.05 + (rank * 0.01));
-            
-            // Lava accents - only on alternating segments for visual rhythm
-            if (i % 2 == 0) {
-                int lavaCount = 4 + (rank * 2);    // 4 → 20 at rank 8 (was 10 → 50)
-                checkLoc.getWorld().spawnParticle(Particle.LAVA, checkLoc, lavaCount, currentWidth * 0.5, currentWidth * 0.5, currentWidth * 0.5, 0.03);
-            }
-            
-            // Smoke trail - subtle depth, only every 3rd segment
+            // ULTRA MINIMAL VFX - very clean and visible without spam
+            // Core flame - only every 3rd segment
             if (i % 3 == 0) {
-                int smokeCount = 5 + rank;         // 5 → 13 at rank 8 (was 15 → 63)
-                checkLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, checkLoc, smokeCount, currentWidth * 0.4, currentWidth * 0.4, currentWidth * 0.4, 0.02);
+                int flameCount = 2 + (rank / 2);      // 2 → 6 at rank 8 (reduced from 3-11)
+                checkLoc.getWorld().spawnParticle(Particle.FLAME, checkLoc, flameCount, currentWidth * 0.4, currentWidth * 0.4, currentWidth * 0.4, 0.03);
             }
             
-            // MEANINGFUL HIGH-RANK VFX - Dragon breath particles only at rank 5+
-            // These are special particles that indicate mastery of the ability
-            if (rank >= 5 && i % 2 == 0) {
-                int dragonCount = (rank - 4) * 2;  // 2 → 8 at rank 8 (was rank*2 = up to 16)
-                checkLoc.getWorld().spawnParticle(Particle.DRAGON_BREATH, checkLoc, dragonCount, currentWidth * 0.7, currentWidth * 0.7, currentWidth * 0.7, 0.01);
+            // Lava accents - only every 6th segment
+            if (i % 6 == 0) {
+                int lavaCount = 1 + (rank / 3);    // 1 → 3 at rank 6 (reduced from 2-10)
+                checkLoc.getWorld().spawnParticle(Particle.LAVA, checkLoc, lavaCount, currentWidth * 0.3, currentWidth * 0.3, currentWidth * 0.3, 0.02);
+            }
+            
+            // Smoke trail - only every 8th segment
+            if (i % 8 == 0) {
+                int smokeCount = 1 + (rank / 4);         // 1 → 3 at rank 8 (reduced from 2-6)
+                checkLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, checkLoc, smokeCount, currentWidth * 0.3, currentWidth * 0.3, currentWidth * 0.3, 0.01);
             }
         }
         

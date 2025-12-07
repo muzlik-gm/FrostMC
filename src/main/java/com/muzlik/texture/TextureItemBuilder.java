@@ -121,10 +121,6 @@ public class TextureItemBuilder {
     public static ItemStack createFragmentIcon(com.muzlik.fragment.FragmentType type, String displayName, List<String> lore, boolean glow) {
         int customModelData = TextureRegistry.getFragmentTexture(type);
         
-        // Debug logging
-        org.bukkit.Bukkit.getLogger().info("[TextureDebug] Creating Fragment icon: " + type.name() + 
-                " with CustomModelData: " + customModelData);
-        
         TextureItemBuilder builder = new TextureItemBuilder(customModelData)
                 .name(displayName)
                 .addLore(lore)

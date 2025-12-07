@@ -54,8 +54,8 @@ public class VampiricDrainExecutor implements AbilityExecutor {
             
             for (double d = 0; d < distance; d += 0.5) {
                 Location particleLoc = start.clone().add(direction.clone().multiply(d));
-                player.getWorld().spawnParticle(Particle.REDSTONE, particleLoc, 1, 0, 0, 0, 0,
-                    new Particle.DustOptions(Color.fromRGB(139, 0, 139), 1.0f));
+                player.getWorld().spawnParticle(Particle.SMOKE_LARGE, particleLoc, 1, 0.05, 0.05, 0.05, 0);
+                player.getWorld().spawnParticle(Particle.SQUID_INK, particleLoc, 1, 0.03, 0.03, 0.03, 0);
             }
             
             // Target VFX

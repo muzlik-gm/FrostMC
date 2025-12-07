@@ -140,9 +140,10 @@ public class FlightManager {
      * Cleanup on plugin disable
      */
     public void shutdown() {
-        activeSessions.values().forEach(session -> session.end(false));
+        // Create a copy to avoid ConcurrentModificationException
+        new java.util.ArrayList<>(activeSessions.values()).forEach(session -> session.end(false));
         activeSessions.clear();
-        rechargeSessions.values().forEach(RechargeSession::cancel);
+        new java.util.ArrayList<>(rechargeSessions.values()).forEach(RechargeSession::cancel);
         rechargeSessions.clear();
         reactivationLockout.clear();
     }
@@ -242,7 +243,8 @@ public class FlightManager {
                     
                     // Cancel complete after 10 seconds
                     if (cancelProgress >= 10) {
-                        cancel();
+                        this.cancel(); // Cancel this task first
+                        FlightSession.this.cancel(); // Then cancel the flight session
                         player.sendMessage("§aꜰʟɪɢʜᴛ ᴄᴀɴᴄᴇʟʟᴇᴅ! §7ʀᴇᴄʜᴀʀɢɪɴɢ...");
                         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.5f);
                     }
@@ -290,17 +292,34 @@ public class FlightManager {
         }
         
         private void cancel() {
-            // Stop tasks
-            if (updateTask != null) updateTask.cancel();
-            if (visualTask != null) visualTask.cancel();
-            if (cancelTask != null) cancelTask.cancel();
-            
-            // Disable flight (only for survival/adventure mode)
-            if (player.getGameMode() != org.bukkit.GameMode.CREATIVE && 
-                player.getGameMode() != org.bukkit.GameMode.SPECTATOR) {
-                player.setAllowFlight(false);
-                player.setFlying(false);
+            // Stop tasks FIRST to prevent any interference
+            if (updateTask != null) {
+                updateTask.cancel();
+                updateTask = null;
             }
+            if (visualTask != null) {
+                visualTask.cancel();
+                visualTask = null;
+            }
+            if (cancelTask != null) {
+                cancelTask.cancel();
+                cancelTask = null;
+            }
+            
+            // FORCE disable flight - do it multiple times to ensure it sticks
+            player.setAllowFlight(false);
+            player.setFlying(false);
+            
+            // Schedule another disable check after 1 tick to ensure it worked
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (player.isOnline()) {
+                        player.setAllowFlight(false);
+                        player.setFlying(false);
+                    }
+                }
+            }.runTaskLater(plugin, 1L);
             
             // Remove from active sessions
             activeSessions.remove(player.getUniqueId());
@@ -319,24 +338,28 @@ public class FlightManager {
             org.bukkit.Location loc = player.getLocation().subtract(0, 0.2, 0);
             
             // Different particles for different fragments
-            Particle particle = fragmentType == FragmentType.DRAGON ? Particle.DRAGON_BREATH : Particle.CLOUD;
+            Particle particle = fragmentType == FragmentType.DRAGON ? Particle.FLAME : Particle.CLOUD;
             
             // Create denser carpet pattern below player (tighter grid)
             for (double x = -1.0; x <= 1.0; x += 0.25) {
                 for (double z = -1.0; z <= 1.0; z += 0.25) {
                     org.bukkit.Location particleLoc = loc.clone().add(x, 0, z);
-                    player.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0);
+                    try {
+                        player.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, 0);
+                    } catch (Exception ignored) {}
                 }
             }
             
             // Add trail particles closer to player
-            if (fragmentType == FragmentType.DRAGON) {
-                player.getWorld().spawnParticle(Particle.FLAME, loc, 4, 0.4, 0.05, 0.4, 0.01);
-                player.getWorld().spawnParticle(Particle.SMOKE_NORMAL, loc, 2, 0.3, 0.05, 0.3, 0.01);
-            } else {
-                player.getWorld().spawnParticle(Particle.END_ROD, loc, 3, 0.4, 0.05, 0.4, 0.01);
-                player.getWorld().spawnParticle(Particle.CLOUD, loc.clone().subtract(0, 0.1, 0), 2, 0.5, 0.05, 0.5, 0);
-            }
+            try {
+                if (fragmentType == FragmentType.DRAGON) {
+                    player.getWorld().spawnParticle(Particle.FLAME, loc, 4, 0.4, 0.05, 0.4, 0.01);
+                    player.getWorld().spawnParticle(Particle.SMOKE_NORMAL, loc, 2, 0.3, 0.05, 0.3, 0.01);
+                } else {
+                    player.getWorld().spawnParticle(Particle.END_ROD, loc, 3, 0.4, 0.05, 0.4, 0.01);
+                    player.getWorld().spawnParticle(Particle.CLOUD, loc.clone().subtract(0, 0.1, 0), 2, 0.5, 0.05, 0.5, 0);
+                }
+            } catch (Exception ignored) {}
         }
     }
     

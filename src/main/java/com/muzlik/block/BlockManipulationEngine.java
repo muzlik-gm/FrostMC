@@ -41,6 +41,9 @@ public class BlockManipulationEngine {
     // Configuration
     private boolean allowRealFallingBlocks;
     
+    // Debug
+    private boolean updateTaskLoggedOnce = false;
+    
     /**
      * Constructor
      * 
@@ -113,8 +116,6 @@ public class BlockManipulationEngine {
             transactionCleanupTask.cancel();
         }
         transactionCleanupTask = Bukkit.getScheduler().runTaskTimer(plugin, this::cleanupExpiredTransactions, 100L, 100L);
-        
-        plugin.getLogger().info("BlockManipulationEngine update task started");
     }
     
     /**
@@ -156,13 +157,16 @@ public class BlockManipulationEngine {
                 EntityType.ARMOR_STAND
             );
             
-            // Configure armor stand
+            // Configure armor stand - make it completely invisible
             armorStand.setVisible(false);
             armorStand.setGravity(false);
             armorStand.setMarker(true);
             armorStand.setInvulnerable(true);
             armorStand.setCollidable(false);
             armorStand.setCustomNameVisible(false);
+            armorStand.setSmall(true);
+            armorStand.setBasePlate(false);
+            armorStand.setArms(false);
             
             // Ensure config has particle renderer and impact handler
             BlockControllerConfig finalConfig = config;
@@ -195,7 +199,7 @@ public class BlockManipulationEngine {
             BlockController controller = new BlockController(controllerId, armorStand, finalConfig);
             
             // Spawn falling block shell if configured
-            if (config.getShellType() == ShellType.FALLING_BLOCK) {
+            if (finalConfig.getShellType() == ShellType.FALLING_BLOCK) {
                 // Check if real falling blocks are allowed
                 if (!allowRealFallingBlocks) {
                     plugin.getLogger().warning("Real falling blocks disabled in config - using particle shell instead");
@@ -221,6 +225,8 @@ public class BlockManipulationEngine {
                     fallingBlock.setDropItem(false);
                     fallingBlock.setHurtEntities(false);
                     fallingBlock.setInvulnerable(true);
+                    fallingBlock.setTicksLived(1);
+                    fallingBlock.setPersistent(false);
                     
                     // Track in transaction (adds tempFalling flag)
                     transaction.trackFallingBlock(fallingBlock);
@@ -320,6 +326,8 @@ public class BlockManipulationEngine {
         if (activeControllers.isEmpty()) {
             return;
         }
+        
+        // Update task running silently
         
         // Update each controller
         for (Map.Entry<UUID, BlockController> entry : activeControllers.entrySet()) {

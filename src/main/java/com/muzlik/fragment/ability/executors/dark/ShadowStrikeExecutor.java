@@ -16,9 +16,9 @@ public class ShadowStrikeExecutor implements AbilityExecutor {
         double baseDamage = 3.0;
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
-        // Launch wither skull from eye location
+        // Launch wither skull from eye location - EXTREMELY FAST
         WitherSkull skull = player.launchProjectile(WitherSkull.class);
-        skull.setVelocity(direction.multiply(1.5 + (rank * 0.15))); // Faster at higher ranks
+        skull.setVelocity(direction.multiply(4.0 + (rank * 0.4))); // VERY FAST: 4.0-5.2 speed
         skull.setCharged(rank >= 3); // Charged (blue) at rank 3+
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");

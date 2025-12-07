@@ -30,8 +30,6 @@ public class PowerManager {
         
         // Register the player data manager as a listener
         plugin.getServer().getPluginManager().registerEvents(playerDataManager, plugin);
-
-        plugin.getLogger().info("PowerManager initialized");
     }
 
     /**
@@ -50,7 +48,6 @@ public class PowerManager {
         }
 
         registeredPowers.put(powerId, power);
-        plugin.getLogger().info("Power registered: " + power.getDisplayName() + " (" + powerId + ")");
     }
 
     /**
@@ -61,7 +58,6 @@ public class PowerManager {
         IPower power = registeredPowers.remove(powerId);
         if (power != null) {
             power.cleanup();
-            plugin.getLogger().info("Power unregistered: " + power.getDisplayName());
         }
     }
 
@@ -214,8 +210,6 @@ public class PowerManager {
 
         // Cleanup cooldowns
         cooldownManager.clearAll();
-
-        plugin.getLogger().info("PowerManager shutdown complete");
     }
 }
 

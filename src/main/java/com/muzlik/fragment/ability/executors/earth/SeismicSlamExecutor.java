@@ -24,13 +24,46 @@ public class SeismicSlamExecutor implements AbilityExecutor {
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         EnvironmentManager envManager = plugin.getEnvironmentManager();
         
-        // Damage and stun enemies
+        // Launch block projectiles at nearby enemies
+        com.muzlik.block.BlockManipulationEngine blockEngine = plugin.getBlockManipulationEngine();
+        int blocksLaunched = 0;
+        int maxBlocks = 3 + rank; // 3-6 blocks based on rank
+        
         for (Entity entity : player.getWorld().getNearbyEntities(center, radius, 3, radius)) {
-            if (entity instanceof LivingEntity && entity != player) {
+            if (entity instanceof LivingEntity && entity != player && blocksLaunched < maxBlocks) {
                 LivingEntity target = (LivingEntity) entity;
-                target.damage(damage, player);
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 10));
-                target.setVelocity(target.getVelocity().setY(0.3)); // Small knockup
+                
+                // Calculate position near target
+                Location targetLoc = target.getLocation();
+                Location spawnLoc = targetLoc.clone().subtract(0, 1, 0); // Below target
+                
+                // Calculate direction from spawn to target
+                org.bukkit.util.Vector direction = targetLoc.toVector().subtract(spawnLoc.toVector()).normalize();
+                direction.setY(0.8); // Arc upward
+                
+                // Create block controller config
+                com.muzlik.block.BlockControllerConfig config = new com.muzlik.block.BlockControllerConfig.Builder()
+                    .ownerUUID(player.getUniqueId())
+                    .abilityId("earth_seismic_slam")
+                    .startLocation(spawnLoc)
+                    .direction(direction)
+                    .baseSpeed(0.3)
+                    .accelerationFactor(1.05)
+                    .maxSpeed(1.2)
+                    .maxLifeTicks(40) // 2 seconds
+                    .shellType(com.muzlik.block.ShellType.FALLING_BLOCK)
+                    .blockType(Material.STONE)
+                    .collisionRadius(0.8)
+                    .baseDamage(damage)
+                    .fragmentRank(rank)
+                    .build();
+                
+                // Spawn block projectile
+                blockEngine.spawnController(config);
+                blocksLaunched++;
+                
+                // Also apply slow effect
+                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 1));
             }
         }
         
@@ -52,10 +85,10 @@ public class SeismicSlamExecutor implements AbilityExecutor {
         // 5-Layer VFX System
         com.muzlik.vfx.VFXLayerBuilder vfxBuilder = new com.muzlik.vfx.VFXLayerBuilder(plugin, center, rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            // Core: BLOCK_CRACK shockwave
-            .core(Particle.BLOCK_CRACK, 150, com.muzlik.vfx.ParticlePattern.RING, radius, 0.5, radius, 0.1, Material.STONE.createBlockData())
-            // Secondary: BLOCK_DUST wave
-            .secondary(Particle.BLOCK_DUST, 100, com.muzlik.vfx.ParticlePattern.BURST, radius, 0.2, radius, 0.05, Material.STONE.createBlockData())
+            // Core: SMOKE shockwave
+            .core(Particle.SMOKE_LARGE, 150, com.muzlik.vfx.ParticlePattern.RING, radius, 0.5, radius, 0.1, null)
+            // Secondary: CLOUD wave
+            .secondary(Particle.CLOUD, 100, com.muzlik.vfx.ParticlePattern.BURST, radius, 0.2, radius, 0.05, null)
             // Ambient: Ground rumble
             .ambient(Particle.SMOKE_NORMAL, 80, com.muzlik.vfx.ParticlePattern.SPHERE, radius * 0.8, 1, radius * 0.8, 0.02, null)
             // Impact: Debris burst

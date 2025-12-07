@@ -57,8 +57,6 @@ public class EnvironmentManager {
         revertTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             revertTemporaryBlocks();
         }, 1L, 1L);
-        
-        plugin.getLogger().info("EnvironmentManager revert task started");
     }
     
     /**
@@ -226,8 +224,6 @@ public class EnvironmentManager {
      * Called on server shutdown
      */
     public void revertAllBlocks() {
-        plugin.getLogger().info("Reverting all temporary blocks...");
-        
         for (BlockPosition blockPos : temporaryBlocks.keySet()) {
             try {
                 blockPos.revert();
@@ -238,7 +234,6 @@ public class EnvironmentManager {
         }
         
         temporaryBlocks.clear();
-        plugin.getLogger().info("All temporary blocks reverted");
     }
     
     /**
@@ -255,6 +250,5 @@ public class EnvironmentManager {
         stopRevertTask();
         revertAllBlocks();
         activeManipulations.clear();
-        plugin.getLogger().info("EnvironmentManager shutdown complete");
     }
 }

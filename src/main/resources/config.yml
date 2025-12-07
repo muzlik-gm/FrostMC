@@ -40,7 +40,7 @@ fx:
   sound_volume: 1.0
 
 block_manipulation:
-  allow_real_blocks: false  # Allow real falling block entities (prefer particle shells for safety)
+  allow_real_blocks: true  # Allow real falling block entities (prefer particle shells for safety)
   max_lifetime_ticks: 120   # Maximum lifetime for block controllers (6 seconds)
 
 vfx:

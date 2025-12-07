@@ -49,8 +49,6 @@ public class SoundEngine {
         updateTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             updateSpatialAudio();
         }, 5L, 5L);
-        
-        plugin.getLogger().info("SoundEngine update task started");
     }
     
     /**
@@ -245,7 +243,6 @@ public class SoundEngine {
      */
     public void clearAll() {
         activeSounds.clear();
-        plugin.getLogger().info("Cleared all sounds");
     }
     
     /**
@@ -254,6 +251,5 @@ public class SoundEngine {
     public void shutdown() {
         stopUpdateTask();
         clearAll();
-        plugin.getLogger().info("SoundEngine shutdown complete");
     }
 }

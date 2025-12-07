@@ -28,19 +28,33 @@ public class StoneFistExecutor implements AbilityExecutor {
         double baseDamage = 4.0;  // Reduced from 14.0 to 4.0 (2 hearts)
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
-        // FIXED: Use proper radius scaling instead of hardcoded 3x3x3
-        double baseRadius = 4.0; // Base 4 block radius
-        double radius = context.getScalingEngine().scaleRange(baseRadius, rank);
-        
-        for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-            if (entity instanceof LivingEntity && entity != player) {
-                LivingEntity target = (LivingEntity) entity;
-                target.damage(damage, player);
-                target.setVelocity(new Vector(0, 1, 0));
-            }
-        }
-        
+        // Launch stone projectile in facing direction
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
+        com.muzlik.block.BlockManipulationEngine blockEngine = plugin.getBlockManipulationEngine();
+        
+        // Get player's facing direction
+        Vector direction = player.getLocation().getDirection().normalize();
+        Location spawnLoc = player.getEyeLocation().add(direction.clone().multiply(1.5));
+        
+        // Create block controller config
+        com.muzlik.block.BlockControllerConfig config = new com.muzlik.block.BlockControllerConfig.Builder()
+            .ownerUUID(player.getUniqueId())
+            .abilityId("earth_stone_fist")
+            .startLocation(spawnLoc)
+            .direction(direction)
+            .baseSpeed(0.8)
+            .accelerationFactor(1.1)
+            .maxSpeed(2.0)
+            .maxLifeTicks(60) // 3 seconds
+            .shellType(com.muzlik.block.ShellType.FALLING_BLOCK)
+            .blockType(Material.COBBLESTONE)
+            .collisionRadius(1.0)
+            .baseDamage(damage)
+            .fragmentRank(rank)
+            .build();
+        
+        // Spawn block projectile
+        blockEngine.spawnController(config);
         
         // FOCUSED IMPACT VFX - clean, satisfying punch effect
         // Reduced counts + VFXLayerBuilder multiplier = proportional VFX to ability power
@@ -52,14 +66,14 @@ public class StoneFistExecutor implements AbilityExecutor {
         // 5-Layer VFX System - Satisfying impact aesthetic
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            // Core: BLOCK_DUST - focused ground crack
-            .core(Particle.BLOCK_DUST, coreCount, ParticlePattern.BURST, 0.6, 0.4, 0.6, 0.06, Material.STONE.createBlockData())
+            // Core: SMOKE - focused ground crack
+            .core(Particle.SMOKE_LARGE, coreCount, ParticlePattern.BURST, 0.6, 0.4, 0.6, 0.06, null)
             // Secondary: SWEEP_ATTACK - single strike visual
             .secondary(Particle.SWEEP_ATTACK, secondaryCount, ParticlePattern.RING, 1.0, 0.3, 1.0, 0.03, null)
             // Ambient: Ground rumble - subtle dust
             .ambient(Particle.SMOKE_NORMAL, ambientCount, ParticlePattern.POINT, 0.8, 0.3, 0.8, 0.01, null)
             // Impact: Debris - few satisfying rock chunks
-            .impact(Particle.BLOCK_CRACK, impactCount, ParticlePattern.BURST, 0.8, 0.5, 0.8, 0.08, Material.STONE.createBlockData());
+            .impact(Particle.CLOUD, impactCount, ParticlePattern.BURST, 0.8, 0.5, 0.8, 0.08, null);
         
         // Cinematic: Ground shake at rank 4+
         if (rank >= 4) {
