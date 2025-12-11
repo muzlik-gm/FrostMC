@@ -53,22 +53,106 @@ public class RecipeManager {
         // DARK Fragment
         registerFragmentCreation(FragmentType.DARK, Material.OBSIDIAN, Material.WITHER_SKELETON_SKULL, Material.DIAMOND);
         
-        // LIGHT Fragment
-        registerFragmentCreation(FragmentType.LIGHT, Material.GLOWSTONE, Material.BEACON, Material.DIAMOND);
+        // LIGHT Fragment - Custom pattern: Beacon center, Glowstone corners, Netherite Ingots on sides
+        registerLightFragmentCreation();
         
-        // VOID Fragment
-        registerFragmentCreation(FragmentType.VOID, Material.END_STONE, Material.ENDER_PEARL, Material.DIAMOND);
+        // VOID Fragment - Custom pattern: Netherite Block center, Echo Shards corners, Sculk Catalyst on sides
+        registerVoidFragmentCreation();
         
-        // MOB Fragment
-        registerFragmentCreation(FragmentType.MOB, Material.SPAWNER, Material.TOTEM_OF_UNDYING, Material.DIAMOND);
+        // MOB Fragment - Custom pattern: Nether Star center, Totems corners, Netherite Ingots on sides
+        registerMobFragmentCreation();
         
-        // DRAGON Fragment
-        registerFragmentCreation(FragmentType.DRAGON, Material.DRAGON_EGG, Material.DRAGON_HEAD, Material.DIAMOND);
+        // DRAGON Fragment - Custom pattern: Dragon Egg center, Dragon Breath corners, Netherite Ingots on sides
+        registerDragonFragmentCreation();
         
         // STORM Fragment
         registerFragmentCreation(FragmentType.STORM, Material.LIGHTNING_ROD, Material.TRIDENT, Material.DIAMOND);
     }
 
+    /**
+     * Register Light Fragment Creation recipe with custom pattern
+     * Pattern: Beacon center, Glowstone corners, Netherite Ingots on sides
+     * G N G
+     * N B N
+     * G N G
+     */
+    private void registerLightFragmentCreation() {
+        ItemStack result = createFragmentCreationItem(FragmentType.LIGHT);
+        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_light");
+        
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        recipe.shape("GNG", "NBN", "GNG");
+        recipe.setIngredient('G', Material.GLOWSTONE);
+        recipe.setIngredient('N', Material.NETHERITE_INGOT);
+        recipe.setIngredient('B', Material.BEACON);
+        
+        plugin.getServer().addRecipe(recipe);
+        recipeKeys.put("fragment_creation_light", key);
+    }
+
+    /**
+     * Register Dragon Fragment Creation recipe with custom pattern
+     * Pattern: Dragon Egg center, Dragon Head corners, Netherite Ingots on sides
+     * D N D
+     * N E N
+     * D N D
+     */
+    private void registerDragonFragmentCreation() {
+        ItemStack result = createFragmentCreationItem(FragmentType.DRAGON);
+        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_dragon");
+        
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        recipe.shape("DND", "NEN", "DND");
+        recipe.setIngredient('D', Material.DRAGON_HEAD);
+        recipe.setIngredient('N', Material.NETHERITE_INGOT);
+        recipe.setIngredient('E', Material.DRAGON_EGG);
+        
+        plugin.getServer().addRecipe(recipe);
+        recipeKeys.put("fragment_creation_dragon", key);
+    }
+
+    /**
+     * Register Mob Fragment Creation recipe with custom pattern
+     * Pattern: Netherite Ingot center, Bones on sides, Totems in corners
+     * T B T
+     * B N B
+     * T B T
+     */
+    private void registerMobFragmentCreation() {
+        ItemStack result = createFragmentCreationItem(FragmentType.MOB);
+        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_mob");
+        
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        recipe.shape("TBT", "BNB", "TBT");
+        recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
+        recipe.setIngredient('B', Material.BONE);
+        recipe.setIngredient('N', Material.NETHERITE_INGOT);
+        
+        plugin.getServer().addRecipe(recipe);
+        recipeKeys.put("fragment_creation_mob", key);
+    }
+
+    /**
+     * Register Void Fragment Creation recipe with custom pattern
+     * Pattern: Sculk Catalyst center, Echo Shards corners, Netherite Ingot on sides
+     * E S E
+     * S N S
+     * E S E
+     */
+    private void registerVoidFragmentCreation() {
+        ItemStack result = createFragmentCreationItem(FragmentType.VOID);
+        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_void");
+        
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        recipe.shape("ESE", "SNS", "ESE");
+        recipe.setIngredient('E', Material.ECHO_SHARD);
+        recipe.setIngredient('S', Material.NETHERITE_INGOT);
+        recipe.setIngredient('N', Material.SCULK_CATALYST);
+        
+        plugin.getServer().addRecipe(recipe);
+        recipeKeys.put("fragment_creation_void", key);
+    }
+    
     /**
      * Register a Fragment Creation recipe
      */

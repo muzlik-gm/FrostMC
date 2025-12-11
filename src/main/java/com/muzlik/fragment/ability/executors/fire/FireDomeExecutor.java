@@ -111,7 +111,5 @@ public class FireDomeExecutor implements AbilityExecutor {
         
         // Sound effects
         player.getWorld().playSound(center, Sound.ITEM_FIRECHARGE_USE, 1.5f, 1.0f);
-        
-
     }
 }

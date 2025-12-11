@@ -4,7 +4,11 @@ import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fx.FXLibrary;
 import com.muzlik.fx.SoundPreset;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,10 +24,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RitualManager {
     private final JavaPlugin plugin;
     private final Map<UUID, RitualInstance> activeRituals;
+    private final Map<UUID, BossBar> ritualBossBars;
     private final FragmentManager fragmentManager;
     private final FXLibrary fxLibrary;
     private com.muzlik.fragment.ability.AbilitySlotManager abilitySlotManager;
     private BukkitRunnable updateTask;
+    private boolean discordSRVEnabled = false;
     
     // Configuration
     private double proximityDistance = 5.0;
@@ -33,12 +39,26 @@ public class RitualManager {
     public RitualManager(JavaPlugin plugin, FragmentManager fragmentManager, FXLibrary fxLibrary) {
         this.plugin = plugin;
         this.activeRituals = new ConcurrentHashMap<>();
+        this.ritualBossBars = new ConcurrentHashMap<>();
         this.fragmentManager = fragmentManager;
         this.fxLibrary = fxLibrary;
         this.failureCooldowns = new ConcurrentHashMap<>();
         this.abilitySlotManager = null; // Will be set later
         
+        // Check if DiscordSRV is available
+        checkDiscordSRV();
+        
         startUpdateTask();
+    }
+    
+    /**
+     * Check if DiscordSRV is available
+     */
+    private void checkDiscordSRV() {
+        if (Bukkit.getPluginManager().getPlugin("DiscordSRV") != null) {
+            discordSRVEnabled = true;
+            plugin.getLogger().info("DiscordSRV detected - ritual notifications enabled");
+        }
     }
 
     /**
@@ -77,9 +97,15 @@ public class RitualManager {
         
         activeRituals.put(player.getUniqueId(), ritual);
         
+        // Create boss bar
+        createRitualBossBar(player, ritual);
+        
         player.sendMessage("§a✓ Ritual started: §b" + type.getDisplayName());
         player.sendMessage("§7Stay within " + proximityDistance + " blocks for " + 
             (type.getDefaultDuration() / 60) + " minutes");
+        
+        // Send Discord notification
+        sendDiscordRitualStart(player, ritual);
         
         return true;
     }
@@ -91,6 +117,7 @@ public class RitualManager {
         RitualInstance ritual = activeRituals.remove(player.getUniqueId());
         if (ritual != null) {
             player.sendMessage("§c✗ Ritual cancelled");
+            removeRitualBossBar(player);
         }
     }
 
@@ -121,6 +148,9 @@ public class RitualManager {
         // Update progress
         long elapsed = System.currentTimeMillis() - ritual.getStartTime();
         int progressPercent = (int) ((elapsed * 100) / ritual.getDuration());
+        
+        // Update boss bar
+        updateRitualBossBar(player, ritual);
         
         // Update stage
         RitualStage newStage = RitualStage.fromProgress(progressPercent);
@@ -172,6 +202,7 @@ public class RitualManager {
      */
     private void completeRitual(Player player, RitualInstance ritual) {
         activeRituals.remove(player.getUniqueId());
+        removeRitualBossBar(player);
         
         RitualType type = ritual.getType();
         
@@ -344,6 +375,7 @@ public class RitualManager {
      */
     private void failRitual(Player player, RitualInstance ritual, String reason) {
         activeRituals.remove(player.getUniqueId());
+        removeRitualBossBar(player);
         
         player.sendMessage("§c✗ Ritual failed: " + reason);
         
@@ -454,11 +486,135 @@ public class RitualManager {
     }
 
     /**
+     * Create boss bar for ritual
+     */
+    private void createRitualBossBar(Player player, RitualInstance ritual) {
+        FragmentType fragmentType = determineFragmentType(ritual);
+        BarColor color = getFragmentBarColor(fragmentType);
+        
+        String title = "§e⚡ " + ritual.getType().getDisplayName();
+        if (fragmentType != null) {
+            title += " §8- §b" + fragmentType.getDisplayName();
+        }
+        
+        BossBar bossBar = Bukkit.createBossBar(title, color, BarStyle.SEGMENTED_10);
+        bossBar.setProgress(0.0);
+        bossBar.addPlayer(player);
+        bossBar.setVisible(true);
+        
+        ritualBossBars.put(player.getUniqueId(), bossBar);
+    }
+    
+    /**
+     * Update boss bar for ritual
+     */
+    private void updateRitualBossBar(Player player, RitualInstance ritual) {
+        BossBar bossBar = ritualBossBars.get(player.getUniqueId());
+        if (bossBar == null) return;
+        
+        // Calculate progress
+        double progress = Math.min(1.0, (double) ritual.getProgressPercent() / 100.0);
+        bossBar.setProgress(progress);
+        
+        // Update title with time remaining
+        long remainingSeconds = ritual.getRemainingSeconds();
+        long minutes = remainingSeconds / 60;
+        long seconds = remainingSeconds % 60;
+        
+        FragmentType fragmentType = determineFragmentType(ritual);
+        String title = String.format("§e⚡ %s §8- §b%s §8| §7Time: §f%d:%02d", 
+            ritual.getType().getDisplayName(),
+            fragmentType != null ? fragmentType.getDisplayName() : "Unknown",
+            minutes, seconds);
+        
+        bossBar.setTitle(title);
+    }
+    
+    /**
+     * Remove boss bar for ritual
+     */
+    private void removeRitualBossBar(Player player) {
+        BossBar bossBar = ritualBossBars.remove(player.getUniqueId());
+        if (bossBar != null) {
+            bossBar.removeAll();
+            bossBar.setVisible(false);
+        }
+    }
+    
+    /**
+     * Get bar color for fragment type
+     */
+    private BarColor getFragmentBarColor(FragmentType type) {
+        if (type == null) return BarColor.WHITE;
+        
+        return switch (type) {
+            case FIRE -> BarColor.RED;
+            case WATER -> BarColor.BLUE;
+            case AIR -> BarColor.WHITE;
+            case EARTH -> BarColor.GREEN;
+            case DARK -> BarColor.PURPLE;
+            case LIGHT -> BarColor.YELLOW;
+            case VOID -> BarColor.PURPLE;
+            case MOB -> BarColor.GREEN;
+            case DRAGON -> BarColor.RED;
+            case STORM -> BarColor.BLUE;
+            case ADMIN -> BarColor.RED;
+        };
+    }
+    
+    /**
+     * Send Discord notification when ritual starts
+     */
+    private void sendDiscordRitualStart(Player player, RitualInstance ritual) {
+        if (!discordSRVEnabled) return;
+        
+        try {
+            github.scarsz.discordsrv.DiscordSRV discordSRV = github.scarsz.discordsrv.DiscordSRV.getPlugin();
+            if (discordSRV == null) return;
+            
+            FragmentType fragmentType = determineFragmentType(ritual);
+            Location loc = ritual.getLocation();
+            long durationMinutes = ritual.getDuration() / 60000;
+            
+            String message = String.format(
+                "⚡ **Ritual Started!**\n" +
+                "**Player:** %s\n" +
+                "**Type:** %s\n" +
+                "**Fragment:** %s\n" +
+                "**Duration:** %d minutes\n" +
+                "**Location:** %s (%d, %d, %d)",
+                player.getName(),
+                ritual.getType().getDisplayName(),
+                fragmentType != null ? fragmentType.getDisplayName() : "Unknown",
+                durationMinutes,
+                loc.getWorld().getName(),
+                loc.getBlockX(),
+                loc.getBlockY(),
+                loc.getBlockZ()
+            );
+            
+            // Send to main channel
+            discordSRV.getMainTextChannel().sendMessage(message).queue();
+            
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to send Discord notification: " + e.getMessage());
+        }
+    }
+    
+    /**
      * Cleanup on shutdown
      */
     public void shutdown() {
         stopUpdateTask();
+        
+        // Remove all boss bars
+        for (BossBar bossBar : ritualBossBars.values()) {
+            bossBar.removeAll();
+            bossBar.setVisible(false);
+        }
+        
         activeRituals.clear();
+        ritualBossBars.clear();
         failureCooldowns.clear();
     }
 }

@@ -2,6 +2,7 @@ package com.muzlik.fragment.ability.executors.air;
 
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.util.SafeTeleport;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
@@ -31,7 +32,11 @@ public class GaleStepExecutor implements AbilityExecutor {
         double baseRange = 10.0;
         double range = context.getScalingEngine().scaleRange(baseRange, rank);
         
-        player.setVelocity(direction.multiply(range / 5.0));
+        // Calculate velocity and make it safe
+        Vector velocity = direction.multiply(range / 5.0);
+        Vector safeVelocity = SafeTeleport.getSafeVelocity(velocity, player);
+        
+        player.setVelocity(safeVelocity);
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 2));
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");

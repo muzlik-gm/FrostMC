@@ -33,6 +33,7 @@ public class FragmentRegistry {
         registerMobFragment();
         registerDragonFragment();
         registerStormFragment();
+        registerAdminFragment();
         
         // Logging removed for cleaner console
     }
@@ -609,6 +610,117 @@ public class FragmentRegistry {
             .build());
         
         // Note: STORM Fragment unlocks Slot 3 at Rank 8, Slot 4 at Rank 10 (not implemented yet)
+        fragmentManager.registerFragment(builder.build());
+    }
+
+    private void registerAdminFragment() {
+        ColorScheme colors = new ColorScheme(
+            org.bukkit.Color.fromRGB(139, 0, 0),    // Primary: Dark Red
+            org.bukkit.Color.fromRGB(0, 0, 0),      // Secondary: Black
+            org.bukkit.Color.fromRGB(255, 0, 0),    // Accent: Bright Red
+            org.bukkit.Particle.SOUL_FIRE_FLAME
+        );
+        
+        FragmentDefinition.Builder builder = new FragmentDefinition.Builder(FragmentType.ADMIN)
+            .baseRank(10)
+            .colorScheme(colors)
+            .xpCurve(XPCurve.EXPONENTIAL)
+            .deathXPPenalty(0.0) // No penalty for admin
+            .theme("Ultimate destruction, reality manipulation, absolute power")
+            .complexityLevel(10);
+        
+        // All 9 abilities available immediately
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_reality_tear", FragmentType.ADMIN)
+            .displayName("§4§lReality Tear")
+            .description("§cMassive cone attack, 50 true damage to players, instant kill mobs, 30 block range")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
+            .manaCost(0)
+            .cooldown(3000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.RealityTearExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_omnipresent_blink", FragmentType.ADMIN)
+            .displayName("§4§lOmnipresent Blink")
+            .description("§cTeleport anywhere within 100 blocks, through walls, destruction trail")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
+            .manaCost(0)
+            .cooldown(1000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.OmnipresentBlinkExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_cataclysm", FragmentType.ADMIN)
+            .displayName("§4§lCataclysm")
+            .description("§c25-block explosion, 40 damage to players, instant kill mobs, destroys terrain")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
+            .manaCost(0)
+            .cooldown(10000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.CataclysmExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_void_chains", FragmentType.ADMIN)
+            .displayName("§4§lVoid Chains")
+            .description("§cImmobilize and pull all entities within 30 blocks, 5 damage/sec for 8s")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
+            .manaCost(0)
+            .cooldown(15000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.VoidChainsExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_annihilation_beam", FragmentType.ADMIN)
+            .displayName("§4§lAnnihilation Beam")
+            .description("§cContinuous laser beam, 10 damage/tick, 50 block range, destroys blocks")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
+            .manaCost(0)
+            .cooldown(8000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.AnnihilationBeamExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        // Additional slots (6-8) for admin
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_temporal_freeze", FragmentType.ADMIN)
+            .displayName("§4§lTemporal Freeze")
+            .description("§cFreeze all entities within 40 blocks for 6 seconds, you move normally")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SLOT_6)
+            .manaCost(0)
+            .cooldown(20000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.TemporalFreezeExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_meteor_storm", FragmentType.ADMIN)
+            .displayName("§4§lMeteor Storm")
+            .description("§c15 meteors rain down in 30-block radius, 15 damage each + fire + craters")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SLOT_7)
+            .manaCost(0)
+            .cooldown(25000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.MeteorStormExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_execution", FragmentType.ADMIN)
+            .displayName("§4§lExecution")
+            .description("§cPoint at any entity within 50 blocks for instant death, even players")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SLOT_8)
+            .manaCost(0)
+            .cooldown(30000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.ExecutionExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("admin_apocalypse", FragmentType.ADMIN)
+            .displayName("§4§l§kA§r §4§lAPOCALYPSE §4§l§kA")
+            .description("§c60-block devastation, 80 damage to players, instant kill mobs, screen shake")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SLOT_9)
+            .manaCost(0)
+            .cooldown(60000)
+            .executor(new com.muzlik.fragment.ability.executors.admin.ApocalypseExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+        
         fragmentManager.registerFragment(builder.build());
     }
 }

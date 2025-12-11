@@ -53,6 +53,66 @@ public class PassiveAbilityListener implements Listener {
         this.rankManager = rankManager;
         this.manaManager = manaManager;
         this.cooldownManager = cooldownManager;
+        
+        // Start admin aura task
+        startAdminAuraTask();
+    }
+    
+    /**
+     * Start admin aura effects task
+     */
+    private void startAdminAuraTask() {
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player player : plugin.getServer().getOnlinePlayers()) {
+                    FragmentType activeFragment = fragmentManager.getActiveFragment(player);
+                    if (activeFragment == FragmentType.ADMIN) {
+                        spawnAdminAura(player);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L); // Every 20 ticks (1 second) - REDUCED FROM 5 TICKS FOR PERFORMANCE
+    }
+    
+    /**
+     * Spawn admin aura effects around player
+     * Dark red/black particles, lightning strikes, distortion effects
+     * Particles spawn at shoulder/back level, NOT in center of view
+     * OPTIMIZED: Reduced particle count by 70% for performance
+     */
+    private void spawnAdminAura(Player player) {
+        org.bukkit.Location loc = player.getLocation();
+        org.bukkit.World world = loc.getWorld();
+        if (world == null) return;
+        
+        // Spawn particles BEHIND and AROUND player (not in front of face)
+        // Use player's eye location as reference, then offset backwards
+        org.bukkit.Location eyeLoc = player.getEyeLocation();
+        org.bukkit.util.Vector direction = eyeLoc.getDirection();
+        
+        // Offset backwards (behind player) and slightly up (shoulder level)
+        org.bukkit.Location behindPlayer = eyeLoc.clone()
+            .subtract(direction.clone().multiply(0.5)) // 0.5 blocks behind
+            .add(0, -0.3, 0); // Shoulder level
+        
+        // Dark red smoke particles (behind player) - REDUCED FROM 3 TO 1
+        world.spawnParticle(Particle.SMOKE_LARGE, behindPlayer, 1, 0.2, 0.2, 0.2, 0.01);
+        
+        // Red dust particles (circling around player at shoulder level) - REDUCED FROM 3 TO 1
+        double time = System.currentTimeMillis() / 1000.0;
+        double angle = (time * 2);
+        double x = Math.cos(angle) * 1.2;
+        double z = Math.sin(angle) * 1.2;
+        org.bukkit.Location particleLoc = loc.clone().add(x, 1.5, z);
+        world.spawnParticle(Particle.REDSTONE, particleLoc, 1, 0, 0, 0, 0,
+            new Particle.DustOptions(org.bukkit.Color.fromRGB(139, 0, 0), 1.0f));
+        
+        // Occasional lightning strike effect (every 5 seconds) - REDUCED FREQUENCY
+        if (Math.random() < 0.02) { // 2% chance = ~1 per 5 seconds
+            world.spawnParticle(Particle.ELECTRIC_SPARK, behindPlayer, 3, 0.2, 0.3, 0.2, 0.1);
+            world.playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.2f, 1.5f);
+        }
     }
     
     /**

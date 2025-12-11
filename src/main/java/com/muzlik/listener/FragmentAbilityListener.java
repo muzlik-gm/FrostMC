@@ -6,14 +6,19 @@ import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.IFragmentAbility;
 import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.mana.ManaManager;
+import com.muzlik.player.ControlScheme;
+import com.muzlik.player.PlayerPreferencesManager;
 import com.muzlik.FrostSMPPlugin;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
@@ -22,33 +27,48 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Listener for Fragment ability interactions
- * Handles Sneak + Right-Click and Sneak + Left-Click for ability activation
+ * Supports multiple control schemes per player
  * 
  * Fragment Level affects:
- * - Mana cost reduction (up to 20% at max level)
- * - Cooldown reduction (up to 10% at max level)
+ * - Mana cost reduction (up to 30% at max level)
+ * - Cooldown reduction (up to 30% at max level)
+ * - Damage bonus (up to 30% at max level)
  */
 public class FragmentAbilityListener implements Listener {
 
+    private final JavaPlugin plugin;
     private final FragmentManager fragmentManager;
     private final ManaManager manaManager;
     private final CooldownManager cooldownManager;
+    private PlayerPreferencesManager preferencesManager;
     private LevelManager levelManager;
     
     // Track which players are currently sneaking
     private final Set<String> sneakingPlayers = ConcurrentHashMap.newKeySet();
     
+    // Track double sneak for DOUBLE_SNEAK control scheme
+    private final Map<String, Long> lastSneakTime = new ConcurrentHashMap<>();
+    private final Set<String> doubleSneakActive = ConcurrentHashMap.newKeySet();
+    private static final long DOUBLE_SNEAK_WINDOW = 500; // 0.5 seconds to double tap
+    private static final long DOUBLE_SNEAK_DURATION = 3000; // 3 seconds active
+    
+    // Track swap hands for SWAP_HANDS control scheme
+    private final Set<String> swapHandsActive = ConcurrentHashMap.newKeySet();
+    private static final long SWAP_HANDS_DURATION = 2000; // 2 seconds active
+    
     // Track last ability use time per player to prevent spam (player UUID -> timestamp)
     private final Map<String, Long> lastAbilityUse = new ConcurrentHashMap<>();
     
     // Minimum delay between ability activations (milliseconds)
-    private static final long ABILITY_SPAM_DELAY = 500; // 0.5 seconds
+    private static final long ABILITY_SPAM_DELAY = 100; // 0.1 seconds (reduced for responsiveness)
 
-    public FragmentAbilityListener(FragmentManager fragmentManager, ManaManager manaManager, 
-                                   CooldownManager cooldownManager) {
+    public FragmentAbilityListener(JavaPlugin plugin, FragmentManager fragmentManager, ManaManager manaManager, 
+                                   CooldownManager cooldownManager, PlayerPreferencesManager preferencesManager) {
+        this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.manaManager = manaManager;
         this.cooldownManager = cooldownManager;
+        this.preferencesManager = preferencesManager;
     }
     
     /**
@@ -56,6 +76,13 @@ public class FragmentAbilityListener implements Listener {
      */
     public void setLevelManager(LevelManager levelManager) {
         this.levelManager = levelManager;
+    }
+    
+    /**
+     * Set PreferencesManager reference (called from FrostSMPPlugin)
+     */
+    public void setPreferencesManager(PlayerPreferencesManager preferencesManager) {
+        this.preferencesManager = preferencesManager;
     }
 
     /**
@@ -65,11 +92,72 @@ public class FragmentAbilityListener implements Listener {
     public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
         String playerUUID = player.getUniqueId().toString();
+        
+        if (preferencesManager == null) {
+            return;
+        }
+        
+        ControlScheme scheme = preferencesManager.getControlScheme(player);
 
         if (event.isSneaking()) {
             sneakingPlayers.add(playerUUID);
+            
+            // Handle DOUBLE_SNEAK control scheme
+            if (scheme == ControlScheme.DOUBLE_SNEAK) {
+                long currentTime = System.currentTimeMillis();
+                Long lastSneak = lastSneakTime.get(playerUUID);
+                
+                if (lastSneak != null && (currentTime - lastSneak) < DOUBLE_SNEAK_WINDOW) {
+                    // Double sneak detected!
+                    doubleSneakActive.add(playerUUID);
+                    player.sendActionBar("§a✓ §eAbility Mode Active §7(3s)");
+                    
+                    // Deactivate after duration
+                    new org.bukkit.scheduler.BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            doubleSneakActive.remove(playerUUID);
+                        }
+                    }.runTaskLater(plugin, DOUBLE_SNEAK_DURATION / 50);
+                }
+                
+                lastSneakTime.put(playerUUID, currentTime);
+            }
         } else {
             sneakingPlayers.remove(playerUUID);
+        }
+    }
+    
+    /**
+     * Handle swap hands event (F key)
+     */
+    @EventHandler
+    public void onSwapHands(PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        String playerUUID = player.getUniqueId().toString();
+        
+        if (preferencesManager == null) {
+            return;
+        }
+        
+        ControlScheme scheme = preferencesManager.getControlScheme(player);
+        
+        // Handle SWAP_HANDS control scheme
+        if (scheme == ControlScheme.SWAP_HANDS) {
+            // Check if player has active Fragment
+            if (fragmentManager.getActiveFragment(player) != null) {
+                event.setCancelled(true); // Prevent actual item swap
+                swapHandsActive.add(playerUUID);
+                player.sendActionBar("§a✓ §eAbility Mode Active §7(2s)");
+                
+                // Deactivate after duration
+                new org.bukkit.scheduler.BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        swapHandsActive.remove(playerUUID);
+                    }
+                }.runTaskLater(plugin, SWAP_HANDS_DURATION / 50);
+            }
         }
     }
 
@@ -81,9 +169,62 @@ public class FragmentAbilityListener implements Listener {
         Player player = event.getPlayer();
         String playerUUID = player.getUniqueId().toString();
         Action action = event.getAction();
-
-        // Check if player is sneaking
-        if (!sneakingPlayers.contains(playerUUID)) {
+        
+        if (preferencesManager == null) {
+            return;
+        }
+        
+        // Check if abilities are enabled for this player
+        if (!preferencesManager.areAbilitiesEnabled(player)) {
+            return; // Abilities disabled, do nothing
+        }
+        
+        // Get player's control scheme
+        ControlScheme scheme = preferencesManager.getControlScheme(player);
+        
+        // Check if player meets control scheme requirements
+        boolean canUseAbility = false;
+        
+        switch (scheme) {
+            case SNEAK_CLICK:
+                // Must be sneaking
+                canUseAbility = sneakingPlayers.contains(playerUUID);
+                break;
+                
+            case DOUBLE_SNEAK:
+                // Must have double-sneaked recently
+                canUseAbility = doubleSneakActive.contains(playerUUID);
+                break;
+                
+            case SWAP_HANDS:
+                // Must have pressed F recently
+                canUseAbility = swapHandsActive.contains(playerUUID);
+                break;
+                
+            case CLICK_ONLY:
+                // Always can use (no requirements)
+                canUseAbility = true;
+                break;
+        }
+        
+        if (!canUseAbility) {
+            // Debug: Show player why ability didn't activate
+            if (fragmentManager.getActiveFragment(player) != null) {
+                // Only show message if they have an active fragment
+                if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+                    switch (scheme) {
+                        case SNEAK_CLICK:
+                            player.sendActionBar("§c✗ §7Hold Sneak to use abilities");
+                            break;
+                        case DOUBLE_SNEAK:
+                            player.sendActionBar("§c✗ §7Double-tap Sneak first, then click");
+                            break;
+                        case SWAP_HANDS:
+                            player.sendActionBar("§c✗ §7Press F first, then click");
+                            break;
+                    }
+                }
+            }
             return;
         }
 
@@ -123,7 +264,7 @@ public class FragmentAbilityListener implements Listener {
     }
     
     /**
-     * Handle player animation (arm swing) for Shift + Left Click detection
+     * Handle player animation (arm swing) for Left Click detection
      * Uses PlayerAnimationEvent instead of EntityDamageEvent for proper left-click detection
      */
     @EventHandler(priority = EventPriority.HIGH)
@@ -136,8 +277,51 @@ public class FragmentAbilityListener implements Listener {
             return;
         }
         
-        // Check if player is sneaking
-        if (!sneakingPlayers.contains(playerUUID)) {
+        if (preferencesManager == null) {
+            return;
+        }
+        
+        // Check if abilities are enabled for this player
+        if (!preferencesManager.areAbilitiesEnabled(player)) {
+            return;
+        }
+        
+        // Get player's control scheme
+        ControlScheme scheme = preferencesManager.getControlScheme(player);
+        
+        // Check if player meets control scheme requirements (same as onPlayerInteract)
+        boolean canUseAbility = false;
+        
+        switch (scheme) {
+            case SNEAK_CLICK:
+                canUseAbility = sneakingPlayers.contains(playerUUID);
+                break;
+            case DOUBLE_SNEAK:
+                canUseAbility = doubleSneakActive.contains(playerUUID);
+                break;
+            case SWAP_HANDS:
+                canUseAbility = swapHandsActive.contains(playerUUID);
+                break;
+            case CLICK_ONLY:
+                canUseAbility = true;
+                break;
+        }
+        
+        if (!canUseAbility) {
+            // Debug: Show player why ability didn't activate (left-click)
+            if (fragmentManager.getActiveFragment(player) != null) {
+                switch (scheme) {
+                    case SNEAK_CLICK:
+                        player.sendActionBar("§c✗ §7Hold Sneak to use abilities");
+                        break;
+                    case DOUBLE_SNEAK:
+                        player.sendActionBar("§c✗ §7Double-tap Sneak first, then click");
+                        break;
+                    case SWAP_HANDS:
+                        player.sendActionBar("§c✗ §7Press F first, then click");
+                        break;
+                }
+            }
             return;
         }
         
@@ -195,24 +379,27 @@ public class FragmentAbilityListener implements Listener {
         }
 
         // ═══ APPLY LEVEL-BASED MANA COST REDUCTION ═══
-        double baseManaCost = ability.getManaCost();
-        double manaCostReduction = 0.0;
-        
-        if (levelManager != null) {
-            manaCostReduction = levelManager.getManaCostReduction(player, fragmentType);
-        }
-        
-        double finalManaCost = baseManaCost * (1 - manaCostReduction);
-        double currentMana = manaManager.getMana(player);
-        
-        if (currentMana < finalManaCost) {
-            // Show in action bar to avoid chat spam
-            player.sendActionBar(com.muzlik.util.Typography.COLOR_ERROR + 
-                com.muzlik.util.Typography.SYMBOL_CROSS + " " + 
-                com.muzlik.util.Typography.toSmallCaps("not enough mana") + " " +
-                com.muzlik.util.Typography.COLOR_PRIMARY + 
-                String.format("%.0f", currentMana) + "/" + String.format("%.0f", finalManaCost));
-            return;
+        // Skip mana checks if mana system is disabled
+        if (manaManager.isManaSystemEnabled()) {
+            double baseManaCost = ability.getManaCost();
+            double manaCostReduction = 0.0;
+            
+            if (levelManager != null) {
+                manaCostReduction = levelManager.getManaCostReduction(player, fragmentType);
+            }
+            
+            double finalManaCost = baseManaCost * (1 - manaCostReduction);
+            double currentMana = manaManager.getMana(player);
+            
+            if (currentMana < finalManaCost) {
+                // Show in action bar to avoid chat spam
+                player.sendActionBar(com.muzlik.util.Typography.COLOR_ERROR + 
+                    com.muzlik.util.Typography.SYMBOL_CROSS + " " + 
+                    com.muzlik.util.Typography.toSmallCaps("not enough mana") + " " +
+                    com.muzlik.util.Typography.COLOR_PRIMARY + 
+                    String.format("%.0f", currentMana) + "/" + String.format("%.0f", finalManaCost));
+                return;
+            }
         }
 
         // Determine activation mode
@@ -229,8 +416,35 @@ public class FragmentAbilityListener implements Listener {
             // Record ability use time (anti-spam)
             lastAbilityUse.put(playerUUID, currentTime);
             
-            // Consume mana (with level reduction applied)
-            manaManager.consumeMana(player, finalManaCost);
+            // Consume mana (with level reduction applied) - only if mana system is enabled
+            if (manaManager.isManaSystemEnabled()) {
+                double baseManaCost = ability.getManaCost();
+                double manaCostReduction = 0.0;
+                
+                if (levelManager != null) {
+                    manaCostReduction = levelManager.getManaCostReduction(player, fragmentType);
+                }
+                
+                double finalManaCost = baseManaCost * (1 - manaCostReduction);
+                manaManager.consumeMana(player, finalManaCost);
+                
+                // Show clean action bar with mana info
+                double remainingMana = manaManager.getMana(player);
+                double maxMana = manaManager.getMaxMana(player);
+                player.sendActionBar(
+                    com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                    com.muzlik.util.Typography.COLOR_PRIMARY + 
+                    String.format("%.0f", remainingMana) + "/" + String.format("%.0f", maxMana) + " " +
+                    com.muzlik.util.Typography.COLOR_TEXT_DARK + 
+                    com.muzlik.util.Typography.toSmallCaps("mana")
+                );
+            } else {
+                // Show success message without mana info
+                player.sendActionBar(
+                    com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                    com.muzlik.util.Typography.toSmallCaps("ability activated")
+                );
+            }
             
             // ═══ APPLY LEVEL-BASED COOLDOWN REDUCTION ═══
             long baseCooldown = ability.getCooldown();
@@ -244,17 +458,6 @@ public class FragmentAbilityListener implements Listener {
             
             // Start cooldown (with level reduction applied)
             cooldownManager.startCooldown(player, abilityId, finalCooldown);
-            
-            // Show clean action bar with mana info
-            double remainingMana = manaManager.getMana(player);
-            double maxMana = manaManager.getMaxMana(player);
-            player.sendActionBar(
-                com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
-                com.muzlik.util.Typography.COLOR_PRIMARY + 
-                String.format("%.0f", remainingMana) + "/" + String.format("%.0f", maxMana) + " " +
-                com.muzlik.util.Typography.COLOR_TEXT_DARK + 
-                com.muzlik.util.Typography.toSmallCaps("mana")
-            );
         }
     }
 }

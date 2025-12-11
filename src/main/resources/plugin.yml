@@ -15,10 +15,15 @@ commands:
     permission-message: You don't have permission to use powers
   fragment:
     description: Fragment system commands
-    usage: /fragment <give|list|mana|grant|activate>
+    usage: /fragment <give|list|mana|grant|activate|controls>
     aliases: [frag, f]
     permission: frostmc.fragment
     permission-message: You don't have permission to use fragments
+  controls:
+    description: Open control scheme selection GUI
+    usage: /controls
+    permission: frostmc.fragment
+    permission-message: You don't have permission to use this command
 
 permissions:
   frostmc.power:

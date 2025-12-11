@@ -13,13 +13,13 @@ public class DragonsRoarExecutor implements AbilityExecutor {
         Location eyeLoc = player.getEyeLocation();
         int rank = context.getRank();
         Vector direction = context.getDirection().clone().normalize();
-        double baseDamage = 8.0; // Increased from 6.0
+        double baseDamage = 12.0; // Increased from 8.0 - more destructive
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
-        // Cone parameters scale with rank
-        double baseRange = 15.0; // Increased from 12.0
-        double range = baseRange + (rank * 1.5); // 12 → 24 at rank 8
-        double coneWidth = 2.0 + (rank * 0.3); // 2 → 4.4 at rank 8
+        // Cone parameters scale with rank - WIDER and LONGER
+        double baseRange = 20.0; // Increased from 15.0
+        double range = baseRange + (rank * 2.0); // 20 → 36 at rank 8
+        double coneWidth = 3.0 + (rank * 0.5); // 3 → 7 at rank 8
         
         java.util.Set<java.util.UUID> hitEntities = new java.util.HashSet<>();
         
@@ -82,32 +82,37 @@ public class DragonsRoarExecutor implements AbilityExecutor {
                     target.setFireTicks(100 + (rank * 20)); // Longer burn at higher ranks
                     hitEntities.add(entity.getUniqueId());
                     
-                    // REACTIVE HIT VFX - meaningful feedback when hitting enemies
-                    // This VFX responds to actual damage, making it feel impactful
-                    int hitParticles = 8 + (rank * 2);  // 8 → 24 at rank 8 (was 10 + rank*3 = up to 34)
+                    // REACTIVE HIT VFX - 30% of original
+                    int hitParticles = (int)((8 + (rank * 2)) * 0.3);  // 2-7 particles (30% of 8-24)
                     checkLoc.getWorld().spawnParticle(Particle.LAVA, target.getLocation().add(0, 1, 0), hitParticles, 0.2, 0.3, 0.2, 0.05);
-                    // Secondary hit glow - indicates fire damage
-                    checkLoc.getWorld().spawnParticle(Particle.FLAME, target.getLocation().add(0, 1, 0), hitParticles / 2, 0.3, 0.4, 0.3, 0.02);
+                    // Secondary hit glow
+                    checkLoc.getWorld().spawnParticle(Particle.FLAME, target.getLocation().add(0, 1, 0), Math.max(1, hitParticles / 2), 0.3, 0.4, 0.3, 0.02);
                 }
             }
             
-            // ULTRA MINIMAL VFX - very clean and visible without spam
-            // Core flame - only every 3rd segment
-            if (i % 3 == 0) {
-                int flameCount = 2 + (rank / 2);      // 2 → 6 at rank 8 (reduced from 3-11)
-                checkLoc.getWorld().spawnParticle(Particle.FLAME, checkLoc, flameCount, currentWidth * 0.4, currentWidth * 0.4, currentWidth * 0.4, 0.03);
+            // MINIMAL VFX - 30% of original
+            // Core flame - only every 5th segment (was every 3rd)
+            if (i % 5 == 0) {
+                int flameCount = (int)((2 + (rank / 2)) * 0.3);  // 0-1 particles (30% of 2-6)
+                if (flameCount > 0) {
+                    checkLoc.getWorld().spawnParticle(Particle.FLAME, checkLoc, flameCount, currentWidth * 0.4, currentWidth * 0.4, currentWidth * 0.4, 0.03);
+                }
             }
             
-            // Lava accents - only every 6th segment
-            if (i % 6 == 0) {
-                int lavaCount = 1 + (rank / 3);    // 1 → 3 at rank 6 (reduced from 2-10)
-                checkLoc.getWorld().spawnParticle(Particle.LAVA, checkLoc, lavaCount, currentWidth * 0.3, currentWidth * 0.3, currentWidth * 0.3, 0.02);
+            // Lava accents - only every 10th segment (was every 6th)
+            if (i % 10 == 0) {
+                int lavaCount = (int)((1 + (rank / 3)) * 0.3);  // 0-1 particles (30% of 1-3)
+                if (lavaCount > 0) {
+                    checkLoc.getWorld().spawnParticle(Particle.LAVA, checkLoc, lavaCount, currentWidth * 0.3, currentWidth * 0.3, currentWidth * 0.3, 0.02);
+                }
             }
             
-            // Smoke trail - only every 8th segment
-            if (i % 8 == 0) {
-                int smokeCount = 1 + (rank / 4);         // 1 → 3 at rank 8 (reduced from 2-6)
-                checkLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, checkLoc, smokeCount, currentWidth * 0.3, currentWidth * 0.3, currentWidth * 0.3, 0.01);
+            // Smoke trail - only every 15th segment (was every 8th)
+            if (i % 15 == 0) {
+                int smokeCount = (int)((1 + (rank / 4)) * 0.3);  // 0-1 particles (30% of 1-3)
+                if (smokeCount > 0) {
+                    checkLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, checkLoc, smokeCount, currentWidth * 0.3, currentWidth * 0.3, currentWidth * 0.3, 0.01);
+                }
             }
         }
         

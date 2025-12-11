@@ -81,12 +81,37 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
     // Character Level System (affects max mana)
     private CharacterLevelManager characterLevelManager;
+    
+    // Player Preferences System (control schemes, ability toggle)
+    private com.muzlik.player.PlayerPreferencesManager preferencesManager;
 
     @Override
     public void onEnable() {
-        getLogger().info("================================");
-        getLogger().info("FrostSMP Plugin starting...");
-        getLogger().info("================================");
+        // Beautiful startup banner with ANSI colors
+        String CYAN = "\u001B[36m";
+        String WHITE = "\u001B[37m";
+        String YELLOW = "\u001B[33m";
+        String RESET = "\u001B[0m";
+        String BOLD = "\u001B[1m";
+        
+        System.out.println(CYAN + "╔════════════════════════════════════════════════════════════════╗" + RESET);
+        System.out.println(CYAN + "║" + RESET + "                                                                " + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + WHITE + BOLD + "   ███████╗██████╗  ██████╗ ███████╗████████╗███╗   ███╗ ██████╗" + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + WHITE + BOLD + "   ██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝████╗ ████║██╔════╝" + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + WHITE + BOLD + "   █████╗  ██████╔╝██║   ██║███████╗   ██║   ██╔████╔██║██║     " + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + WHITE + BOLD + "   ██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║   ██║╚██╔╝██║██║     " + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + WHITE + BOLD + "   ██║     ██║  ██║╚██████╔╝███████║   ██║   ██║ ╚═╝ ██║╚██████╗" + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + WHITE + BOLD + "   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝     ╚═╝ ╚═════╝" + RESET + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "                                                                "  + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "              " + YELLOW + BOLD + "Fragment Power System v1.0.0 "   + RESET + "                     " + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "                                                                "  + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "  " + WHITE + "Author: " + BOLD + "muzlik-gm" + RESET +  "                                             " + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "  " + WHITE + "Platform: Paper/Spigot 1.20.4+" + RESET +  "                               " + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "  " + WHITE + "Features: 10 Fragments | 40+ Abilities | VFX Engine " + RESET + "          " + CYAN + "║" + RESET);
+        System.out.println(CYAN + "║" + RESET + "                                                                " + CYAN + "║" + RESET);
+        System.out.println(CYAN + "╚════════════════════════════════════════════════════════════════╝" + RESET);
+        System.out.println("");
+        getLogger().info("▶ Initializing systems...");
 
         // Initialize configuration
         configManager = new ConfigManager(this);
@@ -119,6 +144,12 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         
         // Initialize core managers
         manaManager = new ManaManager(this);
+        
+        // Set mana system enabled state from config
+        boolean manaSystemEnabled = configManager.isManaSystemEnabled();
+        manaManager.setManaSystemEnabled(manaSystemEnabled);
+        getLogger().info("Mana System: " + (manaSystemEnabled ? "ENABLED" : "DISABLED"));
+        
         levelManager = new LevelManager(this);
         rankManager = new RankManager(this);
         
@@ -128,6 +159,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Initialize Character Level system (affects max mana)
         characterLevelManager = new CharacterLevelManager(this);
         manaManager.setCharacterLevelManager(characterLevelManager);
+        
+        // Initialize Player Preferences system (control schemes, ability toggle)
+        preferencesManager = new com.muzlik.player.PlayerPreferencesManager(this);
         
         // Initialize Fragment manager
         fragmentManager = new FragmentManager(this, manaManager, levelManager, rankManager);
@@ -163,6 +197,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         uiManager = new UIManager(this, fragmentManager, manaManager, levelManager, rankManager, 
                 powerManager.getCooldownManager());
         
+        // Initialize GUI systems (after preferencesManager is available)
+        uiManager.initializeGUIs(preferencesManager);
+        
         // Initialize data persistence
         dataPersistence = new DataPersistence(this);
         
@@ -193,9 +230,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 this
         );
         
-        // Create and register FragmentAbilityListener with LevelManager for level bonuses
+        // Create and register FragmentAbilityListener with LevelManager and PreferencesManager
         com.muzlik.listener.FragmentAbilityListener fragmentAbilityListener = 
-            new com.muzlik.listener.FragmentAbilityListener(fragmentManager, manaManager, powerManager.getCooldownManager());
+            new com.muzlik.listener.FragmentAbilityListener(this, fragmentManager, manaManager, powerManager.getCooldownManager(), preferencesManager);
         fragmentAbilityListener.setLevelManager(levelManager);
         getServer().getPluginManager().registerEvents(
                 fragmentAbilityListener,
@@ -252,6 +289,14 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 new com.muzlik.listener.FragmentChangerListener(uiManager),
                 this
         );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.fragment.ability.executors.dragon.DragonicFuryExecutor.FireballImpactListener(),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.listener.NewPlayerListener(this, fragmentManager),
+                this
+        );
         
         // Register this class as listener for player join
         getServer().getPluginManager().registerEvents(this, this);
@@ -268,10 +313,33 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         );
         getCommand("fragment").setExecutor(fragmentCommand);
         getCommand("fragment").setTabCompleter(fragmentCommand);
+        
+        // Register /controls command
+        com.muzlik.command.ControlsCommand controlsCommand = new com.muzlik.command.ControlsCommand(uiManager);
+        getCommand("controls").setExecutor(controlsCommand);
 
-        getLogger().info("Fragment System initialized successfully!");
-        getLogger().info("Fragment ActionBar HUD initialized!");
-        getLogger().info("FrostSMP Plugin enabled successfully!");
+        getLogger().info("✓ Fragment System initialized successfully!");
+        getLogger().info("✓ Fragment ActionBar HUD initialized!");
+        
+        String GREEN = "\u001B[32m";
+        // Reuse existing color variables from startup banner
+        
+        System.out.println("");
+        System.out.println(GREEN + "╔═══════════════════════════════════════════════════════════════╗" + RESET);
+        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "                " + WHITE + BOLD + "✓ PLUGIN ENABLED SUCCESSFULLY" + RESET + "                  " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "  " + WHITE + BOLD + "Systems Active:" + RESET + "                                              " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Fragment System" + RESET + " (10 fragments, 40+ abilities)            " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Mana System" + RESET + " (resource management)                        " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "VFX Engine" + RESET + " (5-layer particle system)                     " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Ritual System" + RESET + " (multi-block structures)                   " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Progression" + RESET + " (levels 1-50, ranks 1-8)                     " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "  " + YELLOW + "Ready to serve players!" + RESET + "                                      " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
+        System.out.println(GREEN + "╚═══════════════════════════════════════════════════════════════╝" + RESET);
+        System.out.println("");
     }
     
     /**
@@ -294,9 +362,30 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        getLogger().info("================================");
-        getLogger().info("FrostSMP Power Plugin disabled");
-        getLogger().info("================================");
+        String RED = "\u001B[31m";
+        String GRAY = "\u001B[90m";
+        String WHITE = "\u001B[37m";
+        String YELLOW = "\u001B[33m";
+        String RESET = "\u001B[0m";
+        String BOLD = "\u001B[1m";
+        
+        System.out.println("");
+        System.out.println(RED + "╔═══════════════════════════════════════════════════════════════╗" + RESET);
+        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
+        System.out.println(RED + "║" + GRAY + "   ███████╗██████╗  ██████╗ ███████╗████████╗███╗   ███╗ ██████╗" + RESET + RED + "║" + RESET);
+        System.out.println(RED + "║" + GRAY + "   ██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝████╗ ████║██╔════╝" + RESET + RED + "║" + RESET);
+        System.out.println(RED + "║" + GRAY + "   █████╗  ██████╔╝██║   ██║███████╗   ██║   ██╔████╔██║██║     " + RESET + RED + "║" + RESET);
+        System.out.println(RED + "║" + GRAY + "   ██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║   ██║╚██╔╝██║██║     " + RESET + RED + "║" + RESET);
+        System.out.println(RED + "║" + GRAY + "   ██║     ██║  ██║╚██████╔╝███████║   ██║   ██║ ╚═╝ ██║╚██████╗" + RESET + RED + "║" + RESET);
+        System.out.println(RED + "║" + GRAY + "   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝     ╚═╝ ╚═════╝" + RESET + RED + "║" + RESET);
+        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
+        System.out.println(RED + "║" + RESET + "                  " + YELLOW + BOLD + "Shutting Down Systems..." + RESET + "                     " + RED + "║" + RESET);
+        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
+        System.out.println(RED + "║" + RESET + "  " + WHITE + "Created by: " + BOLD + "muzlik-gm" + RESET + "                                        " + RED + "║" + RESET);
+        System.out.println(RED + "║" + RESET + "  " + WHITE + "Thank you for using FrostMC!" + RESET + "                                 " + RED + "║" + RESET);
+        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
+        System.out.println(RED + "╚═══════════════════════════════════════════════════════════════╝" + RESET);
+        System.out.println("");
         
         // Shutdown Flight system
         if (flightManager != null) {
@@ -355,6 +444,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         if (characterLevelManager != null) {
             characterLevelManager.shutdown();
         }
+        if (preferencesManager != null) {
+            preferencesManager.shutdown();
+        }
         if (cooldownAPI != null) {
             cooldownAPI.shutdown();
         }
@@ -374,6 +466,21 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         // Load player's saved power (legacy)
         powerManager.loadPlayerPower(event.getPlayer());
+    }
+    
+    /**
+     * Reload plugin configuration and update runtime state
+     */
+    public void reloadPluginConfig() {
+        // Reload config file
+        configManager.reloadConfig();
+        
+        // Update mana system state
+        boolean manaSystemEnabled = configManager.isManaSystemEnabled();
+        manaManager.setManaSystemEnabled(manaSystemEnabled);
+        
+        getLogger().info("Plugin configuration reloaded");
+        getLogger().info("Mana System: " + (manaSystemEnabled ? "ENABLED" : "DISABLED"));
     }
 
     // Getters for managers
@@ -402,6 +509,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public com.muzlik.vfx.VFXPerformanceManager getVFXPerformanceManager() { return vfxPerformanceManager; }
     public com.muzlik.fragment.ability.FlightManager getFlightManager() { return flightManager; }
     public CharacterLevelManager getCharacterLevelManager() { return characterLevelManager; }
+    public com.muzlik.player.PlayerPreferencesManager getPreferencesManager() { return preferencesManager; }
 }
 
 

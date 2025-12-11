@@ -44,17 +44,17 @@ public class VFXEngine {
     
     /**
      * Start the update task
-     * Runs every tick to update all active effects
+     * Runs every 2 ticks to update all active effects (OPTIMIZED FOR PERFORMANCE)
      */
     public void startUpdateTask() {
         if (updateTask != null) {
             updateTask.cancel();
         }
         
-        // Run every tick
+        // Run every 2 ticks (0.1 seconds) - REDUCED FROM EVERY TICK FOR PERFORMANCE
         updateTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             updateEffects();
-        }, 1L, 1L);
+        }, 2L, 2L);
     }
     
     /**

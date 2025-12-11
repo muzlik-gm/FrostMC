@@ -1,91 +1,301 @@
-# FrostSMP Fragment Power System Configuration
+# ═══════════════════════════════════════════════════════════════
+#           FrostSMP Fragment Power System Configuration
+# ═══════════════════════════════════════════════════════════════
+# This file controls how the Fragment system works on your server.
+# After editing, use "/fragment reload" to apply changes without restart.
+# ═══════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════
+# MANA SYSTEM
+# ═══════════════════════════════════════════════════════════════
+# Controls whether abilities cost mana to use
+# 
+# When ENABLED (true):
+#   - Players see mana bar in action bar (⚡ 100/200)
+#   - Abilities consume mana when used
+#   - Mana regenerates over time
+#   - Mana flasks can restore mana
+#   - Character levels increase max mana
+#
+# When DISABLED (false):
+#   - All abilities are FREE (no mana cost)
+#   - Mana bar is hidden
+#   - Mana flasks are disabled
+#   - Abilities still have cooldowns
+#   - Fragment levels still work (cooldown reduction, damage bonus)
+# ═══════════════════════════════════════════════════════════════
+mana_system_enabled: false
+
+# ═══════════════════════════════════════════════════════════════
+# CHARACTER PROGRESSION
+# ═══════════════════════════════════════════════════════════════
+# Character Level determines your maximum mana capacity
+# This is separate from Fragment Levels (which improve abilities)
+#
+# Players see: "✦ LVL 15/30" in their action bar
+# Higher level = More mana = Use more abilities
+# ═══════════════════════════════════════════════════════════════
+character:
+  max_level: 30              # Highest character level achievable
+  base_mana: 160              # Starting mana at level 1
+  mana_per_level: 10.0        # Mana gained each level (Level 10 = 160 + 90 = 250 mana)
+  base_xp_required: 120.0     # XP needed to reach level 2
+  xp_scaling: 1.15            # XP increases 15% per level (gets harder as you level up)
+
+# ═══════════════════════════════════════════════════════════════
+# MANA SETTINGS (Only applies if mana_system_enabled: true)
+# ═══════════════════════════════════════════════════════════════
+# Fine-tune mana regeneration and capacity
+# ═══════════════════════════════════════════════════════════════
+mana:
+  base_max: 100.0             # Base max mana (before character level bonuses)
+  rank_bonus: 50.0            # Extra mana per Fragment rank
+  base_regen_rate: 1.0        # Mana restored per second
+  level_regen_bonus: 0.1      # Extra regen per Fragment level
+
+# ═══════════════════════════════════════════════════════════════
+# FRAGMENT PROGRESSION
+# ═══════════════════════════════════════════════════════════════
+# Fragment Levels improve your abilities (up to level 50)
+# Each level gives: Cooldown reduction, Mana cost reduction, Damage bonus
+# Maximum bonus at max level: 30% for all three
+# ═══════════════════════════════════════════════════════════════
+leveling:
+  max_level: 8                    # Maximum Fragment level
+  prestige_enabled: true           # Allow resetting to level 1 for prestige
+  death_xp_loss_enabled: false     # Lose XP when you die (see fragment penalties below)
+
+# ═══════════════════════════════════════════════════════════════
+# RITUALS
+# ═══════════════════════════════════════════════════════════════
+# Multi-block structures that create or change Fragments
+#
+# Fragment Creation Ritual:
+#   - Place items in ritual pattern
+#   - Stand nearby for the duration
+#   - Receive your Fragment when complete
+#
+# Fragment Changer Ritual:
+#   - Swap your current Fragment for a different one
+#   - Has a cooldown to prevent spam
+# ═══════════════════════════════════════════════════════════════
 rituals:
   fragment_creation:
-    duration: 180  # 3 minutes in seconds
-    proximity_distance: 12.0
+    duration: 180                  # Time to complete ritual (3 minutes)
+    proximity_distance: 12.0       # How close you must stay (12 blocks)
+    cooldown: 3600                 # Wait time between rituals (1 hour) - only if fragment_changer_required is false
+  
+  fragment_changer_required: false  # If false, Fragment Creation ritual auto-activates and replaces current fragment
+  
   fragment_changer:
-    duration: 150  # 2.5 minutes
-    cooldown: 3600  # 1 hour
-    proximity_distance: 10.0
+    duration: 150                  # Time to complete ritual (2.5 minutes)
+    cooldown: 3600                 # Wait time between uses (1 hour)
+    proximity_distance: 10.0       # How close you must stay (10 blocks)
 
-mana:
-  base_max: 100.0
-  rank_bonus: 50.0
-  base_regen_rate: 1.0
-  level_regen_bonus: 0.1
-
-# Character Level - Determines max mana capacity
-# Separate from Fragment Level which handles ability progression
-character:
-  max_level: 100           # Maximum character level
-  mana_per_level: 10.0     # Mana gained per level
-  base_mana: 160         # Base mana at level 1
-  base_xp_required: 120.0  # XP required from level 1 to 2
-  xp_scaling: 1.15         # XP requirement multiplier per level
-
-leveling:
-  max_level: 50
-  prestige_enabled: true
-  death_xp_loss_enabled: false
-
+# ═══════════════════════════════════════════════════════════════
+# USER INTERFACE
+# ═══════════════════════════════════════════════════════════════
+# Controls what players see on their screen
+#
+# Action Bar Display:
+#   ✦ LVL: 15/100 │ ꜰɪʀᴇ ⚡100/250 [■] ○ ○ ✗ ✗
+#   └─ Character Level │ Fragment │ Mana │ Ability Slots
+#
+# Ability Slots:
+#   [■] = Selected ability (ready to use)
+#   ■ = Other abilities (ready)
+#   5s = Ability on cooldown (5 seconds remaining)
+#   ○ = Locked ability (can unlock with rank up)
+#   ✗ = No ability in this slot
+# ═══════════════════════════════════════════════════════════════
 ui:
-  default_mode: STANDARD
-  mana_display: BOSS_BAR  # or ACTION_BAR
-  show_cooldowns: true
+  default_mode: STANDARD           # UI style (STANDARD or MINIMAL)
+  mana_display: BOSS_BAR           # Where to show mana (BOSS_BAR or ACTION_BAR)
+  show_cooldowns: true             # Show cooldown timers in action bar
 
+# ═══════════════════════════════════════════════════════════════
+# VISUAL EFFECTS
+# ═══════════════════════════════════════════════════════════════
+# Control particle effects and sounds
+#
+# Particle Density:
+#   1.0 = Normal amount (recommended)
+#   0.5 = Half particles (better performance)
+#   2.0 = Double particles (more epic, may lag)
+#
+# Performance Throttling:
+#   Automatically reduces particles when server TPS drops below 18
+#   Helps prevent lag during intense battles
+# ═══════════════════════════════════════════════════════════════
 fx:
-  debug_mode: false
-  particle_density: 1.0  # Multiplier for all particles
-  sound_volume: 1.0
-
-block_manipulation:
-  allow_real_blocks: true  # Allow real falling block entities (prefer particle shells for safety)
-  max_lifetime_ticks: 120   # Maximum lifetime for block controllers (6 seconds)
+  debug_mode: false                # Show debug messages (for developers)
+  particle_density: 0.3            # Particle amount multiplier (0.3 = 70% reduction for better performance)
+  sound_volume: 0.8                # Sound effect volume (0.8 = slightly quieter)
 
 vfx:
-  rank_scaling_multiplier: 0.08  # Particle count increase per rank (8% per rank)
-  enable_performance_throttling: true  # Automatically reduce particles when TPS drops
-  tps_monitoring_interval: 100  # Ticks between TPS checks (100 = 5 seconds)
+  rank_scaling_multiplier: 0.05    # Particles increase 5% per rank (reduced from 8% for performance)
+  enable_performance_throttling: true  # Auto-reduce particles when server lags
+  tps_monitoring_interval: 100     # Check server performance every 5 seconds
+
+# ═══════════════════════════════════════════════════════════════
+# BLOCK MANIPULATION
+# ═══════════════════════════════════════════════════════════════
+# Some abilities create floating blocks (Earth Wall, Aqua Pulse, etc.)
+#
+# Real Blocks vs Particle Shells:
+#   true = Real falling blocks (more realistic, may cause lag)
+#   false = Particle effects only (safer, better performance)
+# ═══════════════════════════════════════════════════════════════
+block_manipulation:
+  allow_real_blocks: true          # Use real falling block entities
+  max_lifetime_ticks: 120          # Blocks disappear after 6 seconds
+
+# ═══════════════════════════════════════════════════════════════
+# FRAGMENT SETTINGS
+# ═══════════════════════════════════════════════════════════════
+# Each Fragment has unique progression settings
+#
+# Base Rank:
+#   Starting power level (1-8)
+#   Higher rank = More abilities unlocked from the start
+#
+# XP Curve:
+#   LINEAR = Same XP per level (easy, consistent)
+#   LOGARITHMIC = Less XP per level (easier as you progress)
+#   EXPONENTIAL = More XP per level (harder as you progress)
+#
+# Death XP Penalty:
+#   Percentage of XP lost when you die (0.10 = 10% loss)
+#   Only applies if death_xp_loss_enabled: true
+# ═══════════════════════════════════════════════════════════════
 
 fragments:
+  # ─────────────────────────────────────────────────────────────
+  # FIRE FRAGMENT - Offensive pyromancer
+  # Abilities: Fireball, Inferno, Blazing Step, Fire Shield, Phoenix Rebirth
+  # ─────────────────────────────────────────────────────────────
   fire:
-    base_rank: 3
-    xp_curve: EXPONENTIAL
-    death_xp_penalty: 0.1  # 10% XP loss
+    base_rank: 3                   # Medium starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.1          # Lose 10% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # WATER FRAGMENT - Healing and control
+  # Abilities: Water Jet, Healing Wave, Aqua Pulse, Tidal Shield, Tsunami Wave
+  # ─────────────────────────────────────────────────────────────
   water:
-    base_rank: 2
-    xp_curve: LINEAR
-    death_xp_penalty: 0.05
+    base_rank: 2                   # Lower starting power
+    xp_curve: LINEAR               # Consistent leveling speed
+    death_xp_penalty: 0.05         # Lose 5% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # AIR FRAGMENT - Mobility and speed
+  # Abilities: Wind Blast, Levitation, Air Dash, Tornado, Sky Strike
+  # ─────────────────────────────────────────────────────────────
   air:
-    base_rank: 3
-    xp_curve: LOGARITHMIC
-    death_xp_penalty: 0.08
+    base_rank: 3                   # Medium starting power
+    xp_curve: LOGARITHMIC          # Gets easier to level up
+    death_xp_penalty: 0.08         # Lose 8% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # EARTH FRAGMENT - Defense and durability
+  # Abilities: Rock Throw, Earth Wall, Tremor, Stone Skin, Earthquake
+  # ─────────────────────────────────────────────────────────────
   earth:
-    base_rank: 2
-    xp_curve: LINEAR
-    death_xp_penalty: 0.05
+    base_rank: 2                   # Lower starting power
+    xp_curve: LINEAR               # Consistent leveling speed
+    death_xp_penalty: 0.05         # Lose 5% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # DARK FRAGMENT - Life drain and debuffs
+  # Abilities: Shadow Bolt, Vampiric Drain, Darkness, Curse, Void Step
+  # ─────────────────────────────────────────────────────────────
   dark:
-    base_rank: 4
-    xp_curve: EXPONENTIAL
-    death_xp_penalty: 0.15
+    base_rank: 4                   # Higher starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.15         # Lose 15% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # LIGHT FRAGMENT - Buffs and protection
+  # Abilities: Light Beam, Holy Shield, Radiance, Blessing, Divine Smite
+  # ─────────────────────────────────────────────────────────────
   light:
-    base_rank: 4
-    xp_curve: EXPONENTIAL
-    death_xp_penalty: 0.12
+    base_rank: 4                   # Higher starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.12         # Lose 12% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # VOID FRAGMENT - Reality manipulation (LEGENDARY)
+  # Abilities: Void Bolt, Rift, Gravity Well, Void Walk, Singularity
+  # ─────────────────────────────────────────────────────────────
   void:
-    base_rank: 7
-    xp_curve: EXPONENTIAL
-    death_xp_penalty: 0.20
+    base_rank: 7                   # Very high starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.20         # Lose 20% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # MOB FRAGMENT - Summon creatures
+  # Abilities: Summon Wolf, Summon Zombie, Summon Skeleton, Summon Blaze, Summon Army
+  # ─────────────────────────────────────────────────────────────
   mob:
-    base_rank: 5
-    xp_curve: LINEAR
-    death_xp_penalty: 0.10
+    base_rank: 5                   # High starting power
+    xp_curve: LINEAR               # Consistent leveling speed
+    death_xp_penalty: 0.10         # Lose 10% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # DRAGON FRAGMENT - Ultimate power (MYTHIC)
+  # Abilities: Dragon Breath, Dragon's Roar, Draconic Fury, Cataclysm, Dragon Ascension
+  # ─────────────────────────────────────────────────────────────
   dragon:
-    base_rank: 8
-    xp_curve: EXPONENTIAL
-    death_xp_penalty: 0.25
+    base_rank: 8                   # Maximum starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.25         # Lose 25% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # STORM FRAGMENT - Lightning and weather control
+  # Abilities: Lightning Strike, Chain Lightning, Thunder Clap, Storm Call, Tempest
+  # ─────────────────────────────────────────────────────────────
   storm:
-    base_rank: 6
-    xp_curve: EXPONENTIAL
-    death_xp_penalty: 0.18
+    base_rank: 6                   # High starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.18         # Lose 18% XP on death
+
+# ═══════════════════════════════════════════════════════════════
+# ADMIN FRAGMENT (HIDDEN)
+# ═══════════════════════════════════════════════════════════════
+# Special admin-only fragment with destructive powers
+# Hidden from all GUIs and tab completion
+# Obtained via: /frag forceactivate <username> admin
+# ═══════════════════════════════════════════════════════════════
+admin_fragment:
+  enabled: true                    # Enable/disable admin fragment
+  break_blocks: false              # Allow terrain destruction (Cataclysm, Apocalypse, etc.)
+  broadcast_apocalypse: true       # Broadcast message when Apocalypse is used
+
+# ═══════════════════════════════════════════════════════════════
+# DISCORD INTEGRATION (DiscordSRV)
+# ═══════════════════════════════════════════════════════════════
+# Requires DiscordSRV plugin to be installed
+# Sends ritual notifications to Discord with player name, fragment, location, and timer
+# ═══════════════════════════════════════════════════════════════
+discord:
+  ritual_notifications: true       # Send ritual start notifications to Discord
+  include_coordinates: true        # Include coordinates in Discord messages
+
+# ═══════════════════════════════════════════════════════════════
+# NEW PLAYER SETTINGS
+# ═══════════════════════════════════════════════════════════════
+# Configure what happens when a player joins the server for the first time
+# ═══════════════════════════════════════════════════════════════
+new_player:
+  give_starter_fragment: false      # Give new players a fragment on first join
+  starter_fragment_type: "water"   # Which fragment to give (water, earth, fire, air, dark, light, void, mob, dragon, storm)
+  auto_activate: true              # Automatically activate the fragment (no need for Fragment Changer ritual)
+  welcome_message: true            # Send welcome message explaining the fragment system
+
+# ═══════════════════════════════════════════════════════════════
+# END OF CONFIGURATION
+# ═══════════════════════════════════════════════════════════════
+# Remember to use "/fragment reload" after making changes!
+# For support, check the plugin documentation or contact the developer.
+# ═══════════════════════════════════════════════════════════════

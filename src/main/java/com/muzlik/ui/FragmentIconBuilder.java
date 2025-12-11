@@ -179,11 +179,13 @@ public class FragmentIconBuilder {
             lore.add(Typography.formatLabel("Rank: ") + Typography.formatValue(rank + "/" + maxRank));
             lore.add(Typography.formatLabel("Level: ") + Typography.formatValue(level + "/" + maxLevel) + Typography.COLOR_TEXT_DARK + " (" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
 
-            // Mana display
-            double currentMana = manaManager.getMana(player);
-            double maxMana = manaManager.getMaxMana(player);
-            lore.add("");
-            lore.add(Typography.formatLabel("Mana: ") + Typography.formatValue(String.format("%.0f", currentMana) + "/" + String.format("%.0f", maxMana)));
+            // Mana display - only if mana system is enabled
+            if (manaManager.isManaSystemEnabled()) {
+                double currentMana = manaManager.getMana(player);
+                double maxMana = manaManager.getMaxMana(player);
+                lore.add("");
+                lore.add(Typography.formatLabel("Mana: ") + Typography.formatValue(String.format("%.0f", currentMana) + "/" + String.format("%.0f", maxMana)));
+            }
 
             // Status
             lore.add("");
@@ -273,6 +275,7 @@ public class FragmentIconBuilder {
             case MOB -> Material.SPAWNER;
             case DRAGON -> Material.DRAGON_EGG;
             case STORM -> Material.LIGHTNING_ROD;
+            case ADMIN -> Material.NETHER_STAR; // Admin fragment icon
         };
     }
 }

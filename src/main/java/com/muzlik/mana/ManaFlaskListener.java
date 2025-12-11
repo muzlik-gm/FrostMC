@@ -34,6 +34,13 @@ public class ManaFlaskListener implements Listener {
         // Check if item is a Mana Flask
         if (recipeManager.isManaFlask(item)) {
             event.setCancelled(true);
+            
+            // If mana system is disabled, inform player
+            if (!manaManager.isManaSystemEnabled()) {
+                player.sendMessage("§c✗ Mana system is disabled on this server");
+                return;
+            }
+            
             useManaFlask(player, item);
         }
     }

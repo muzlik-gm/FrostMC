@@ -31,6 +31,11 @@ public class UIManager {
     private final RankManager rankManager;
     private final CooldownManager cooldownManager;
     private final Map<UUID, UIMode> playerUIMode;
+    
+    // New GUI instances
+    private ControlSchemeGUI controlSchemeGUI;
+    private FragmentActivateGUI fragmentActivateGUI;
+    private FragmentGiveGUI fragmentGiveGUI;
 
     public UIManager(JavaPlugin plugin, FragmentManager fragmentManager, 
                     ManaManager manaManager, LevelManager levelManager, RankManager rankManager,
@@ -43,7 +48,68 @@ public class UIManager {
         this.cooldownManager = cooldownManager;
         this.playerUIMode = new HashMap<>();
     }
+    
+    /**
+     * Initialize GUI instances (call after preferences manager is available)
+     */
+    public void initializeGUIs(com.muzlik.player.PlayerPreferencesManager preferencesManager) {
+        this.controlSchemeGUI = new ControlSchemeGUI(preferencesManager);
+        this.fragmentActivateGUI = new FragmentActivateGUI(fragmentManager, levelManager, rankManager);
+        this.fragmentGiveGUI = new FragmentGiveGUI(fragmentManager);
+        
+        // Register listeners
+        plugin.getServer().getPluginManager().registerEvents(controlSchemeGUI, plugin);
+        plugin.getServer().getPluginManager().registerEvents(fragmentActivateGUI, plugin);
+        plugin.getServer().getPluginManager().registerEvents(fragmentGiveGUI, plugin);
+    }
+    
+    /**
+     * Open control scheme selection GUI
+     */
+    public void openControlSchemeGUI(Player player) {
+        if (controlSchemeGUI != null) {
+            controlSchemeGUI.openGUI(player);
+        } else {
+            player.sendMessage("§cControl scheme GUI not initialized");
+        }
+    }
+    
+    /**
+     * Open fragment activation GUI
+     */
+    public void openFragmentActivateGUI(Player player) {
+        if (fragmentActivateGUI != null) {
+            fragmentActivateGUI.openGUI(player);
+        } else {
+            player.sendMessage("§cFragment activation GUI not initialized");
+        }
+    }
+    
+    /**
+     * Open fragment give GUI (admin)
+     */
+    public void openFragmentGiveGUI(Player player) {
+        if (fragmentGiveGUI != null) {
+            fragmentGiveGUI.openPlayerSelection(player);
+        } else {
+            player.sendMessage("§cFragment give GUI not initialized");
+        }
+    }
 
+    /**
+     * Check if mana system is enabled
+     */
+    private boolean isManaSystemEnabled() {
+        if (plugin instanceof com.muzlik.FrostSMPPlugin) {
+            com.muzlik.FrostSMPPlugin frostPlugin = (com.muzlik.FrostSMPPlugin) plugin;
+            com.muzlik.config.ConfigManager configManager = frostPlugin.getConfigManager();
+            if (configManager != null) {
+                return configManager.isManaSystemEnabled();
+            }
+        }
+        return true; // Default to enabled if can't check
+    }
+    
     /**
      * Convert text to small caps unicode
      */
@@ -83,6 +149,9 @@ public class UIManager {
         int slotIndex = 0;
         
         for (FragmentType type : FragmentType.values()) {
+            // HIDE ADMIN FRAGMENT FROM GUI
+            if (type == FragmentType.ADMIN) continue;
+            
             if (slotIndex >= slots.length) break;
             
             boolean isOwned = ownedFragments.contains(type);
@@ -100,9 +169,30 @@ public class UIManager {
             inv.setItem(slots[slotIndex++], item);
         }
         
-        // Add info button
+        // Bottom row buttons (slots 45-53)
+        // Slot 47: Activate Fragment button
+        ItemStack activateButton = createActivateFragmentButton();
+        inv.setItem(47, activateButton);
+        
+        // Slot 48: Controls button
+        ItemStack controlsButton = createControlsButton();
+        inv.setItem(48, controlsButton);
+        
+        // Slot 49: Info button (center)
         ItemStack infoButton = createInfoButton();
         inv.setItem(49, infoButton);
+        
+        // Slot 50: Mana Status button (only if mana system enabled)
+        if (isManaSystemEnabled()) {
+            ItemStack manaButton = createManaStatusButton(player);
+            inv.setItem(50, manaButton);
+        }
+        
+        // Slot 51: Admin Give button (if admin)
+        if (player.hasPermission("fragment.admin")) {
+            ItemStack giveButton = createAdminGiveButton();
+            inv.setItem(51, giveButton);
+        }
         
         player.openInventory(inv);
     }
@@ -177,7 +267,7 @@ public class UIManager {
             if (slotIndex >= abilitySlots.length) break;
             
             ItemStack abilityIcon = new AbilityIconBuilder(ability, player, type, 
-                    rankManager, levelManager, cooldownManager)
+                    rankManager, levelManager, manaManager, cooldownManager)
                     .build();
             
             inv.setItem(abilitySlots[slotIndex++], abilityIcon);
@@ -337,8 +427,9 @@ public class UIManager {
      * Create info button
      */
     private ItemStack createInfoButton() {
-        ItemStack item = new ItemStack(Material.BOOK);
+        ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1005); // Custom model for info icon
         meta.setDisplayName(Typography.formatTitle("Fragment Guide"));
         meta.setLore(Arrays.asList(
                 "",
@@ -360,10 +451,93 @@ public class UIManager {
      * Create back button
      */
     private ItemStack createBackButton() {
-        ItemStack item = new ItemStack(Material.ARROW);
+        ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1006); // Custom model for back arrow icon
         meta.setDisplayName(Typography.formatTitle("Back"));
         meta.setLore(Arrays.asList(Typography.COLOR_TEXT + "Return to Fragment overview"));
+        item.setItemMeta(meta);
+        return item;
+    }
+    
+    /**
+     * Create controls button
+     */
+    private ItemStack createControlsButton() {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1001); // Custom model for controls icon
+        meta.setDisplayName("§e§l⚙ " + toSmallCaps("Controls"));
+        meta.setLore(Arrays.asList(
+                "",
+                Typography.COLOR_TEXT + "Change control scheme",
+                Typography.COLOR_TEXT + "and ability settings",
+                "",
+                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO OPEN"
+        ));
+        item.setItemMeta(meta);
+        return item;
+    }
+    
+    /**
+     * Create activate fragment button
+     */
+    private ItemStack createActivateFragmentButton() {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1002); // Custom model for switch fragment icon
+        meta.setDisplayName("§b§l⚡ " + toSmallCaps("Switch Fragment"));
+        meta.setLore(Arrays.asList(
+                "",
+                Typography.COLOR_TEXT + "Activate a different",
+                Typography.COLOR_TEXT + "fragment from your collection",
+                "",
+                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO OPEN"
+        ));
+        item.setItemMeta(meta);
+        return item;
+    }
+    
+    /**
+     * Create mana status button
+     */
+    private ItemStack createManaStatusButton(Player player) {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1003); // Custom model for mana status icon
+        meta.setDisplayName("§b§l⚡ " + toSmallCaps("Mana Status"));
+        
+        double currentMana = manaManager.getMana(player);
+        double maxMana = manaManager.getMaxMana(player);
+        double regenRate = manaManager.getManaRegenRate(player);
+        
+        meta.setLore(Arrays.asList(
+                "",
+                Typography.COLOR_TEXT + "Current: §b" + String.format("%.0f", currentMana),
+                Typography.COLOR_TEXT + "Maximum: §b" + String.format("%.0f", maxMana),
+                Typography.COLOR_TEXT + "Regen: §b" + String.format("%.1f", regenRate) + "/s",
+                "",
+                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO VIEW"
+        ));
+        item.setItemMeta(meta);
+        return item;
+    }
+    
+    /**
+     * Create admin give button
+     */
+    private ItemStack createAdminGiveButton() {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1004); // Custom model for admin give icon
+        meta.setDisplayName("§d§l⚡ " + toSmallCaps("Give Fragment"));
+        meta.setLore(Arrays.asList(
+                "",
+                Typography.COLOR_TEXT + "§dAdmin: §7Give fragments",
+                Typography.COLOR_TEXT + "to other players",
+                "",
+                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO OPEN"
+        ));
         item.setItemMeta(meta);
         return item;
     }
@@ -383,6 +557,7 @@ public class UIManager {
             case MOB -> Particle.VILLAGER_HAPPY;
             case DRAGON -> Particle.DRAGON_BREATH;
             case STORM -> Particle.ELECTRIC_SPARK;
+            case ADMIN -> Particle.SMOKE_LARGE; // Admin fragment particle
         };
     }
 

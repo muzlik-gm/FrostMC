@@ -9,7 +9,11 @@ public enum AbilitySlot {
     SECONDARY(1, "Secondary", 0),       // Always available - Utility/Support
     ULTIMATE(2, "Ultimate", 0),         // Always available - Powerful finishing move
     ADVANCED(3, "Advanced", 5),         // Unlocks at rank threshold - Advanced ability
-    MASTERY(4, "Mastery", 7);           // Unlocks at max rank threshold - Mastery ability
+    MASTERY(4, "Mastery", 7),           // Unlocks at max rank threshold - Mastery ability
+    SLOT_6(5, "Slot 6", 0),             // Admin only - Extra slot
+    SLOT_7(6, "Slot 7", 0),             // Admin only - Extra slot
+    SLOT_8(7, "Slot 8", 0),             // Admin only - Extra slot
+    SLOT_9(8, "Slot 9", 0);             // Admin only - Extra slot
 
     private final int slotIndex;
     private final String displayName;

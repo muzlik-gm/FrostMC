@@ -3,6 +3,7 @@ package com.muzlik.fragment.ability.executors.voidfrag;
 import com.muzlik.FrostSMPPlugin;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.util.SafeTeleport;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import org.bukkit.*;
@@ -161,12 +162,21 @@ public class SpatialManipulationExecutor implements AbilityExecutor {
                 return;
             }
             
-            // Teleport to linked portal
+            // Find safe teleport location at linked portal
             Location dest = linkedPortal.location.clone();
-            dest.setYaw(player.getLocation().getYaw());
-            dest.setPitch(player.getLocation().getPitch());
+            Location safeDest = SafeTeleport.findSafeLocation(dest);
             
-            player.teleport(dest);
+            if (safeDest == null) {
+                // Fallback to original location if no safe spot found
+                safeDest = dest;
+            }
+            
+            // Preserve player's rotation
+            safeDest.setYaw(player.getLocation().getYaw());
+            safeDest.setPitch(player.getLocation().getPitch());
+            
+            // Teleport safely
+            player.teleport(safeDest);
             
             // Mark as recently teleported
             recentlyTeleported.add(player.getUniqueId());
@@ -179,8 +189,8 @@ public class SpatialManipulationExecutor implements AbilityExecutor {
             }, 40L);
             
             // Effects
-            player.getWorld().playSound(dest, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-            player.getWorld().spawnParticle(Particle.PORTAL, dest, 50, 0.5, 1.0, 0.5, 0.2);
+            player.getWorld().playSound(safeDest, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+            player.getWorld().spawnParticle(Particle.PORTAL, safeDest, 50, 0.5, 1.0, 0.5, 0.2);
             
         }
         

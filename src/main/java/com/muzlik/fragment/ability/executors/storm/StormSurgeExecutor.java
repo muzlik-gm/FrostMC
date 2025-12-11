@@ -124,7 +124,5 @@ public class StormSurgeExecutor implements AbilityExecutor {
         // Play sound
         center.getWorld().playSound(center, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1.5f, 1.2f);
         center.getWorld().playSound(center, Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f);
-        
-
     }
 }

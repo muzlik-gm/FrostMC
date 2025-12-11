@@ -115,6 +115,14 @@ public class FXLibrary {
             Color.fromRGB(176, 196, 222), // Accent: LightSteelBlue
             Particle.ELECTRIC_SPARK
         ));
+
+        // ADMIN: DarkRed/Black/Crimson (Destructive power)
+        colorSchemes.put(FragmentType.ADMIN, new ColorScheme(
+            Color.fromRGB(139, 0, 0),     // Primary: DarkRed
+            Color.fromRGB(0, 0, 0),       // Secondary: Black
+            Color.fromRGB(220, 20, 60),   // Accent: Crimson
+            Particle.SMOKE_LARGE
+        ));
     }
 
     /**

@@ -22,14 +22,15 @@ public class DimensionalCollapseExecutor implements AbilityExecutor {
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
         // Initial massive VFX - MORE CHAOTIC AT HIGHER RANKS - FIXED: Use safe particles
+        // FIXED: Smoke spawns away from player's view (at target location, not near player)
         int portalCount = 300 + (rank * 60); // 300 → 720 at rank 7
         int witchCount = 200 + (rank * 50); // 200 → 550 at rank 7
         int smokeCount = 150 + (rank * 40); // 150 → 430 at rank 7
         int endRodCount = 100 + (rank * 30); // 100 → 310 at rank 7
         
-        world.spawnParticle(Particle.PORTAL, center, portalCount, radius, radius, radius, 2 + (rank * 0.3));
-        world.spawnParticle(Particle.SPELL_MOB, center, witchCount, radius * 0.8, radius * 0.8, radius * 0.8, 1.5 + (rank * 0.2));
-        world.spawnParticle(Particle.SMOKE_LARGE, center, smokeCount, radius * 0.6, radius * 0.6, radius * 0.6, 0.5 + (rank * 0.1));
+        world.spawnParticle(Particle.PORTAL, center, portalCount + witchCount, radius, radius, radius, 2 + (rank * 0.3));
+        // Smoke spawns at target location (center), which is away from player
+        world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, center, smokeCount, radius * 0.6, radius * 0.6, radius * 0.6, 0.5 + (rank * 0.1));
         world.spawnParticle(Particle.END_ROD, center, endRodCount, radius * 0.5, radius * 0.5, radius * 0.5, 0.3);
         world.spawnParticle(Particle.SQUID_INK, center, 80 + (rank * 20), radius * 0.4, radius * 0.4, radius * 0.4, 0.2);
         
@@ -45,10 +46,10 @@ public class DimensionalCollapseExecutor implements AbilityExecutor {
             public void run() {
                 if (ticks >= maxTicks) {
                     // Final explosion VFX - FIXED: Use safe particles
-                    world.spawnParticle(Particle.PORTAL, center, 200 + (rank * 40), 2, 2, 2, 3);
-                    world.spawnParticle(Particle.SPELL_MOB, center, 150 + (rank * 30), 1.5, 1.5, 1.5, 2);
-                    world.spawnParticle(Particle.EXPLOSION_LARGE, center, 10 + (rank * 2), 1, 1, 1, 0);
-                    world.spawnParticle(Particle.SMOKE_LARGE, center, 100, 2, 2, 2, 0.5);
+                    // Smoke spawns at center (target location), not near player
+                    world.spawnParticle(Particle.PORTAL, center, 350 + (rank * 70), 2, 2, 2, 3);
+                    world.spawnParticle(Particle.EXPLOSION_HUGE, center, 5 + rank, 1, 1, 1, 0);
+                    world.spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, center, 100, 2, 2, 2, 0.5);
                     world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 2.0f, 0.5f);
                     cancel();
                     return;
@@ -69,8 +70,7 @@ public class DimensionalCollapseExecutor implements AbilityExecutor {
                             hitEntities.add(entity.getUniqueId());
                             
                             // Hit VFX - FIXED: Use safe particles
-                            world.spawnParticle(Particle.PORTAL, target.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.5);
-                            world.spawnParticle(Particle.SPELL_MOB, target.getLocation().add(0, 1, 0), 20, 0.2, 0.4, 0.2, 0.3);
+                            world.spawnParticle(Particle.PORTAL, target.getLocation().add(0, 1, 0), 50, 0.3, 0.5, 0.3, 0.5);
                         }
                     }
                 }
@@ -84,8 +84,7 @@ public class DimensionalCollapseExecutor implements AbilityExecutor {
                         double z = Math.sin(angle) * currentRadius;
                         Location particleLoc = center.clone().add(x, Math.sin(ticks * 0.2) * 2, z);
                         
-                        world.spawnParticle(Particle.PORTAL, particleLoc, 3, 0.1, 0.1, 0.1, 0.5);
-                        world.spawnParticle(Particle.SPELL_MOB, particleLoc, 2, 0.1, 0.1, 0.1, 0.3);
+                        world.spawnParticle(Particle.PORTAL, particleLoc, 5, 0.1, 0.1, 0.1, 0.5);
                         world.spawnParticle(Particle.END_ROD, particleLoc, 1, 0.05, 0.05, 0.05, 0.02);
                     }
                 }

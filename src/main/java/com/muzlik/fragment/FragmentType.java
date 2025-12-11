@@ -14,7 +14,8 @@ public enum FragmentType {
     VOID("Void", "Teleportation, dimension manipulation, and chaos"),
     MOB("Mob", "Summoning, pet control, and swarm mechanics"),
     DRAGON("Dragon", "Raw power, breath attacks, and wing mechanics"),
-    STORM("Storm", "Lightning, weather control, and chain effects");
+    STORM("Storm", "Lightning, weather control, and chain effects"),
+    ADMIN("Admin", "Ultimate destructive power - Admin only");
 
     private final String displayName;
     private final String description;

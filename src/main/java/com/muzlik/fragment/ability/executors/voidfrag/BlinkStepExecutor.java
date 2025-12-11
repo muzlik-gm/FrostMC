@@ -5,6 +5,7 @@ import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.util.SafeTeleport;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 /**
  * Blink Step - Void Fragment Secondary (Slot 1)
@@ -26,16 +27,19 @@ public class BlinkStepExecutor implements AbilityExecutor {
         boolean success = SafeTeleport.teleportSafely(player, target);
         
         if (success) {
-            // VFX at departure - FIXED: Use safe particles
+            // VFX at departure - FIXED: Smoke spawns behind player, not in face
             Location startLoc = player.getLocation();
-            player.getWorld().spawnParticle(Particle.PORTAL, startLoc, 50, 1, 1, 1, 0.5);
-            player.getWorld().spawnParticle(Particle.SPELL_MOB, startLoc, 30, 0.5, 0.5, 0.5, 0.3);
-            player.getWorld().spawnParticle(Particle.SMOKE_LARGE, startLoc, 20, 0.8, 0.8, 0.8, 0.05);
+            // Get direction player is facing and spawn smoke BEHIND them
+            Vector behindPlayer = player.getLocation().getDirection().multiply(-1.0);
+            Location smokeLoc = startLoc.clone().add(behindPlayer).add(0, 1, 0);
+            
+            player.getWorld().spawnParticle(Particle.PORTAL, startLoc, 80, 1, 1, 1, 0.5);
+            player.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, smokeLoc, 20, 0.8, 0.8, 0.8, 0.05);
             player.getWorld().spawnParticle(Particle.END_ROD, startLoc, 15, 0.6, 0.6, 0.6, 0.1);
             
-            // VFX at arrival
-            player.getWorld().spawnParticle(Particle.PORTAL, target, 50, 1, 1, 1, 0.5);
-            player.getWorld().spawnParticle(Particle.SPELL_MOB, target, 30, 0.5, 0.5, 0.5, 0.3);
+            // VFX at arrival - smoke spawns around, not in center
+            player.getWorld().spawnParticle(Particle.PORTAL, target, 80, 1, 1, 1, 0.5);
+            player.getWorld().spawnParticle(Particle.END_ROD, target, 15, 0.5, 0.5, 0.5, 0.3);
             
             // Sound
             player.getWorld().playSound(startLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);

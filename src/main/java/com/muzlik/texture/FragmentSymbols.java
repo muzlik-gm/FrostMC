@@ -61,6 +61,7 @@ public class FragmentSymbols {
             case MOB -> MOB;
             case DRAGON -> DRAGON;
             case STORM -> STORM;
+            case ADMIN -> "⚠"; // Admin fragment symbol
         };
     }
     
@@ -88,6 +89,7 @@ public class FragmentSymbols {
             case MOB -> "§a";       // Green
             case DRAGON -> "§c";    // Red
             case STORM -> "§b";     // Cyan
+            case ADMIN -> "§4";     // Dark Red
         };
     }
     
@@ -101,6 +103,7 @@ public class FragmentSymbols {
             case ULTIMATE -> ULTIMATE;
             case ADVANCED -> ADVANCED;
             case MASTERY -> MASTERY;
+            case SLOT_6, SLOT_7, SLOT_8, SLOT_9 -> "⚠"; // Admin slots
         };
     }
     

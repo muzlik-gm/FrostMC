@@ -107,4 +107,32 @@ public class SafeTeleport {
         
         return findSafeLocation(target);
     }
+    
+    /**
+     * Get safe velocity for dash abilities
+     * Limits vertical component to prevent going too high or into ground
+     */
+    public static org.bukkit.util.Vector getSafeVelocity(org.bukkit.util.Vector velocity, Player player) {
+        org.bukkit.util.Vector safeVel = velocity.clone();
+        
+        // Limit upward velocity to prevent going too high
+        if (safeVel.getY() > 1.5) {
+            safeVel.setY(1.5);
+        }
+        
+        // Limit downward velocity to prevent going into ground
+        if (safeVel.getY() < -0.5) {
+            safeVel.setY(-0.5);
+        }
+        
+        // Check if player is near ground - reduce downward velocity
+        Location below = player.getLocation().subtract(0, 1, 0);
+        if (!below.getBlock().isPassable()) {
+            if (safeVel.getY() < 0) {
+                safeVel.setY(0.2); // Small upward boost to avoid clipping
+            }
+        }
+        
+        return safeVel;
+    }
 }

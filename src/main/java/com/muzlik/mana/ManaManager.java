@@ -21,6 +21,9 @@ public class ManaManager {
     
     // Reference to CharacterLevelManager for max mana calculation
     private CharacterLevelManager characterLevelManager;
+    
+    // Mana system enabled flag
+    private boolean manaSystemEnabled = true;
 
     // Configuration constants (Anime RPG Style)
     private static final double BASE_MAX_MANA = 100.0;
@@ -32,6 +35,27 @@ public class ManaManager {
         this.playerManaData = new ConcurrentHashMap<>();
         this.manaDisplay = new ManaDisplay(plugin);
         startManaRegeneration();
+    }
+    
+    /**
+     * Set whether mana system is enabled
+     */
+    public void setManaSystemEnabled(boolean enabled) {
+        this.manaSystemEnabled = enabled;
+        if (!enabled) {
+            // Stop regeneration when disabled
+            stopManaRegeneration();
+        } else {
+            // Start regeneration when enabled
+            startManaRegeneration();
+        }
+    }
+    
+    /**
+     * Check if mana system is enabled
+     */
+    public boolean isManaSystemEnabled() {
+        return manaSystemEnabled;
     }
     
     /**
@@ -91,6 +115,11 @@ public class ManaManager {
      * @return true if mana was consumed, false if insufficient
      */
     public boolean consumeMana(Player player, double cost) {
+        // If mana system is disabled, always return true (no cost)
+        if (!manaSystemEnabled) {
+            return true;
+        }
+        
         if (!hasMana(player, cost)) {
             player.sendMessage("§c✗ Not enough mana: " + String.format("%.1f", getMana(player)) + "/" + String.format("%.1f", cost));
             return false;
@@ -114,6 +143,10 @@ public class ManaManager {
      * Check if player has sufficient mana
      */
     public boolean hasMana(Player player, double cost) {
+        // If mana system is disabled, always return true
+        if (!manaSystemEnabled) {
+            return true;
+        }
         return getMana(player) >= cost;
     }
 
@@ -182,6 +215,11 @@ public class ManaManager {
      * Start passive mana regeneration task
      */
     public void startManaRegeneration() {
+        // Don't start if mana system is disabled
+        if (!manaSystemEnabled) {
+            return;
+        }
+        
         if (regenTask != null) {
             regenTask.cancel();
         }
@@ -189,6 +227,11 @@ public class ManaManager {
         regenTask = new BukkitRunnable() {
             @Override
             public void run() {
+                // Skip if mana system is disabled
+                if (!manaSystemEnabled) {
+                    return;
+                }
+                
                 for (Player player : plugin.getServer().getOnlinePlayers()) {
                     double currentMana = getMana(player);
                     double maxMana = getMaxMana(player);

@@ -44,8 +44,7 @@ public class VoidSlashExecutor implements AbilityExecutor {
                     int spellCount = 5 + rank;            // 5 → 9 at rank 4 (was 15 constant)
                     int rodCount = 3 + rank;              // 3 → 7 at rank 4 (was 10 constant)
                     
-                    living.getWorld().spawnParticle(Particle.PORTAL, living.getLocation().add(0, 1, 0), portalCount, 0.2, 0.4, 0.2, 0.1);
-                    living.getWorld().spawnParticle(Particle.SPELL_MOB, living.getLocation().add(0, 1, 0), spellCount, 0.2, 0.3, 0.2, 0.03);
+                    living.getWorld().spawnParticle(Particle.PORTAL, living.getLocation().add(0, 1, 0), portalCount + spellCount, 0.2, 0.4, 0.2, 0.1);
                     living.getWorld().spawnParticle(Particle.END_ROD, living.getLocation().add(0, 1, 0), rodCount, 0.15, 0.3, 0.15, 0.02);
                     
                     hitCount++;
@@ -55,6 +54,7 @@ public class VoidSlashExecutor implements AbilityExecutor {
         
         // FOCUSED slash VFX - clean arc with reduced particle density
         // Increased step sizes for cleaner visual with less particles
+        // FIXED: Smoke particles spawn further away to not block eyesight
         for (double d = 0; d < range; d += 0.5) {  // Was 0.3, now 0.5 (60% fewer iterations)
             for (double angle = -30; angle <= 30; angle += 15) {  // Was 10, now 15 (50% fewer iterations)
                 Vector slashDir = direction.clone();
@@ -62,11 +62,10 @@ public class VoidSlashExecutor implements AbilityExecutor {
                 Location particleLoc = origin.clone().add(slashDir.multiply(d));
                 
                 // Minimal particles per position - rift aesthetic
-                player.getWorld().spawnParticle(Particle.PORTAL, particleLoc, 2, 0.05, 0.05, 0.05, 0.3);
-                player.getWorld().spawnParticle(Particle.SPELL_MOB, particleLoc, 1, 0.05, 0.05, 0.05, 0.15);
-                // Smoke only every other position for visual rhythm
-                if (d % 1.0 < 0.5) {
-                    player.getWorld().spawnParticle(Particle.SMOKE_LARGE, particleLoc, 1, 0.03, 0.03, 0.03, 0.005);
+                player.getWorld().spawnParticle(Particle.PORTAL, particleLoc, 3, 0.05, 0.05, 0.05, 0.3);
+                // Smoke only at distance (not close to player) and every other position
+                if (d > 2.0 && d % 1.0 < 0.5) { // Only spawn smoke 2+ blocks away
+                    player.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, particleLoc, 1, 0.03, 0.03, 0.03, 0.005);
                 }
             }
         }

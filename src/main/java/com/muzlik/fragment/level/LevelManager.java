@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Manages Fragment-specific leveling and XP.
  * Each Fragment has independent progression.
  * 
- * Fragment Level now affects:
- * - Cooldown reduction (up to 10% at max level)
- * - Mana cost reduction (up to 20% at max level)
- * - Small damage bonus (up to 15% at max level)
+ * Fragment Level now affects (ALL CAPPED AT 30%):
+ * - Cooldown reduction (up to 30% at max level) - 100s becomes 70s minimum
+ * - Mana cost reduction (up to 30% at max level)
+ * - Damage bonus (up to 30% at max level)
  * 
  * Max level is based on Fragment's base rank:
  * - Base Rank 2-3: Max Level 5
@@ -253,12 +253,13 @@ public class LevelManager {
     }
 
     /**
-     * Get cooldown reduction multiplier based on level (0 to 0.10 = 0% to 10%)
+     * Get cooldown reduction multiplier based on level (0 to 0.30 = 0% to 30%)
+     * CAPPED AT 30% - Even at max level, 100s cooldown becomes 70s minimum
      */
     public double getCooldownReduction(int level, int maxLevel) {
         if (level <= 1 || maxLevel <= 1) return 0.0;
-        // Linear scaling: Level 1 = 0%, Max Level = 10%
-        return 0.10 * ((double)(level - 1) / (maxLevel - 1));
+        // Linear scaling: Level 1 = 0%, Max Level = 30%
+        return 0.30 * ((double)(level - 1) / (maxLevel - 1));
     }
     
     /**
@@ -271,12 +272,13 @@ public class LevelManager {
     }
 
     /**
-     * Get mana cost reduction multiplier based on level (0 to 0.20 = 0% to 20%)
+     * Get mana cost reduction multiplier based on level (0 to 0.30 = 0% to 30%)
+     * CAPPED AT 30% - Consistent with cooldown reduction
      */
     public double getManaCostReduction(int level, int maxLevel) {
         if (level <= 1 || maxLevel <= 1) return 0.0;
-        // Linear scaling: Level 1 = 0%, Max Level = 20%
-        return 0.20 * ((double)(level - 1) / (maxLevel - 1));
+        // Linear scaling: Level 1 = 0%, Max Level = 30%
+        return 0.30 * ((double)(level - 1) / (maxLevel - 1));
     }
     
     /**
@@ -289,12 +291,13 @@ public class LevelManager {
     }
 
     /**
-     * Get damage bonus multiplier based on level (0 to 0.15 = 0% to 15%)
+     * Get damage bonus multiplier based on level (0 to 0.30 = 0% to 30%)
+     * CAPPED AT 30% - Consistent with other bonuses
      */
     public double getDamageBonus(int level, int maxLevel) {
         if (level <= 1 || maxLevel <= 1) return 0.0;
-        // Linear scaling: Level 1 = 0%, Max Level = 15%
-        return 0.15 * ((double)(level - 1) / (maxLevel - 1));
+        // Linear scaling: Level 1 = 0%, Max Level = 30%
+        return 0.30 * ((double)(level - 1) / (maxLevel - 1));
     }
     
     /**

@@ -61,8 +61,8 @@ public class FragmentActionBarHUD {
             }
         };
         
-        // Update every 10 ticks (0.5 seconds)
-        updateTask.runTaskTimer(plugin, 0L, 10L);
+        // Update every 5 ticks (0.25 second) - REDUCED FROM 10 TICKS FOR PERFORMANCE
+        updateTask.runTaskTimer(plugin, 0L, 5L);
     }
     
     /**
@@ -116,8 +116,14 @@ public class FragmentActionBarHUD {
     /**
      * Build the HUD message component - PREMIUM STYLE WITH LEVEL + MANA
      * Format: ✦ LVL: X/MAX | Fragment ⚡ Mana/Max [abilities]
+     * ADMIN FRAGMENT: Custom format with warning symbols
      */
     private Component buildHUDMessage(Player player, FragmentType fragmentType, int currentSlot) {
+        // CUSTOM ADMIN FRAGMENT ACTIONBAR
+        if (fragmentType == FragmentType.ADMIN) {
+            return buildAdminHUDMessage(player, currentSlot);
+        }
+        
         Component message = Component.empty();
         
         // ═══ CHARACTER LEVEL SECTION ═══
@@ -152,20 +158,23 @@ public class FragmentActionBarHUD {
         message = message.append(Component.text(fragmentName + " ", fragmentColor));
         
         // ═══ MANA DISPLAY ═══
-        // Format: ⚡ Current/Max
-        double currentMana = manaManager.getMana(player);
-        double maxMana = manaManager.getMaxMana(player);
-        
-        // Calculate mana percentage for color coding
-        double manaPercent = currentMana / maxMana;
-        TextColor manaColor = manaPercent >= 0.5 ? NamedTextColor.AQUA : 
-                             (manaPercent >= 0.25 ? NamedTextColor.YELLOW : NamedTextColor.RED);
-        
-        message = message.append(Component.text("⚡", NamedTextColor.AQUA));
-        message = message.append(Component.text(String.format("%.0f", currentMana), manaColor));
-        message = message.append(Component.text("/", NamedTextColor.DARK_GRAY));
-        message = message.append(Component.text(String.format("%.0f", maxMana), NamedTextColor.GRAY));
-        message = message.append(Component.text(" ", NamedTextColor.DARK_GRAY));
+        // Only show if mana system is enabled
+        if (manaManager.isManaSystemEnabled()) {
+            // Format: ⚡ Current/Max
+            double currentMana = manaManager.getMana(player);
+            double maxMana = manaManager.getMaxMana(player);
+            
+            // Calculate mana percentage for color coding
+            double manaPercent = currentMana / maxMana;
+            TextColor manaColor = manaPercent >= 0.5 ? NamedTextColor.AQUA : 
+                                 (manaPercent >= 0.25 ? NamedTextColor.YELLOW : NamedTextColor.RED);
+            
+            message = message.append(Component.text("⚡", NamedTextColor.AQUA));
+            message = message.append(Component.text(String.format("%.0f", currentMana), manaColor));
+            message = message.append(Component.text("/", NamedTextColor.DARK_GRAY));
+            message = message.append(Component.text(String.format("%.0f", maxMana), NamedTextColor.GRAY));
+            message = message.append(Component.text(" ", NamedTextColor.DARK_GRAY));
+        }
         
         // Get Fragment definition to check ability slots
         com.muzlik.fragment.FragmentDefinition fragment = fragmentManager.getFragment(fragmentType);
@@ -257,6 +266,88 @@ public class FragmentActionBarHUD {
     }
     
     /**
+     * Build ADMIN fragment HUD message - Custom format with warning symbols
+     * Format: §4§l⚠ §c§lADMIN MODE §4§l⚠ §8| §7Ability: §c[NAME] §8| §7CD: §e[TIME]
+     */
+    private Component buildAdminHUDMessage(Player player, int currentSlot) {
+        Component message = Component.empty();
+        
+        // Warning symbols and ADMIN MODE text
+        message = message.append(Component.text("⚠ ", NamedTextColor.DARK_RED).decorate(TextDecoration.BOLD));
+        message = message.append(Component.text("ADMIN MODE", NamedTextColor.RED).decorate(TextDecoration.BOLD));
+        message = message.append(Component.text(" ⚠", NamedTextColor.DARK_RED).decorate(TextDecoration.BOLD));
+        message = message.append(Component.text(" | ", NamedTextColor.DARK_GRAY));
+        
+        // Get current ability name
+        com.muzlik.fragment.ability.IFragmentAbility ability = fragmentManager.getAbility(player, FragmentType.ADMIN, currentSlot);
+        
+        if (ability != null) {
+            message = message.append(Component.text("Ability: ", NamedTextColor.GRAY));
+            message = message.append(Component.text(ability.getName(), NamedTextColor.RED));
+            
+            // Check cooldown
+            String abilityId = "ADMIN_" + ability.getName();
+            if (cooldownManager.isOnCooldown(player, abilityId)) {
+                double remaining = cooldownManager.getRemainingCooldownSeconds(player, abilityId);
+                message = message.append(Component.text(" | ", NamedTextColor.DARK_GRAY));
+                message = message.append(Component.text("CD: ", NamedTextColor.GRAY));
+                message = message.append(Component.text(String.format("%.1fs", remaining), NamedTextColor.YELLOW));
+            } else {
+                message = message.append(Component.text(" | ", NamedTextColor.DARK_GRAY));
+                message = message.append(Component.text("READY", NamedTextColor.GREEN).decorate(TextDecoration.BOLD));
+            }
+        } else {
+            message = message.append(Component.text("No Ability", NamedTextColor.DARK_GRAY));
+        }
+        
+        // Show all 9 ability slots (0-8)
+        message = message.append(Component.text(" | ", NamedTextColor.DARK_GRAY));
+        
+        for (int slot = 0; slot <= 8; slot++) {
+            com.muzlik.fragment.ability.IFragmentAbility slotAbility = fragmentManager.getAbility(player, FragmentType.ADMIN, slot);
+            
+            boolean isCurrentSlot = (slot == currentSlot);
+            
+            if (slotAbility != null) {
+                String abilityId = "ADMIN_" + slotAbility.getName();
+                boolean onCooldown = cooldownManager.isOnCooldown(player, abilityId);
+                
+                if (isCurrentSlot) {
+                    message = message.append(Component.text("[", NamedTextColor.WHITE));
+                    if (onCooldown) {
+                        double remaining = cooldownManager.getRemainingCooldownSeconds(player, abilityId);
+                        message = message.append(Component.text(String.format("%.0f", remaining), NamedTextColor.GOLD));
+                    } else {
+                        message = message.append(Component.text("■", NamedTextColor.RED));
+                    }
+                    message = message.append(Component.text("]", NamedTextColor.WHITE));
+                } else {
+                    if (onCooldown) {
+                        double remaining = cooldownManager.getRemainingCooldownSeconds(player, abilityId);
+                        message = message.append(Component.text(String.format("%.0f", remaining), NamedTextColor.GRAY));
+                    } else {
+                        message = message.append(Component.text("■", NamedTextColor.DARK_RED));
+                    }
+                }
+            } else {
+                if (isCurrentSlot) {
+                    message = message.append(Component.text("[", NamedTextColor.WHITE));
+                    message = message.append(Component.text("✗", NamedTextColor.DARK_RED));
+                    message = message.append(Component.text("]", NamedTextColor.WHITE));
+                } else {
+                    message = message.append(Component.text("✗", NamedTextColor.DARK_GRAY));
+                }
+            }
+            
+            if (slot < 8) {
+                message = message.append(Component.text(" ", NamedTextColor.DARK_GRAY));
+            }
+        }
+        
+        return message;
+    }
+    
+    /**
      * Get color for fragment type
      */
     private TextColor getFragmentColor(FragmentType type) {
@@ -271,6 +362,7 @@ public class FragmentActionBarHUD {
             case MOB -> NamedTextColor.GREEN;
             case DRAGON -> NamedTextColor.DARK_RED;
             case STORM -> NamedTextColor.AQUA;
+            case ADMIN -> NamedTextColor.DARK_RED; // Admin fragment color
         };
     }
 }

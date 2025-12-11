@@ -161,9 +161,6 @@ public class TerraShaperExecutor implements AbilityExecutor {
         player.getWorld().playSound(startLoc, Sound.BLOCK_STONE_PLACE, 2.0f, 0.8f);
         player.getWorld().playSound(startLoc, Sound.BLOCK_GRAVEL_BREAK, 1.5f, 0.6f);
         
-        // Send message
-
-        
         // Schedule cleanup
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             packetBlockManager.revertGroup(groupId);

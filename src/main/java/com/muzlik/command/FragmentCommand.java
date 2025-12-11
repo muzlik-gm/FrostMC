@@ -90,7 +90,12 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 uiManager.openFragmentOverview(player);
                 break;
             case "give":
-                handleGive(player, args);
+                // If admin and no args, open GUI
+                if (player.hasPermission("fragment.admin") && args.length == 1) {
+                    uiManager.openFragmentGiveGUI(player);
+                } else {
+                    handleGive(player, args);
+                }
                 break;
             case "set":
                 handleSet(player, args);
@@ -120,10 +125,18 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "activate":
             case "select":
                 if (args.length < 2) {
-                    player.sendMessage("§cUsage: /fragment activate <type>");
+                    // Open GUI if no fragment specified
+                    uiManager.openFragmentActivateGUI(player);
                     return true;
                 }
                 activateFragment(player, args[1]);
+                break;
+            case "controls":
+            case "control":
+                handleControls(player, args);
+                break;
+            case "toggle":
+                handleToggle(player);
                 break;
             case "forceactivate":
                 if (!player.hasPermission("fragment.admin")) {
@@ -159,21 +172,23 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cYou don't have permission to use this command");
             return;
         }
-        if (configManager != null) {
-            configManager.reloadConfig();
+        
+        if (plugin instanceof FrostSMPPlugin) {
+            FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+            
+            // Reload plugin config and update runtime state (including mana system)
+            frostPlugin.reloadPluginConfig();
             
             // Reload block manipulation engine configuration
-            if (plugin instanceof FrostSMPPlugin) {
-                FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
-                com.muzlik.block.BlockManipulationEngine blockEngine = frostPlugin.getBlockManipulationEngine();
-                if (blockEngine != null) {
-                    blockEngine.reloadConfiguration();
-                }
+            com.muzlik.block.BlockManipulationEngine blockEngine = frostPlugin.getBlockManipulationEngine();
+            if (blockEngine != null) {
+                blockEngine.reloadConfiguration();
             }
             
             sender.sendMessage("§aConfiguration reloaded successfully");
+            sender.sendMessage("§7Mana System: " + (configManager.isManaSystemEnabled() ? "§aENABLED" : "§cDISABLED"));
         } else {
-            sender.sendMessage("§cConfigManager not initialized");
+            sender.sendMessage("§cPlugin not initialized properly");
         }
     }
 
@@ -648,6 +663,145 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         }
     }
     
+    /**
+     * Handle controls command - Change control scheme or open GUI
+     */
+    private void handleControls(Player player, String[] args) {
+        if (plugin instanceof FrostSMPPlugin) {
+            FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+            com.muzlik.player.PlayerPreferencesManager prefsManager = frostPlugin.getPreferencesManager();
+            
+            if (prefsManager == null) {
+                player.sendMessage("§cPreferences system not initialized");
+                return;
+            }
+            
+            // If no arguments, open GUI
+            if (args.length == 1) {
+                uiManager.openControlSchemeGUI(player);
+                return;
+            }
+            
+            // Handle text commands
+            String schemeArg = args[1].toUpperCase().replace(" ", "_");
+            
+            if (schemeArg.equals("NEXT")) {
+                // Cycle to next scheme
+                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
+                com.muzlik.player.ControlScheme next = current.next();
+                prefsManager.setControlScheme(player, next);
+                return;
+            }
+            
+            if (schemeArg.equals("PREV") || schemeArg.equals("PREVIOUS")) {
+                // Cycle to previous scheme
+                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
+                com.muzlik.player.ControlScheme prev = current.previous();
+                prefsManager.setControlScheme(player, prev);
+                return;
+            }
+            
+            // Try to match scheme name
+            try {
+                com.muzlik.player.ControlScheme scheme = com.muzlik.player.ControlScheme.valueOf(schemeArg);
+                prefsManager.setControlScheme(player, scheme);
+            } catch (IllegalArgumentException e) {
+                player.sendMessage("§cUnknown control scheme: §e" + args[1]);
+                player.sendMessage("§7Available: sneak_click, double_sneak, swap_hands, click_only");
+                player.sendMessage("§7Or use §e/fragment controls §7to open GUI");
+            }
+        }
+    }
+    
+    /**
+     * OLD handleControls - keeping for reference
+     */
+    private void handleControlsOld(Player player, String[] args) {
+        if (plugin instanceof FrostSMPPlugin) {
+            FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+            com.muzlik.player.PlayerPreferencesManager prefsManager = frostPlugin.getPreferencesManager();
+            
+            if (prefsManager == null) {
+                player.sendMessage("§cPreferences system not initialized");
+                return;
+            }
+            
+            if (args.length == 1) {
+                // Show current control scheme and available options
+                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
+                
+                player.sendMessage("");
+                player.sendMessage("§8§m                                        ");
+                player.sendMessage("  §f§lCONTROL SCHEMES");
+                player.sendMessage("§8§m                                        ");
+                player.sendMessage("");
+                player.sendMessage("§eCurrent: §f" + current.getDisplayName());
+                player.sendMessage("§7" + current.getDescription());
+                player.sendMessage("");
+                
+                for (String instruction : current.getInstructions()) {
+                    player.sendMessage("  " + instruction);
+                }
+                
+                player.sendMessage("");
+                player.sendMessage("§7Available schemes:");
+                for (com.muzlik.player.ControlScheme scheme : com.muzlik.player.ControlScheme.values()) {
+                    String prefix = scheme == current ? "§a▶ " : "§7  ";
+                    player.sendMessage(prefix + "§f" + scheme.getDisplayName());
+                }
+                player.sendMessage("");
+                player.sendMessage("§7Use §e/fragment controls <scheme> §7to change");
+                player.sendMessage("§7Or §e/fragment controls next §7to cycle");
+                player.sendMessage("");
+                return;
+            }
+            
+            String schemeArg = args[1].toUpperCase().replace(" ", "_");
+            
+            if (schemeArg.equals("NEXT")) {
+                // Cycle to next scheme
+                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
+                com.muzlik.player.ControlScheme next = current.next();
+                prefsManager.setControlScheme(player, next);
+                return;
+            }
+            
+            if (schemeArg.equals("PREV") || schemeArg.equals("PREVIOUS")) {
+                // Cycle to previous scheme
+                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
+                com.muzlik.player.ControlScheme prev = current.previous();
+                prefsManager.setControlScheme(player, prev);
+                return;
+            }
+            
+            // Try to match scheme name
+            try {
+                com.muzlik.player.ControlScheme scheme = com.muzlik.player.ControlScheme.valueOf(schemeArg);
+                prefsManager.setControlScheme(player, scheme);
+            } catch (IllegalArgumentException e) {
+                player.sendMessage("§cUnknown control scheme: §e" + args[1]);
+                player.sendMessage("§7Available: sneak_click, double_sneak, swap_hands, offhand_item, click_only");
+            }
+        }
+    }
+    
+    /**
+     * Handle toggle command - Enable/disable abilities
+     */
+    private void handleToggle(Player player) {
+        if (plugin instanceof FrostSMPPlugin) {
+            FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+            com.muzlik.player.PlayerPreferencesManager prefsManager = frostPlugin.getPreferencesManager();
+            
+            if (prefsManager == null) {
+                player.sendMessage("§cPreferences system not initialized");
+                return;
+            }
+            
+            prefsManager.toggleAbilities(player);
+        }
+    }
+    
     private void sendHelp(Player player) {
         player.sendMessage("");
         player.sendMessage("§8§m                                        ");
@@ -660,8 +814,10 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment level §8- Character level");
         player.sendMessage("  §f/fragment abilities §8- List abilities");
         player.sendMessage("  §f/fragment activate <type> §8- Switch");
+        player.sendMessage("  §f/fragment controls §8- Change controls");
+        player.sendMessage("  §f/fragment toggle §8- Enable/disable abilities");
         player.sendMessage("");
-        player.sendMessage("  §8Admin: §7/fragment give/grant/setlevel/setfraglevel");
+        player.sendMessage("  §8Admin: §7/fragment give/grant/setlevel/setfraglevel/reload");
         player.sendMessage("");
     }
     
@@ -906,7 +1062,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "forceactivate", "set", "reset", "reload", "generatepack"));
+            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "controls", "toggle", "forceactivate", "set", "reset", "reload", "generatepack"));
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate")) {
                 // Add online player names
@@ -914,12 +1070,16 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                     completions.add(p.getName());
                 }
             } else if (args[0].equalsIgnoreCase("grant") || args[0].equalsIgnoreCase("activate")) {
+                // HIDE ADMIN FROM TAB COMPLETION
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
+            } else if (args[0].equalsIgnoreCase("controls") || args[0].equalsIgnoreCase("control")) {
+                completions.addAll(Arrays.asList("sneak_click", "double_sneak", "swap_hands", "click_only", "next", "prev"));
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("give")) {
                 completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));
             } else if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate")) {
+                // HIDE ADMIN FROM TAB COMPLETION (but still allow manual typing)
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
             }
         } else if (args.length == 4) {

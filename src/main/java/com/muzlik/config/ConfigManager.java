@@ -33,6 +33,9 @@ public class ConfigManager {
      * Set default configuration values
      */
     private void setDefaults() {
+        // Mana system toggle
+        config.addDefault("mana_system_enabled", true);
+        
         // Ritual configuration
         config.addDefault("rituals.fragment_creation.duration", 600);
         config.addDefault("rituals.fragment_creation.proximity_distance", 5.0);
@@ -107,6 +110,8 @@ public class ConfigManager {
 
     /**
      * Reload configuration
+     * NOTE: This only reloads the config file, not the runtime state.
+     * Use FrostSMPPlugin.reloadPluginConfig() to update runtime state.
      */
     public void reloadConfig() {
         plugin.reloadConfig();
@@ -114,6 +119,11 @@ public class ConfigManager {
         plugin.getLogger().info("Configuration reloaded");
     }
 
+    // Mana system toggle
+    public boolean isManaSystemEnabled() {
+        return config.getBoolean("mana_system_enabled", true);
+    }
+    
     // Ritual getters
     public int getFragmentCreationDuration() {
         return config.getInt("rituals.fragment_creation.duration", 600);

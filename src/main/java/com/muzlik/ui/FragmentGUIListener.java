@@ -73,6 +73,54 @@ public class FragmentGUIListener implements Listener {
      * RIGHT-CLICK: Activate fragment (requires charged/owned)
      */
     private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType) {
+        // Check for Switch Fragment button
+        if (displayName.contains("sᴡɪᴛᴄʜ") || displayName.contains("Switch Fragment")) {
+            player.closeInventory();
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                () -> uiManager.openFragmentActivateGUI(player),
+                2L
+            );
+            return;
+        }
+        
+        // Check for controls button
+        if (displayName.contains("ᴄᴏɴᴛʀᴏʟ") || displayName.contains("Control")) {
+            player.closeInventory();
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                () -> uiManager.openControlSchemeGUI(player),
+                2L
+            );
+            return;
+        }
+        
+        // Check for Mana Status button
+        if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
+            player.closeInventory();
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                () -> uiManager.openManaStatus(player),
+                2L
+            );
+            return;
+        }
+        
+        // Check for Admin Give button
+        if (displayName.contains("ɢɪᴠᴇ") || displayName.contains("Give Fragment")) {
+            if (player.hasPermission("fragment.admin")) {
+                player.closeInventory();
+                org.bukkit.Bukkit.getScheduler().runTaskLater(
+                    org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                    () -> uiManager.openFragmentGiveGUI(player),
+                    2L
+                );
+            } else {
+                player.sendMessage("§cYou don't have permission to use this");
+            }
+            return;
+        }
+        
         // Check for info button / glass panes
         if (displayName.contains("ɢᴜɪᴅᴇ") || displayName.contains("Information") || 
             displayName.trim().isEmpty() || displayName.equals(" ")) {
@@ -196,6 +244,9 @@ public class FragmentGUIListener implements Listener {
         String normalizedStripped = com.muzlik.util.Typography.fromSmallCaps(strippedName);
         
         for (FragmentType type : FragmentType.values()) {
+            // HIDE ADMIN FRAGMENT FROM GUI
+            if (type == FragmentType.ADMIN) continue;
+            
             String normalName = type.getDisplayName().toLowerCase();
             if (strippedName.contains(normalName) || normalizedStripped.contains(normalName)) {
                 return type;

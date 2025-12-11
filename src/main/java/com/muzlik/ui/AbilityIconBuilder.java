@@ -27,6 +27,7 @@ public class AbilityIconBuilder {
     private final FragmentType fragmentType;
     private final RankManager rankManager;
     private final LevelManager levelManager;
+    private final com.muzlik.mana.ManaManager manaManager;
     private final CooldownManager cooldownManager;
     private final AbilityScalingEngine scalingEngine;
     
@@ -35,12 +36,14 @@ public class AbilityIconBuilder {
 
     public AbilityIconBuilder(AbilityDefinition ability, Player player, FragmentType fragmentType,
                               RankManager rankManager, LevelManager levelManager,
+                              com.muzlik.mana.ManaManager manaManager,
                               CooldownManager cooldownManager) {
         this.ability = ability;
         this.player = player;
         this.fragmentType = fragmentType;
         this.rankManager = rankManager;
         this.levelManager = levelManager;
+        this.manaManager = manaManager;
         this.cooldownManager = cooldownManager;
         this.scalingEngine = new AbilityScalingEngine();
     }
@@ -136,19 +139,23 @@ public class AbilityIconBuilder {
         
         if (isUnlocked) {
             // Stats for unlocked abilities
-            double baseMana = ability.getManaCost();
-            double scaledMana = scalingEngine.scaleManaCost(baseMana, playerRank);
             double cooldownSeconds = ability.getCooldown() / 1000.0;
             
             // Apply level bonuses
-            double manaReduction = levelManager.getManaCostReduction(player, fragmentType);
             double cdReduction = levelManager.getCooldownReduction(player, fragmentType);
-            double finalMana = scaledMana * (1 - manaReduction);
             double finalCooldown = cooldownSeconds * (1 - cdReduction);
             
-            lore.add(Typography.formatLabel("Mana: ") + Typography.COLOR_PRIMARY + String.format("%.0f", finalMana));
-            if (manaReduction > 0) {
-                lore.add("  " + Typography.COLOR_TEXT_DARK + "(-" + String.format("%.0f", manaReduction * 100) + "% from level)");
+            // Only show mana cost if mana system is enabled
+            if (manaManager.isManaSystemEnabled()) {
+                double baseMana = ability.getManaCost();
+                double scaledMana = scalingEngine.scaleManaCost(baseMana, playerRank);
+                double manaReduction = levelManager.getManaCostReduction(player, fragmentType);
+                double finalMana = scaledMana * (1 - manaReduction);
+                
+                lore.add(Typography.formatLabel("Mana: ") + Typography.COLOR_PRIMARY + String.format("%.0f", finalMana));
+                if (manaReduction > 0) {
+                    lore.add("  " + Typography.COLOR_TEXT_DARK + "(-" + String.format("%.0f", manaReduction * 100) + "% from level)");
+                }
             }
             
             lore.add(Typography.formatLabel("Cooldown: ") + Typography.COLOR_SECONDARY + String.format("%.1f", finalCooldown) + "s");
@@ -235,6 +242,7 @@ public class AbilityIconBuilder {
             case ULTIMATE -> Material.DIAMOND_SWORD;
             case ADVANCED -> Material.GOLDEN_SWORD;
             case MASTERY -> Material.NETHERITE_SWORD;
+            case SLOT_6, SLOT_7, SLOT_8, SLOT_9 -> Material.NETHERITE_SWORD; // Admin slots
         };
     }
 }
