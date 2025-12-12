@@ -35,3 +35,6 @@ permissions:
   frostmc.admin:
     description: Admin access to power commands
     default: op
+  fragment.admin:
+    description: Admin access to fragment commands
+    default: op

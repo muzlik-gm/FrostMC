@@ -90,17 +90,29 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 uiManager.openFragmentOverview(player);
                 break;
             case "give":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
                 // If admin and no args, open GUI
-                if (player.hasPermission("fragment.admin") && args.length == 1) {
+                if (args.length == 1) {
                     uiManager.openFragmentGiveGUI(player);
                 } else {
                     handleGive(player, args);
                 }
                 break;
             case "set":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
                 handleSet(player, args);
                 break;
             case "reset":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
                 handleReset(player, args);
                 break;
             case "list":
@@ -116,6 +128,10 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 uiManager.openManaStatus(player);
                 break;
             case "grant":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
                 if (args.length < 2) {
                     player.sendMessage("§cUsage: /fragment grant <type>");
                     return true;
@@ -205,10 +221,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         Player target = plugin.getServer().getPlayer(args[1]);
         if (target != null && args.length >= 3) {
             // Giving to another player: /fragment give <player> <fragment>
-            if (!player.hasPermission("fragment.admin")) {
-                player.sendMessage("§cYou don't have permission to give items to others");
-                return;
-            }
             giveItemToPlayer(target, args[2], player);
         } else {
             // Giving to self: /fragment give <item>
@@ -817,7 +829,9 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment controls §8- Change controls");
         player.sendMessage("  §f/fragment toggle §8- Enable/disable abilities");
         player.sendMessage("");
-        player.sendMessage("  §8Admin: §7/fragment give/grant/setlevel/setfraglevel/reload");
+        if (player.hasPermission("fragment.admin")) {
+            player.sendMessage("  §8Admin: §7/fragment give/grant/set/reset/forceactivate/reload");
+        }
         player.sendMessage("");
     }
     
@@ -1062,32 +1076,41 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("gui", "give", "list", "info", "level", "abilities", "mana", "grant", "activate", "controls", "toggle", "forceactivate", "set", "reset", "reload", "generatepack"));
+            // Player commands
+            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "mana", "activate", "controls", "toggle"));
+            
+            // Admin commands (only show to admins)
+            if (sender.hasPermission("fragment.admin")) {
+                completions.addAll(Arrays.asList("give", "grant", "set", "reset", "forceactivate", "reload", "generatepack"));
+            }
         } else if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate")) {
-                // Add online player names
+            if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
+                // Add online player names (admin only)
                 for (Player p : plugin.getServer().getOnlinePlayers()) {
                     completions.add(p.getName());
                 }
-            } else if (args[0].equalsIgnoreCase("grant") || args[0].equalsIgnoreCase("activate")) {
-                // HIDE ADMIN FROM TAB COMPLETION
+            } else if (args[0].equalsIgnoreCase("activate")) {
+                // Player command - show fragments (HIDE ADMIN)
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
+            } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("grant")) {
+                // Admin command - show fragments (HIDE ADMIN)
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
             } else if (args[0].equalsIgnoreCase("controls") || args[0].equalsIgnoreCase("control")) {
                 completions.addAll(Arrays.asList("sneak_click", "double_sneak", "swap_hands", "click_only", "next", "prev"));
             }
         } else if (args.length == 3) {
-            if (args[0].equalsIgnoreCase("give")) {
+            if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("give")) {
                 completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));
-            } else if (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate")) {
+            } else if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
                 // HIDE ADMIN FROM TAB COMPLETION (but still allow manual typing)
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
             }
         } else if (args.length == 4) {
-            if (args[0].equalsIgnoreCase("set")) {
+            if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {
                 completions.addAll(Arrays.asList("level", "rank"));
             }
         } else if (args.length == 5) {
-            if (args[0].equalsIgnoreCase("set")) {
+            if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {
                 completions.add("1");
                 completions.add("5");
                 completions.add("10");
