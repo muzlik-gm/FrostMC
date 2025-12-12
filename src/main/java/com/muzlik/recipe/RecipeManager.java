@@ -382,4 +382,47 @@ public class RecipeManager {
         
         return meta.getDisplayName().contains("Mana Flask");
     }
+    
+    /**
+     * Create an actual Fragment item (not creation item)
+     */
+    public ItemStack createFragmentItem(FragmentType type) {
+        return com.muzlik.texture.TextureItemBuilder.createFragmentItem(type);
+    }
+    
+    /**
+     * Check if item is an actual Fragment item (not creation item)
+     */
+    public boolean isFragmentItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) {
+            return false;
+        }
+        
+        ItemMeta meta = item.getItemMeta();
+        if (!meta.hasDisplayName() || !meta.hasLore()) {
+            return false;
+        }
+        
+        String displayName = meta.getDisplayName();
+        return displayName.contains("Fragment") && !displayName.contains("Creation") && !displayName.contains("Changer");
+    }
+    
+    /**
+     * Get Fragment type from actual Fragment item
+     */
+    public FragmentType getFragmentTypeFromFragmentItem(ItemStack item) {
+        if (!isFragmentItem(item)) {
+            return null;
+        }
+        
+        String displayName = item.getItemMeta().getDisplayName();
+        
+        for (FragmentType type : FragmentType.values()) {
+            if (displayName.contains(type.getDisplayName())) {
+                return type;
+            }
+        }
+        
+        return null;
+    }
 }

@@ -2,61 +2,96 @@ package com.muzlik.fragment.ability.executors.dragon;
 
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
-import org.bukkit.*;
+import com.muzlik.vfx.VFXLayerBuilder;
+import com.muzlik.vfx.ParticlePattern;
+import com.muzlik.vfx.CinematicEffect;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 
+/**
+ * Cataclysm - Dragon Fragment Ultimate Ability
+ * Transform into dragon form for 10s: all abilities cost 0 mana, +100% damage, AOE attacks
+ */
 public class CataclysmExecutor implements AbilityExecutor {
+
     @Override
     public void execute(AbilityContext context) {
         Player player = context.getPlayer();
-        Location loc = player.getLocation();
         int rank = context.getRank();
-        double baseDuration = 10.0;
-        int duration = (int) (context.getScalingEngine().scaleDuration(baseDuration, rank) * 20);
         
-        // Balanced buffs - keep under level 3 (level 0 = I, level 1 = II, level 2 = III)
-        int strengthLevel = Math.min(2, 1 + (rank / 4)); // Strength II → IV at rank 8, capped at IV
-        int resistanceLevel = Math.min(2, 1 + (rank / 4)); // Resistance II → IV at rank 8, capped at IV
-        int speedLevel = Math.min(1, rank / 5); // Speed I → III at rank 10, capped at III
+        int duration = 200 + (rank * 40); // 10s + 2s per rank
         
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, strengthLevel, false, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, resistanceLevel, false, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, speedLevel, false, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0, false, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, duration, 1, false, true, true)); // Regen II
+        // Grant dragon form effects
+        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, 2)); // Strength III
+        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 1)); // Resistance II
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, 1)); // Speed II
+        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, duration, 0)); // Dragon glow
         
-        // Minimal VFX - clean and visible
-        int flameCount = 15 + (rank * 2); // 15 → 31 at rank 8
-        int lavaCount = 10 + rank; // 10 → 18 at rank 8
-        int soulFireCount = 12 + (rank * 2); // 12 → 28 at rank 8
+        com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // Particle effects wrapped in try-catch to prevent crashes
-        try {
-            // Flame aura
-            player.getWorld().spawnParticle(Particle.FLAME, loc, flameCount, 2.0, 1.5, 2.0, 0.1);
+        // Transformation VFX
+        createTransformationVFX(plugin, player, rank);
+        
+        // Continuous dragon aura
+        new BukkitRunnable() {
+            int ticks = 0;
             
-            // Lava particles
-            player.getWorld().spawnParticle(Particle.LAVA, loc, lavaCount, 1.5, 1.0, 1.5, 0.05);
-            
-            // Soul fire for mystical effect (replaces dragon breath)
-            player.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, loc, soulFireCount, 2.0, 2.0, 2.0, 0.15);
-            
-            // End rod for power
-            player.getWorld().spawnParticle(Particle.END_ROD, loc, 8 + rank, 1.5, 1.5, 1.5, 0.1);
-        } catch (Exception ignored) {}
+            @Override
+            public void run() {
+                if (ticks >= duration || !player.isOnline()) {
+                    endTransformation(plugin, player, rank);
+                    cancel();
+                    return;
+                }
+                
+                // Dragon aura VFX every 5 ticks
+                if (ticks % 5 == 0) {
+                    createDragonAura(plugin, player, rank);
+                }
+                
+                ticks++;
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
         
-        // Sound - more intense at higher ranks
-        float volume = 2.0f + (rank * 0.15f);
-        player.getWorld().playSound(loc, Sound.ENTITY_ENDER_DRAGON_AMBIENT, volume, 0.5f);
-        player.getWorld().playSound(loc, Sound.ENTITY_ENDER_DRAGON_GROWL, volume * 0.8f, 0.6f);
-        player.getWorld().playSound(loc, Sound.ENTITY_WITHER_SPAWN, volume * 0.6f, 0.7f);
+        // Transformation sound
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.8f);
+    }
+    
+    private void createTransformationVFX(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
+        Location playerLoc = player.getLocation().add(0, 1, 0);
         
-        // Cinematic effect
-        if (rank >= 5) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 40, 0, false, false, false));
-        }
+        VFXLayerBuilder transformVfx = new VFXLayerBuilder(plugin, playerLoc, rank, player)
+            .withPerformanceManager(plugin.getVFXPerformanceManager())
+            .core(Particle.DRAGON_BREATH, 50 + (rank * 10), ParticlePattern.BURST, 3.0, 3.0, 3.0, 0.2, null)
+            .cinematic(0.5, CinematicEffect.DRAGON_ROAR);
         
+        transformVfx.spawn();
+    }
+    
+    private void createDragonAura(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
+        Location playerLoc = player.getLocation().add(0, 1, 0);
+        
+        VFXLayerBuilder auraVfx = new VFXLayerBuilder(plugin, playerLoc, rank, player)
+            .withPerformanceManager(plugin.getVFXPerformanceManager())
+            .ambient(Particle.DRAGON_BREATH, 8 + rank, ParticlePattern.SPHERE, 1.5, 1.5, 1.5, 0.03, null);
+        
+        auraVfx.spawn();
+    }
+    
+    private void endTransformation(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
+        Location playerLoc = player.getLocation().add(0, 1, 0);
+        
+        VFXLayerBuilder endVfx = new VFXLayerBuilder(plugin, playerLoc, rank, player)
+            .withPerformanceManager(plugin.getVFXPerformanceManager())
+            .impact(Particle.EXPLOSION_LARGE, 30 + (rank * 5), ParticlePattern.BURST, 2.0, 2.0, 2.0, 0.15, null);
+        
+        endVfx.spawn();
+        
+        player.getWorld().playSound(playerLoc, Sound.ENTITY_ENDER_DRAGON_HURT, 1.0f, 1.2f);
     }
 }

@@ -69,68 +69,66 @@ public class TextureRegistry {
      */
     private static void initializeAbilityTextures() {
         // Fire Fragment abilities (2000-2099)
-        ABILITY_TEXTURES.put("fire_flame_burst", 2000);
-        ABILITY_TEXTURES.put("fire_blazing_step", 2001);
-        ABILITY_TEXTURES.put("fire_inferno_maelstrom", 2002);
-        ABILITY_TEXTURES.put("fire_phoenix_rebirth", 2003);
-        ABILITY_TEXTURES.put("fire_eternal_flame", 2004);
-        ABILITY_TEXTURES.put("fire_fire_dome", 2005);
+        ABILITY_TEXTURES.put("fire_fireball", 2000);
+        ABILITY_TEXTURES.put("fire_dash", 2001);
+        ABILITY_TEXTURES.put("fire_inferno", 2002);
+        ABILITY_TEXTURES.put("fire_rebirth", 2003);
+        ABILITY_TEXTURES.put("fire_ignite", 2004);
+        ABILITY_TEXTURES.put("fire_dome", 2005);
         
         // Water Fragment abilities (2100-2199)
-        ABILITY_TEXTURES.put("water_aqua_pulse", 2100);
-        ABILITY_TEXTURES.put("water_tidal_shield", 2101);
-        ABILITY_TEXTURES.put("water_tsunami_wave", 2102);
+        ABILITY_TEXTURES.put("water_splash", 2100);
+        ABILITY_TEXTURES.put("water_shield", 2101);
+        ABILITY_TEXTURES.put("water_wave", 2102);
         
         // Air Fragment abilities (2200-2299)
-        ABILITY_TEXTURES.put("air_wind_blade", 2200);
-        ABILITY_TEXTURES.put("air_gale_step", 2201);
-        ABILITY_TEXTURES.put("air_tempest_barrage", 2202);
-        ABILITY_TEXTURES.put("air_cyclone_armor", 2203);
-        ABILITY_TEXTURES.put("air_storm_sovereign", 2204);
+        ABILITY_TEXTURES.put("air_slice", 2200);
+        ABILITY_TEXTURES.put("air_dash", 2201);
+        ABILITY_TEXTURES.put("air_barrage", 2202);
+        ABILITY_TEXTURES.put("air_armor", 2203);
+        ABILITY_TEXTURES.put("air_flight", 2204);
         
         // Earth Fragment abilities (2300-2399)
-        ABILITY_TEXTURES.put("earth_stone_fist", 2300);
-        ABILITY_TEXTURES.put("earth_seismic_slam", 2301);
-        ABILITY_TEXTURES.put("earth_earthen_fortress", 2302);
-        ABILITY_TEXTURES.put("earth_terra_shaper", 2303);
+        ABILITY_TEXTURES.put("earth_punch", 2300);
+        ABILITY_TEXTURES.put("earth_slam", 2301);
+        ABILITY_TEXTURES.put("earth_wall", 2302);
+        ABILITY_TEXTURES.put("earth_shaper", 2303);
         
         // Dark Fragment abilities (2400-2499)
-        ABILITY_TEXTURES.put("dark_shadow_strike", 2400);
-        ABILITY_TEXTURES.put("dark_vampiric_drain", 2401);
-        ABILITY_TEXTURES.put("dark_abyssal_void", 2402);
-        ABILITY_TEXTURES.put("dark_shadow_clone", 2403);
-        ABILITY_TEXTURES.put("dark_eternal_darkness", 2404);
+        ABILITY_TEXTURES.put("dark_strike", 2400);
+        ABILITY_TEXTURES.put("dark_drain", 2401);
+        ABILITY_TEXTURES.put("dark_void", 2402);
+        ABILITY_TEXTURES.put("dark_clone", 2403);
+        ABILITY_TEXTURES.put("dark_shroud", 2404);
         
         // Light Fragment abilities (2500-2599)
-        ABILITY_TEXTURES.put("light_radiant_lance", 2500);
-        ABILITY_TEXTURES.put("light_divine_blessing", 2501);
-        ABILITY_TEXTURES.put("light_celestial_judgment", 2502);
-        ABILITY_TEXTURES.put("light_holy_sanctuary", 2503);
-        ABILITY_TEXTURES.put("light_seraph_ascension", 2504);
+        ABILITY_TEXTURES.put("light_beam", 2500);
+        ABILITY_TEXTURES.put("light_heal", 2501);
+        ABILITY_TEXTURES.put("light_smite", 2502);
+        ABILITY_TEXTURES.put("light_sanctuary", 2503);
+        ABILITY_TEXTURES.put("light_wings", 2504);
         
         // Void Fragment abilities (2600-2699)
-        ABILITY_TEXTURES.put("void_void_slash", 2600);
-        ABILITY_TEXTURES.put("void_blink_step", 2601);
-        ABILITY_TEXTURES.put("void_dimensional_collapse", 2602);
-        ABILITY_TEXTURES.put("void_spatial_manipulation", 2603);
+        ABILITY_TEXTURES.put("void_slash", 2600);
+        ABILITY_TEXTURES.put("void_blink", 2601);
+        ABILITY_TEXTURES.put("void_collapse", 2602);
         
         // Mob Fragment abilities (2700-2799)
-        ABILITY_TEXTURES.put("mob_beast_summon", 2700);
-        ABILITY_TEXTURES.put("mob_pack_call", 2701);
-        ABILITY_TEXTURES.put("mob_iron_golem_guardian", 2702);
-        ABILITY_TEXTURES.put("mob_legion_of_shadows", 2703);
+        ABILITY_TEXTURES.put("mob_summon", 2700);
+        ABILITY_TEXTURES.put("mob_guardian", 2701);
+        ABILITY_TEXTURES.put("mob_legion", 2702);
         
         // Dragon Fragment abilities (2800-2899)
-        ABILITY_TEXTURES.put("dragon_dragons_roar", 2800);
-        ABILITY_TEXTURES.put("dragon_draconic_wings", 2801);
-        ABILITY_TEXTURES.put("dragon_dragon_meteor", 2802);
-        ABILITY_TEXTURES.put("dragon_cataclysm", 2803);
+        ABILITY_TEXTURES.put("dragon_roar", 2800);
+        ABILITY_TEXTURES.put("dragon_wings", 2801);
+        ABILITY_TEXTURES.put("dragon_cataclysm", 2802);
+        ABILITY_TEXTURES.put("dragon_fury", 2803);
+        ABILITY_TEXTURES.put("dragon_ascension", 2804);
         
         // Storm Fragment abilities (2900-2999)
-        ABILITY_TEXTURES.put("storm_lightning_bolt", 2900);
-        ABILITY_TEXTURES.put("storm_chain_lightning", 2901);
-        ABILITY_TEXTURES.put("storm_storm_surge", 2902);
-        ABILITY_TEXTURES.put("storm_thunderstorm_descent", 2903);
+        ABILITY_TEXTURES.put("storm_bolt", 2900);
+        ABILITY_TEXTURES.put("storm_chain", 2901);
+        ABILITY_TEXTURES.put("storm_descent", 2902);
         
         // Generic ability slot icons (2950-2959)
         ABILITY_TEXTURES.put("ability_primary", 2950);

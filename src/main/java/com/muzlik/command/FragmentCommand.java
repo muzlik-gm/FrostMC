@@ -232,6 +232,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     private void giveItemToPlayer(Player target, String itemName, CommandSender giver) {
         ItemStack item = null;
         switch (itemName.toLowerCase()) {
+            // Fragment Creation items (ritual catalysts)
             case "fire": item = createFragmentCreationItem(FragmentType.FIRE); break;
             case "water": item = createFragmentCreationItem(FragmentType.WATER); break;
             case "air": item = createFragmentCreationItem(FragmentType.AIR); break;
@@ -242,6 +243,20 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "mob": item = createFragmentCreationItem(FragmentType.MOB); break;
             case "dragon": item = createFragmentCreationItem(FragmentType.DRAGON); break;
             case "storm": item = createFragmentCreationItem(FragmentType.STORM); break;
+            
+            // Actual Fragment items (with textures)
+            case "fire_fragment": item = recipeManager.createFragmentItem(FragmentType.FIRE); break;
+            case "water_fragment": item = recipeManager.createFragmentItem(FragmentType.WATER); break;
+            case "air_fragment": item = recipeManager.createFragmentItem(FragmentType.AIR); break;
+            case "earth_fragment": item = recipeManager.createFragmentItem(FragmentType.EARTH); break;
+            case "dark_fragment": item = recipeManager.createFragmentItem(FragmentType.DARK); break;
+            case "light_fragment": item = recipeManager.createFragmentItem(FragmentType.LIGHT); break;
+            case "void_fragment": item = recipeManager.createFragmentItem(FragmentType.VOID); break;
+            case "mob_fragment": item = recipeManager.createFragmentItem(FragmentType.MOB); break;
+            case "dragon_fragment": item = recipeManager.createFragmentItem(FragmentType.DRAGON); break;
+            case "storm_fragment": item = recipeManager.createFragmentItem(FragmentType.STORM); break;
+            
+            // Other items
             case "changer": item = createFragmentChangerItem(); break;
             case "manaflask": item = createManaFlaskItem(); break;
             default:
@@ -831,6 +846,9 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("");
         if (player.hasPermission("fragment.admin")) {
             player.sendMessage("  §8Admin: §7/fragment give/grant/set/reset/forceactivate/reload");
+            player.sendMessage("  §8Give Items: §7fire, water, air, earth, dark, light, void, mob, dragon, storm");
+            player.sendMessage("  §8Give Fragments: §7fire_fragment, water_fragment, air_fragment, etc.");
+            player.sendMessage("  §8Other Items: §7changer, manaflask");
         }
         player.sendMessage("");
     }

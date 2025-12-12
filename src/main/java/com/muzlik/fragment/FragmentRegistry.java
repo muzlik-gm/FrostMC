@@ -50,56 +50,56 @@ public class FragmentRegistry {
             .complexityLevel(3);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_flame_burst", FragmentType.FIRE)
-            .displayName("Flame Burst")
-            .description("Shoots fireball that explodes on impact, ignites enemies for 5s")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_fireball", FragmentType.FIRE)
+            .displayName("Fireball")
+            .description("Shoots a fireball that explodes on impact, ignites enemies for 5s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(20)
             .cooldown(5000)
-            .executor(new com.muzlik.fragment.ability.executors.fire.FlameBurstExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.fire.FireballExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_blazing_step", FragmentType.FIRE)
-            .displayName("Blazing Step")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_dash", FragmentType.FIRE)
+            .displayName("Dash")
             .description("Dash forward 8 blocks, leaves burning trail that damages enemies")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(30)
             .cooldown(8000)
-            .executor(new com.muzlik.fragment.ability.executors.fire.BlazingStepExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.fire.DashExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_inferno_maelstrom", FragmentType.FIRE)
-            .displayName("Inferno Maelstrom")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_inferno", FragmentType.FIRE)
+            .displayName("Inferno")
             .description("Creates massive fire vortex in 6-block radius, pulls enemies in while burning")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(60)
             .cooldown(20000)
-            .executor(new com.muzlik.fragment.ability.executors.fire.InfernoMaelstromExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.fire.InfernoExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
         // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_phoenix_rebirth", FragmentType.FIRE)
-            .displayName("Phoenix Rebirth")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_rebirth", FragmentType.FIRE)
+            .displayName("Rebirth")
             .description("§7[PASSIVE] Upon death, revive with 50% HP in flames, damaging nearby enemies. §8Cooldown: 1 hour")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(80)
             .cooldown(3600000) // 1 hour
             .rankRequirement(4)
-            .executor(new com.muzlik.fragment.ability.executors.fire.PhoenixRebirthExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.fire.RebirthExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.PASSIVE)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_eternal_flame", FragmentType.FIRE)
-            .displayName("Eternal Flame")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_ignite", FragmentType.FIRE)
+            .displayName("Ignite")
             .description("Become living flame for 15s: immune to damage, all fire abilities cost 50% less, +50% damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(100)
             .cooldown(90000)
             .rankRequirement(5)
-            .executor(new com.muzlik.fragment.ability.executors.fire.EternalFlameExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.fire.IgniteExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -118,33 +118,33 @@ public class FragmentRegistry {
             .complexityLevel(2);
         
         // Core Abilities ONLY (Rank 2 cannot expand) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("water_aqua_pulse", FragmentType.WATER)
-            .displayName("Aqua Pulse")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("water_splash", FragmentType.WATER)
+            .displayName("Splash")
             .description("Creates healing water sphere around caster, heals 4 hearts over 5 seconds (AOE 4 blocks)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(25)
             .cooldown(8000)
-            .executor(new com.muzlik.fragment.ability.executors.water.AquaPulseExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.water.SplashExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("water_tidal_shield", FragmentType.WATER)
-            .displayName("Tidal Shield")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("water_shield", FragmentType.WATER)
+            .displayName("Shield")
             .description("Creates water barrier that absorbs 6 hearts of damage for 8 seconds")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(35)
             .cooldown(12000)
-            .executor(new com.muzlik.fragment.ability.executors.water.TidalShieldExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.water.ShieldExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("water_tsunami_wave", FragmentType.WATER)
-            .displayName("Tsunami Wave")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("water_wave", FragmentType.WATER)
+            .displayName("Wave")
             .description("Summons massive wave that pushes enemies back and slows them")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(55)
             .cooldown(18000)
-            .executor(new com.muzlik.fragment.ability.executors.water.TsunamiWaveExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.water.WaveExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -164,56 +164,56 @@ public class FragmentRegistry {
             .complexityLevel(4);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_wind_blade", FragmentType.AIR)
-            .displayName("Wind Blade")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_slice", FragmentType.AIR)
+            .displayName("Slice")
             .description("Sends razor-sharp wind projectile that pierces enemies, 5 hearts damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(18)
             .cooldown(4000)
-            .executor(new com.muzlik.fragment.ability.executors.air.WindBladeExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.air.SliceExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_gale_step", FragmentType.AIR)
-            .displayName("Gale Step")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_dash", FragmentType.AIR)
+            .displayName("Dash")
             .description("Instant dash 10 blocks in facing direction, +60% speed for 4s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(25)
             .cooldown(6000)
-            .executor(new com.muzlik.fragment.ability.executors.air.GaleStepExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.air.DashExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_tempest_barrage", FragmentType.AIR)
-            .displayName("Tempest Barrage")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_barrage", FragmentType.AIR)
+            .displayName("Barrage")
             .description("Unleashes 8 wind blades in rapid succession, each dealing 3 hearts")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(65)
             .cooldown(22000)
-            .executor(new com.muzlik.fragment.ability.executors.air.TempestBarrageExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.air.BarrageExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
         // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_cyclone_armor", FragmentType.AIR)
-            .displayName("Cyclone Armor")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_armor", FragmentType.AIR)
+            .displayName("Armor")
             .description("Surrounds self with wind barrier that reflects projectiles and damages melee attackers")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(45)
             .cooldown(15000)
             .rankRequirement(4)
-            .executor(new com.muzlik.fragment.ability.executors.air.CycloneArmorExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.air.ArmorExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_storm_sovereign", FragmentType.AIR)
-            .displayName("Storm Sovereign")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_flight", FragmentType.AIR)
+            .displayName("Flight")
             .description("§7Fly freely for §f10 minutes§7, +100% speed. §8Hold sneak+left click 10s to cancel (no cooldown)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(90)
             .cooldown(75000)
             .rankRequirement(5)
-            .executor(new com.muzlik.fragment.ability.executors.air.StormSovereignExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.air.FlightExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -232,33 +232,33 @@ public class FragmentRegistry {
             .complexityLevel(3);
         
         // Core Abilities ONLY (Rank 2 cannot expand) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_stone_fist", FragmentType.EARTH)
-            .displayName("Stone Fist")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_punch", FragmentType.EARTH)
+            .displayName("Punch")
             .description("Powerful earth-enhanced punch, 7 hearts damage + knockback")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(20)
             .cooldown(5000)
-            .executor(new com.muzlik.fragment.ability.executors.earth.StoneFistExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.earth.PunchExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_earthen_fortress", FragmentType.EARTH)
-            .displayName("Earthen Fortress")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_wall", FragmentType.EARTH)
+            .displayName("Wall")
             .description("+8 armor points for 8 seconds, reduces damage by 40%")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(30)
             .cooldown(10000)
-            .executor(new com.muzlik.fragment.ability.executors.earth.EarthenFortressExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.earth.WallExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_seismic_slam", FragmentType.EARTH)
-            .displayName("Seismic Slam")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_slam", FragmentType.EARTH)
+            .displayName("Slam")
             .description("Slams ground creating 7-block radius shockwave, 6 hearts damage + stun 2s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(50)
             .cooldown(16000)
-            .executor(new com.muzlik.fragment.ability.executors.earth.SeismicSlamExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.earth.SlamExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -278,56 +278,56 @@ public class FragmentRegistry {
             .complexityLevel(5);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_shadow_strike", FragmentType.DARK)
-            .displayName("Shadow Strike")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_strike", FragmentType.DARK)
+            .displayName("Strike")
             .description("Dark bolt that curses enemies, 4 hearts + Wither II for 6s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(22)
             .cooldown(6000)
-            .executor(new com.muzlik.fragment.ability.executors.dark.ShadowStrikeExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dark.StrikeExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_vampiric_drain", FragmentType.DARK)
-            .displayName("Vampiric Drain")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_drain", FragmentType.DARK)
+            .displayName("Drain")
             .description("Drains 5 hearts from target, heals caster for 70% of damage dealt")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(40)
             .cooldown(12000)
-            .executor(new com.muzlik.fragment.ability.executors.dark.VampiricDrainExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dark.DrainExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_abyssal_void", FragmentType.DARK)
-            .displayName("Abyssal Void")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_void", FragmentType.DARK)
+            .displayName("Void")
             .description("Creates 8-block dark zone: enemies take Wither III, Slowness III, Weakness II for 10s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(70)
             .cooldown(25000)
-            .executor(new com.muzlik.fragment.ability.executors.dark.AbyssalVoidExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dark.VoidExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
         // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_shadow_clone", FragmentType.DARK)
-            .displayName("Shadow Clone")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_clone", FragmentType.DARK)
+            .displayName("Clone")
             .description("Creates 2 shadow clones that mimic your attacks for 15s, each dealing 50% damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(55)
             .cooldown(20000)
             .rankRequirement(5)
-            .executor(new com.muzlik.fragment.ability.executors.dark.ShadowCloneExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dark.CloneExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_eternal_darkness", FragmentType.DARK)
-            .displayName("Eternal Darkness")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dark_shroud", FragmentType.DARK)
+            .displayName("Shroud")
             .description("Become shadow incarnate for 15s: invisible, +75% damage, life steal on all attacks")
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(95)
             .cooldown(80000)
             .rankRequirement(6)
-            .executor(new com.muzlik.fragment.ability.executors.dark.EternalDarknessExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dark.ShroudExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -346,56 +346,56 @@ public class FragmentRegistry {
             .complexityLevel(5);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_radiant_lance", FragmentType.LIGHT)
-            .displayName("Radiant Lance")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_beam", FragmentType.LIGHT)
+            .displayName("Beam")
             .description("Shoots concentrated light beam that pierces through enemies, 6 hearts + Blindness 4s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(25)
             .cooldown(5000)
-            .executor(new com.muzlik.fragment.ability.executors.light.RadiantLanceExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.light.BeamExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_divine_blessing", FragmentType.LIGHT)
-            .displayName("Divine Blessing")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_heal", FragmentType.LIGHT)
+            .displayName("Heal")
             .description("Heals 5 hearts, removes all negative effects, grants Regeneration II for 8s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(35)
             .cooldown(10000)
-            .executor(new com.muzlik.fragment.ability.executors.light.DivineBlessingExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.light.HealExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_celestial_judgment", FragmentType.LIGHT)
-            .displayName("Celestial Judgment")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_smite", FragmentType.LIGHT)
+            .displayName("Smite")
             .description("Summons pillar of light from sky, 7-block radius, 8 hearts damage to undead/dark, 5 hearts to others")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(65)
             .cooldown(20000)
-            .executor(new com.muzlik.fragment.ability.executors.light.CelestialJudgmentExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.light.SmiteExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
         // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_holy_sanctuary", FragmentType.LIGHT)
-            .displayName("Holy Sanctuary")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_sanctuary", FragmentType.LIGHT)
+            .displayName("Sanctuary")
             .description("Creates 6-block holy zone for 12s: allies heal 1 heart/sec, enemies take 2 hearts/sec")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(50)
             .cooldown(18000)
             .rankRequirement(5)
-            .executor(new com.muzlik.fragment.ability.executors.light.HolySanctuaryExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.light.SanctuaryExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_seraph_ascension", FragmentType.LIGHT)
-            .displayName("Seraph Ascension")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_wings", FragmentType.LIGHT)
+            .displayName("Wings")
             .description("Become angelic being for 15s: flight, all healing doubled, immune to debuffs, +60% damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(100)
             .cooldown(85000)
             .rankRequirement(6)
-            .executor(new com.muzlik.fragment.ability.executors.light.SeraphAscensionExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.light.WingsExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -414,34 +414,34 @@ public class FragmentRegistry {
             .complexityLevel(8);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_void_slash", FragmentType.VOID)
-            .displayName("Void Slash")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_slash", FragmentType.VOID)
+            .displayName("Slash")
             .description("Tears space itself, dealing true damage that bypasses defenses, 8 hearts (ignores armor)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(32)
             .cooldown(5000)
-            .executor(new com.muzlik.fragment.ability.executors.voidfrag.VoidSlashExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.voidfrag.SlashExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_blink_step", FragmentType.VOID)
-            .displayName("Blink Step")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_blink", FragmentType.VOID)
+            .displayName("Blink")
             .description("Instantly teleport up to 15 blocks in facing direction, leaves void rift that damages enemies")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(35)
             .cooldown(8000)
-            .executor(new com.muzlik.fragment.ability.executors.voidfrag.BlinkStepExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.voidfrag.BlinkExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_dimensional_collapse", FragmentType.VOID)
-            .displayName("Dimensional Collapse")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_collapse", FragmentType.VOID)
+            .displayName("Collapse")
             .description("Creates black hole at target location, pulls all enemies within 10 blocks, 10 hearts damage + stun 3s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(85)
             .cooldown(28000)
             // FIXED: Ultimate slot should be available from rank 1
-            .executor(new com.muzlik.fragment.ability.executors.voidfrag.DimensionalCollapseExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.voidfrag.CollapseExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -461,34 +461,34 @@ public class FragmentRegistry {
             .complexityLevel(6);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_beast_summon", FragmentType.MOB)
-            .displayName("Beast Summon")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_summon", FragmentType.MOB)
+            .displayName("Summon")
             .description("Summons wolf pack (3 wolves) that fight for 30s, scales with rank")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(30)
             .cooldown(8000)
-            .executor(new com.muzlik.fragment.ability.executors.mob.BeastSummonExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.mob.SummonExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_iron_golem_guardian", FragmentType.MOB)
-            .displayName("Iron Golem Guardian")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_guardian", FragmentType.MOB)
+            .displayName("Guardian")
             .description("Summons Iron Golem that protects caster for 45s, taunts enemies")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(45)
             .cooldown(15000)
-            .executor(new com.muzlik.fragment.ability.executors.mob.IronGolemGuardianExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.mob.GuardianExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_legion_of_shadows", FragmentType.MOB)
-            .displayName("Legion of Shadows")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_legion", FragmentType.MOB)
+            .displayName("Legion")
             .description("Summons 5 skeleton warriors + 2 zombie brutes that fight for 60s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(80)
             .cooldown(30000)
             // FIXED: Ultimate slot should be available from rank 1
-            .executor(new com.muzlik.fragment.ability.executors.mob.LegionOfShadowsExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.mob.LegionExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -508,23 +508,23 @@ public class FragmentRegistry {
             .complexityLevel(9);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_dragons_roar", FragmentType.DRAGON)
-            .displayName("Dragon's Roar")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_roar", FragmentType.DRAGON)
+            .displayName("Roar")
             .description("Unleashes devastating dragon breath in 12-block cone, ignites enemies, 9 hearts damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(40)
             .cooldown(10000) // Increased from 6s to 10s
-            .executor(new com.muzlik.fragment.ability.executors.dragon.DragonsRoarExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dragon.RoarExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_draconic_wings", FragmentType.DRAGON)
-            .displayName("Draconic Wings")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_wings", FragmentType.DRAGON)
+            .displayName("Wings")
             .description("§7Fly freely for §530 minutes§7, +80% speed, immune to fall damage. §8Hold sneak+left click 10s to cancel (no cooldown)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(50)
             .cooldown(18000) // Increased from 12s to 18s
-            .executor(new com.muzlik.fragment.ability.executors.dragon.DraconicWingsExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dragon.WingsExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
@@ -540,26 +540,26 @@ public class FragmentRegistry {
             .build());
         
         // Rank 9 Ability - Slot 3 (ADVANCED)
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_dragonic_fury", FragmentType.DRAGON)
-            .displayName("Dragonic Fury")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_fury", FragmentType.DRAGON)
+            .displayName("Fury")
             .description("Summon 5 explosive homing fireballs that track enemies within 30 blocks")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(80)
             .cooldown(30000) // Increased from 20s to 30s
             .rankRequirement(9)
-            .executor(new com.muzlik.fragment.ability.executors.dragon.DragonicFuryExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dragon.FuryExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
         // Rank 10 Ability - Slot 4 (MASTERY)
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_ascension", FragmentType.DRAGON)
-            .displayName("Dragon Ascension")
+            .displayName("Ascension")
             .description("§5§lULTIMATE: §7Become a true dragon for 15s - Strength IV, Resistance IV, AOE damage aura, flight")
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(150)
             .cooldown(120000) // Increased from 90s to 120s (2 minutes)
             .rankRequirement(10)
-            .executor(new com.muzlik.fragment.ability.executors.dragon.DragonAscensionExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.dragon.AscensionExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         
@@ -578,34 +578,34 @@ public class FragmentRegistry {
             .complexityLevel(7);
         
         // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_lightning_bolt", FragmentType.STORM)
-            .displayName("Lightning Bolt")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_bolt", FragmentType.STORM)
+            .displayName("Bolt")
             .description("Summons lightning strike on target location, instant cast, 7 hearts damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(28)
             .cooldown(4000)
-            .executor(new com.muzlik.fragment.ability.executors.storm.LightningBoltExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.storm.BoltExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_chain_lightning", FragmentType.STORM)
-            .displayName("Chain Lightning")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_chain", FragmentType.STORM)
+            .displayName("Chain")
             .description("Lightning chains between up to 5 enemies within 8 blocks, 5 hearts per target")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(40)
             .cooldown(10000)
-            .executor(new com.muzlik.fragment.ability.executors.storm.ChainLightningExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.storm.ChainExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
             
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_thunderstorm_descent", FragmentType.STORM)
-            .displayName("Thunderstorm Descent")
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_descent", FragmentType.STORM)
+            .displayName("Descent")
             .description("Calls down 10 lightning strikes in 10-block radius over 5 seconds, each 6 hearts")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(75)
             .cooldown(24000)
             // FIXED: Ultimate slot should be available from rank 1
-            .executor(new com.muzlik.fragment.ability.executors.storm.ThunderstormDescentExecutor())
+            .executor(new com.muzlik.fragment.ability.executors.storm.DescentExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
         

@@ -250,6 +250,10 @@ public class RitualManager {
         if (fragmentType != null) {
             // CHARGE the fragment instead of granting directly
             fragmentManager.chargeFragment(player, fragmentType);
+            
+            // Give the physical fragment item with texture
+            fragmentManager.giveFragmentItem(player, fragmentType);
+            
             player.sendMessage("§a✓ Fragment Creation complete!");
             player.sendMessage("");
             player.sendMessage("§e§l⚡ Fragment is now CHARGED!");

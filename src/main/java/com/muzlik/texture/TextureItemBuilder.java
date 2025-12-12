@@ -184,4 +184,23 @@ public class TextureItemBuilder {
                 .hideFlags()
                 .build();
     }
+    
+    /**
+     * Create an actual Fragment item that players can hold
+     */
+    public static ItemStack createFragmentItem(com.muzlik.fragment.FragmentType type) {
+        int customModelData = TextureRegistry.getFragmentTexture(type);
+        
+        return new TextureItemBuilder(customModelData)
+                .name("§b§l" + type.getDisplayName() + " Fragment")
+                .addLore("§7A powerful elemental fragment")
+                .addLore("§7containing " + type.getDisplayName().toLowerCase() + " energy")
+                .addEmptyLine()
+                .addLore("§7Use §e/fragment activate " + type.name().toLowerCase() + " §7to equip")
+                .addEmptyLine()
+                .addLore("§e§lFRAGMENT")
+                .glow()
+                .hideFlags()
+                .build();
+    }
 }

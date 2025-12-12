@@ -416,6 +416,33 @@ public class FragmentManager {
     }
 
     /**
+     * Create and give a physical Fragment item to a player
+     */
+    public void giveFragmentItem(Player player, FragmentType type) {
+        if (!registeredFragments.containsKey(type)) {
+            player.sendMessage("§c✗ Fragment not found");
+            return;
+        }
+        
+        // Create the fragment item with texture
+        org.bukkit.inventory.ItemStack fragmentItem = 
+            com.muzlik.texture.TextureItemBuilder.createFragmentItem(type);
+        
+        // Try to add to inventory
+        java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> leftover = 
+            player.getInventory().addItem(fragmentItem);
+        
+        if (!leftover.isEmpty()) {
+            // Inventory full, drop at player location
+            player.getWorld().dropItemNaturally(player.getLocation(), fragmentItem);
+            player.sendMessage("§e⚠ Inventory full! Fragment dropped at your feet");
+        }
+        
+        FragmentDefinition fragment = getFragment(type);
+        player.sendMessage("§a✓ Received " + fragment.getDisplayName() + " Fragment item!");
+    }
+
+    /**
      * Cleanup on shutdown
      */
     public void shutdown() {
