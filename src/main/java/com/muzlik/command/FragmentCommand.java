@@ -225,6 +225,10 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         } else {
             // Giving to self: /fragment give <item>
             // Check if args[1] is a valid item name
+            if (!player.hasPermission("fragment.admin")) {
+                player.sendMessage("§cYou don't have permission to use this command");
+                return;
+            }
             giveItemToPlayer(player, args[1], null);
         }
     }
