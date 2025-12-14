@@ -1,5 +1,6 @@
 package com.muzlik.ui;
 
+import com.muzlik.config.ConfigManager;
 import com.muzlik.cooldown.CooldownManager;
 import com.muzlik.fragment.FragmentDefinition;
 import com.muzlik.fragment.FragmentManager;
@@ -40,7 +41,7 @@ public class UIManager {
 
     public UIManager(JavaPlugin plugin, FragmentManager fragmentManager,
                     ManaManager manaManager, LevelManager levelManager, RankManager rankManager,
-                    CooldownManager cooldownManager, com.muzlik.config.ConfigManager configManager) {
+                    CooldownManager cooldownManager, ConfigManager configManager) {
         this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.manaManager = manaManager;
