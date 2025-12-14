@@ -1,4 +1,4 @@
-# FrostSMP Plugin
+# FrostSMP Plugin!
 
 A comprehensive Minecraft plugin featuring a Fragment-based power system with 10 unique fragments, each with custom abilities, VFX, and progression mechanics.
 
