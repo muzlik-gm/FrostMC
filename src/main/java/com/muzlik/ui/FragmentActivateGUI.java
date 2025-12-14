@@ -1,5 +1,6 @@
 package com.muzlik.ui;
 
+import com.muzlik.config.ConfigManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.level.LevelManager;
@@ -25,14 +26,16 @@ public class FragmentActivateGUI implements Listener {
     private final FragmentManager fragmentManager;
     private final LevelManager levelManager;
     private final RankManager rankManager;
+    private final ConfigManager configManager;
     private final Map<UUID, Inventory> openInventories = new HashMap<>();
     
     private static final String GUI_TITLE = "§8§l⚡ ᴀᴄᴛɪᴠᴀᴛᴇ ꜰʀᴀɢᴍᴇɴᴛ";
     
-    public FragmentActivateGUI(FragmentManager fragmentManager, LevelManager levelManager, RankManager rankManager) {
+    public FragmentActivateGUI(FragmentManager fragmentManager, LevelManager levelManager, RankManager rankManager, ConfigManager configManager) {
         this.fragmentManager = fragmentManager;
         this.levelManager = levelManager;
         this.rankManager = rankManager;
+        this.configManager = configManager;
     }
     
     /**
@@ -47,9 +50,16 @@ public class FragmentActivateGUI implements Listener {
         // Fill border
         fillBorder(inv);
         
-        // Add owned fragments
+        // Add owned and charged fragments
+        Set<FragmentType> allFragments = new HashSet<>(ownedFragments);
+        for (FragmentType type : FragmentType.values()) {
+            if (fragmentManager.isCharged(player, type)) {
+                allFragments.add(type);
+            }
+        }
+
         int slot = 19;
-        for (FragmentType type : ownedFragments) {
+        for (FragmentType type : allFragments) {
             if (slot >= 26) {
                 slot = 28; // Move to next row
             }
@@ -102,9 +112,11 @@ public class FragmentActivateGUI implements Listener {
         
         if (isActive) {
             lore.add("§a§l✓ CURRENTLY ACTIVE");
+        } else if (fragmentManager.isCharged(player, type)) {
+            lore.add("§e§l▶ CLICK TO ACTIVATE");
         } else {
             // Check cooldown
-            if (!fragmentManager.canSwitchFragment(player)) {
+            if (configManager.isFragmentChangerRequired() && !fragmentManager.canSwitchFragment(player)) {
                 long cooldown = fragmentManager.getFragmentSwitchCooldown(player);
                 long minutes = cooldown / 60000;
                 long seconds = (cooldown % 60000) / 1000;
@@ -241,8 +253,18 @@ public class FragmentActivateGUI implements Listener {
                     return;
                 }
                 
+                if (fragmentManager.isCharged(player, type)) {
+                    if (!configManager.isFragmentChangerRequired()) {
+                        fragmentManager.activateChargedFragment(player, type);
+                    } else {
+                        player.sendMessage("§c✗ You need a Fragment Changer to activate this Fragment");
+                    }
+                    player.closeInventory();
+                    return;
+                }
+
                 // Check cooldown
-                if (!fragmentManager.canSwitchFragment(player)) {
+                if (configManager.isFragmentChangerRequired() && !fragmentManager.canSwitchFragment(player)) {
                     long cooldown = fragmentManager.getFragmentSwitchCooldown(player);
                     long minutes = cooldown / 60000;
                     long seconds = (cooldown % 60000) / 1000;

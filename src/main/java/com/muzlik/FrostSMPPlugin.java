@@ -183,7 +183,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         powerManager.registerPower(new FirePower());
         
         // Initialize ritual system
-        ritualManager = new RitualManager(this, fragmentManager, fxLibrary);
+        ritualManager = new RitualManager(this, fragmentManager, fxLibrary, configManager);
         ritualManager.setProximityDistance(configManager.getFragmentCreationProximity());
         
         // Initialize damage API
@@ -194,8 +194,8 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         recipeManager.registerRecipes();
         
         // Initialize UI manager (with CooldownManager from PowerManager)
-        uiManager = new UIManager(this, fragmentManager, manaManager, levelManager, rankManager, 
-                powerManager.getCooldownManager());
+        uiManager = new UIManager(this, fragmentManager, manaManager, levelManager, rankManager,
+                powerManager.getCooldownManager(), configManager);
         
         // Initialize GUI systems (after preferencesManager is available)
         uiManager.initializeGUIs(preferencesManager);

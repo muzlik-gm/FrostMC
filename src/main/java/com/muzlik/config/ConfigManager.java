@@ -213,4 +213,7 @@ public class ConfigManager {
     public double getFragmentDeathXPPenalty(String fragmentName) {
         return config.getDouble("fragments." + fragmentName.toLowerCase() + ".death_xp_penalty", 0.1);
     }
+    public boolean isFragmentChangerRequired() {
+        return config.getBoolean("rituals.fragment_changer_required", true);
+    }
 }

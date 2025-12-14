@@ -30,6 +30,7 @@ public class UIManager {
     private final LevelManager levelManager;
     private final RankManager rankManager;
     private final CooldownManager cooldownManager;
+    private final ConfigManager configManager;
     private final Map<UUID, UIMode> playerUIMode;
     
     // New GUI instances
@@ -37,15 +38,16 @@ public class UIManager {
     private FragmentActivateGUI fragmentActivateGUI;
     private FragmentGiveGUI fragmentGiveGUI;
 
-    public UIManager(JavaPlugin plugin, FragmentManager fragmentManager, 
+    public UIManager(JavaPlugin plugin, FragmentManager fragmentManager,
                     ManaManager manaManager, LevelManager levelManager, RankManager rankManager,
-                    CooldownManager cooldownManager) {
+                    CooldownManager cooldownManager, com.muzlik.config.ConfigManager configManager) {
         this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.manaManager = manaManager;
         this.levelManager = levelManager;
         this.rankManager = rankManager;
         this.cooldownManager = cooldownManager;
+        this.configManager = configManager;
         this.playerUIMode = new HashMap<>();
     }
     
@@ -54,7 +56,7 @@ public class UIManager {
      */
     public void initializeGUIs(com.muzlik.player.PlayerPreferencesManager preferencesManager) {
         this.controlSchemeGUI = new ControlSchemeGUI(preferencesManager);
-        this.fragmentActivateGUI = new FragmentActivateGUI(fragmentManager, levelManager, rankManager);
+        this.fragmentActivateGUI = new FragmentActivateGUI(fragmentManager, levelManager, rankManager, configManager);
         this.fragmentGiveGUI = new FragmentGiveGUI(fragmentManager);
         
         // Register listeners
