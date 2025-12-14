@@ -115,6 +115,14 @@ public class FragmentManager {
     }
 
     /**
+     * Grant and activate a Fragment in one step
+     */
+    public void grantAndActivateFragment(Player player, FragmentType type) {
+        grantFragment(player, type);
+        setActiveFragment(player, type);
+    }
+
+    /**
      * Check if player has a Fragment (owns it and can use it)
      */
     public boolean hasFragment(Player player, FragmentType type) {

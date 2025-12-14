@@ -1,5 +1,6 @@
 package com.muzlik.ritual;
 
+import com.muzlik.config.ConfigManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fx.FXLibrary;
@@ -27,6 +28,7 @@ public class RitualManager {
     private final Map<UUID, BossBar> ritualBossBars;
     private final FragmentManager fragmentManager;
     private final FXLibrary fxLibrary;
+    private final ConfigManager configManager;
     private com.muzlik.fragment.ability.AbilitySlotManager abilitySlotManager;
     private BukkitRunnable updateTask;
     private boolean discordSRVEnabled = false;
@@ -36,12 +38,13 @@ public class RitualManager {
     private long failureCooldown = 60000; // 1 minute in milliseconds
     private final Map<UUID, Long> failureCooldowns;
 
-    public RitualManager(JavaPlugin plugin, FragmentManager fragmentManager, FXLibrary fxLibrary) {
+    public RitualManager(JavaPlugin plugin, FragmentManager fragmentManager, FXLibrary fxLibrary, ConfigManager configManager) {
         this.plugin = plugin;
         this.activeRituals = new ConcurrentHashMap<>();
         this.ritualBossBars = new ConcurrentHashMap<>();
         this.fragmentManager = fragmentManager;
         this.fxLibrary = fxLibrary;
+        this.configManager = configManager;
         this.failureCooldowns = new ConcurrentHashMap<>();
         this.abilitySlotManager = null; // Will be set later
         
@@ -248,16 +251,28 @@ public class RitualManager {
         FragmentType fragmentType = determineFragmentType(ritual);
         
         if (fragmentType != null) {
-            // CHARGE the fragment instead of granting directly
-            fragmentManager.chargeFragment(player, fragmentType);
-            
-            // Give the physical fragment item with texture
-            fragmentManager.giveFragmentItem(player, fragmentType);
-            
-            player.sendMessage("§a✓ Fragment Creation complete!");
-            player.sendMessage("");
-            player.sendMessage("§e§l⚡ Fragment is now CHARGED!");
-            player.sendMessage("§7Right-click a §eFragment Changer §7to activate it");
+            if (configManager.isFragmentChangerRequired()) {
+                // CHARGE the fragment instead of granting directly
+                fragmentManager.chargeFragment(player, fragmentType);
+
+                // Give the physical fragment item with texture
+                fragmentManager.giveFragmentItem(player, fragmentType);
+
+                player.sendMessage("§a✓ Fragment Creation complete!");
+                player.sendMessage("");
+                player.sendMessage("§e§l⚡ Fragment is now CHARGED!");
+                player.sendMessage("§7Right-click a §eFragment Changer §7to activate it");
+            } else {
+                // Grant and activate the fragment directly
+                fragmentManager.grantAndActivateFragment(player, fragmentType);
+
+                // Give the physical fragment item with texture
+                fragmentManager.giveFragmentItem(player, fragmentType);
+
+                player.sendMessage("§a✓ Fragment Creation complete!");
+                player.sendMessage("");
+                player.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment is now ACTIVE!");
+            }
         } else {
             player.sendMessage("§c✗ Failed to determine Fragment type");
         }
