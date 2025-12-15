@@ -37,8 +37,8 @@ public class CollapseExecutor implements AbilityExecutor {
         int rank = context.getRank();
         
         // Scale damage and effects
-        double baseDamage = 20.0; // 10 hearts
-        double damage = baseDamage + (rank * 3.0); // +1.5 hearts per rank
+        double baseDamage = 19.0; // 9.5 hearts (survivable)
+        double damage = baseDamage + (rank * 2.0); // +1 heart per rank
         double pullRadius = 10.0 + (rank * 1.0);
         int stunDuration = 60 + (rank * 10); // 3s + 0.5s per rank
         
@@ -102,7 +102,7 @@ public class CollapseExecutor implements AbilityExecutor {
                 LivingEntity target = (LivingEntity) entity;
                 
                 // Deal damage
-                target.damage(damage, caster);
+                plugin.getDamageAPI().dealTrueDamage(caster, target, damage);
                 
                 // Apply stun (slowness + mining fatigue)
                 target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, stunDuration, 4));
