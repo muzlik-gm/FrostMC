@@ -161,4 +161,29 @@ public class DamageAPI {
         PersistentDataContainer container = entity.getPersistentDataContainer();
         return container.has(damageSourceKey, PersistentDataType.STRING);
     }
+
+    /**
+     * Deals "true" damage that bypasses armor, enchantments, and Totems of Undying.
+     * This is achieved by directly manipulating the entity's health.
+     * The damage is capped to leave the player with at least 1 health (half a heart).
+     */
+    public void dealTrueDamage(Player source, Entity target, double damage) {
+        if (!(target instanceof org.bukkit.entity.Damageable)) {
+            return;
+        }
+
+        org.bukkit.entity.Damageable damageable = (org.bukkit.entity.Damageable) target;
+        double currentHealth = damageable.getHealth();
+        double newHealth = Math.max(1.0, currentHealth - damage);
+
+        // Manually set health, bypassing normal damage calculations
+        damageable.setHealth(newHealth);
+
+        // Trigger visual damage effect
+        damageable.playEffect(org.bukkit.EntityEffect.HURT);
+
+        // Ensure the last damage cause is attributed to the player
+        EntityDamageEvent lastDamageEvent = new EntityDamageByEntityEvent(source, target, EntityDamageEvent.DamageCause.CUSTOM, damage);
+        target.setLastDamageCause(lastDamageEvent);
+    }
 }
