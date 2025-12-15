@@ -196,26 +196,40 @@ public class ControlSchemeGUI implements Listener {
      * Handle click logic
      */
     private void handleClick(Player player, ItemStack item, int slot) {
-        String displayName = item.getItemMeta().getDisplayName();
-        
-        // Check if it's a toggle button
-        if (displayName.contains("Abilities")) {
+        // Get ItemMeta and check for CustomModelData
+        if (!item.hasItemMeta() || !item.getItemMeta().hasCustomModelData()) {
+            return; // Not a button we care about
+        }
+
+        int modelData = item.getItemMeta().getCustomModelData();
+
+        // Handle toggle button click
+        if (modelData == 2005 || modelData == 2006) {
             preferencesManager.toggleAbilities(player);
             openGUI(player); // Refresh GUI
             return;
         }
-        
-        // Check if it's a control scheme button (slots 10-16)
-        if (slot >= 10 && slot <= 16) {
-            int schemeIndex = slot - 10;
-            ControlScheme[] schemes = ControlScheme.values();
-            
-            if (schemeIndex < schemes.length) {
-                ControlScheme selected = schemes[schemeIndex];
-                preferencesManager.setControlScheme(player, selected);
-                openGUI(player); // Refresh GUI
-            }
+
+        // Handle control scheme selection
+        Optional<ControlScheme> selectedScheme = getSchemeFromModelData(modelData);
+
+        if (selectedScheme.isPresent()) {
+            preferencesManager.setControlScheme(player, selectedScheme.get());
+            openGUI(player); // Refresh GUI
         }
+    }
+
+    /**
+     * Get ControlScheme from CustomModelData
+     */
+    private Optional<ControlScheme> getSchemeFromModelData(int modelData) {
+        return switch (modelData) {
+            case 2001 -> Optional.of(ControlScheme.SNEAK_CLICK);
+            case 2002 -> Optional.of(ControlScheme.DOUBLE_SNEAK);
+            case 2003 -> Optional.of(ControlScheme.SWAP_HANDS);
+            case 2004 -> Optional.of(ControlScheme.CLICK_ONLY);
+            default -> Optional.empty();
+        };
     }
     
     /**
