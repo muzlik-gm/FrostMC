@@ -89,7 +89,9 @@ public class BlinkExecutor implements AbilityExecutor {
     }
     
     private void createVoidRift(com.muzlik.FrostSMPPlugin plugin, Location riftLoc, int rank, Player caster) {
-        double riftDamage = 4.0 + (rank * 1.0); // 2 hearts + 0.5 hearts per rank
+        // Void fragment base rank is 7
+        // Formula: (current_rank - base_rank + 2) * multiplier
+        double riftDamage = 2.0 + ((rank - 7 + 2) * 0.5); // 1 heart base + scales with upgrades
         int riftDuration = 100 + (rank * 20); // 5s + 1s per rank
         
         new BukkitRunnable() {

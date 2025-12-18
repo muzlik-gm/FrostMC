@@ -32,7 +32,7 @@ public class DescentExecutor implements AbilityExecutor {
         centerLoc.setY(centerLoc.getWorld().getHighestBlockYAt(centerLoc) + 1);
         
         // Scale parameters
-        double damage = 12.0 + (rank * 2.0); // 6 hearts + 1 heart per rank
+        double damage = 8.0 + (rank * 1.0); // 4 hearts + 0.5 hearts per rank
         int strikeCount = 10 + (rank / 2); // 10-14 strikes
         double radius = 10.0 + (rank * 1.0);
         int duration = 100; // 5 seconds in ticks
@@ -99,8 +99,8 @@ public class DescentExecutor implements AbilityExecutor {
     }
     
     private void executeLightningStrike(com.muzlik.FrostSMPPlugin plugin, Location strikeLoc, double damage, int rank, Player caster) {
-        // Strike lightning
-        strikeLoc.getWorld().strikeLightning(strikeLoc);
+        // Strike lightning effect (visual only, no vanilla damage)
+        strikeLoc.getWorld().strikeLightningEffect(strikeLoc);
         
         // Damage entities in small radius around strike
         double strikeRadius = 2.5 + (rank * 0.3);

@@ -19,7 +19,7 @@ import org.bukkit.util.Vector;
 /**
  * Collapse - Void Fragment Ultimate Ability
  * Creates black hole at target location, pulls all enemies within 10 blocks
- * 10 hearts damage + stun 3s, scales with rank
+ * 3 hearts damage + stun 3s, scales with rank
  * 
  * VFX: 5-Layer System
  * - Core: PORTAL black hole
@@ -37,8 +37,10 @@ public class CollapseExecutor implements AbilityExecutor {
         int rank = context.getRank();
         
         // Scale damage and effects
-        double baseDamage = 19.0; // 9.5 hearts (survivable)
-        double damage = baseDamage + (rank * 2.0); // +1 heart per rank
+        // Void fragment base rank is 7
+        // Formula: (current_rank - base_rank + 2) * multiplier
+        double baseDamage = 6.0; // 3 hearts
+        double damage = baseDamage + ((rank - 7 + 2) * 0.5); // Scales with upgrades beyond base rank
         double pullRadius = 10.0 + (rank * 1.0);
         int stunDuration = 60 + (rank * 10); // 3s + 0.5s per rank
         

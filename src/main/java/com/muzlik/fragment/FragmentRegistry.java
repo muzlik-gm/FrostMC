@@ -368,7 +368,7 @@ public class FragmentRegistry {
             
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("light_smite", FragmentType.LIGHT)
             .displayName("Smite")
-            .description("Summons pillar of light from sky, 7-block radius, 8 hearts damage to undead/dark, 5 hearts to others")
+            .description("Summons pillar of light from sky, 7-block radius, 6 hearts damage to undead/dark, 4 hearts to others")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(65)
             .cooldown(20000)
@@ -416,10 +416,10 @@ public class FragmentRegistry {
         // Core Abilities (Always Available) - Slots 0, 1, 2
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_slash", FragmentType.VOID)
             .displayName("Slash")
-            .description("Tears space itself, dealing true damage that bypasses defenses, 8 hearts (ignores armor)")
+            .description("Tears space itself, dealing true damage that bypasses armor and totems, 2 hearts fixed")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(32)
-            .cooldown(5000)
+            .cooldown(300000) // 5 minutes
             .executor(new com.muzlik.fragment.ability.executors.voidfrag.SlashExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -436,7 +436,7 @@ public class FragmentRegistry {
             
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("void_collapse", FragmentType.VOID)
             .displayName("Collapse")
-            .description("Creates black hole at target location, pulls all enemies within 10 blocks, 10 hearts damage + stun 3s")
+            .description("Creates black hole at target location, pulls all enemies within 10 blocks, 3 hearts damage + stun 3s")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(85)
             .cooldown(28000)
@@ -580,7 +580,7 @@ public class FragmentRegistry {
         // Core Abilities (Always Available) - Slots 0, 1, 2
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_bolt", FragmentType.STORM)
             .displayName("Bolt")
-            .description("Summons lightning strike on target location, instant cast, 7 hearts damage")
+            .description("Summons lightning strike on target location, instant cast, 4 hearts damage")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(28)
             .cooldown(4000)
@@ -600,7 +600,7 @@ public class FragmentRegistry {
             
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("storm_descent", FragmentType.STORM)
             .displayName("Descent")
-            .description("Calls down 10 lightning strikes in 10-block radius over 5 seconds, each 6 hearts")
+            .description("Calls down 10 lightning strikes in 10-block radius over 5 seconds, each 4 hearts")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
             .manaCost(75)
             .cooldown(24000)

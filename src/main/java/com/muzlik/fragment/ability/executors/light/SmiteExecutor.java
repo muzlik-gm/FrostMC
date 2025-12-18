@@ -78,8 +78,8 @@ public class SmiteExecutor implements AbilityExecutor {
     
     private void executeSmite(com.muzlik.FrostSMPPlugin plugin, Player caster, Location smiteLoc, int rank) {
         // Damage calculation
-        double undeadDamage = 16.0 + (rank * 2.0); // 8 hearts + 1 heart per rank
-        double normalDamage = 10.0 + (rank * 1.5); // 5 hearts + 0.75 hearts per rank
+        double undeadDamage = 12.0 + (rank * 1.5); // 6 hearts + 0.75 hearts per rank
+        double normalDamage = 8.0 + (rank * 1.0); // 4 hearts + 0.5 hearts per rank
         
         double radius = 7.0 + (rank * 0.5);
         

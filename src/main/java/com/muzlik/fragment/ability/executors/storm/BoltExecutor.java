@@ -29,14 +29,14 @@ public class BoltExecutor implements AbilityExecutor {
         targetLoc.setY(targetLoc.getWorld().getHighestBlockYAt(targetLoc) + 1);
         
         // Scale damage
-        double baseDamage = 14.0; // 7 hearts
-        double damage = baseDamage + (rank * 2.0); // +1 heart per rank
+        double baseDamage = 8.0; // 4 hearts
+        double damage = baseDamage + (rank * 1.0); // +0.5 hearts per rank
         double radius = 3.0 + (rank * 0.5);
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // Strike lightning
-        targetLoc.getWorld().strikeLightning(targetLoc);
+        // Strike lightning effect (visual only, no vanilla damage)
+        targetLoc.getWorld().strikeLightningEffect(targetLoc);
         
         // Damage entities in radius
         for (Entity entity : targetLoc.getWorld().getNearbyEntities(targetLoc, radius, radius, radius)) {
