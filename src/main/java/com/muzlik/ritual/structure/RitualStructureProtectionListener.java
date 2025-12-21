@@ -31,10 +31,13 @@ public class RitualStructureProtectionListener implements Listener {
     }
     
     /**
-     * Unregister a structure
+     * Unregister a structure and despawn it
      */
     public void unregisterStructure(UUID ritualId) {
-        activeStructures.remove(ritualId);
+        SimpleRitualStructure structure = activeStructures.remove(ritualId);
+        if (structure != null) {
+            structure.despawn();
+        }
     }
     
     /**
