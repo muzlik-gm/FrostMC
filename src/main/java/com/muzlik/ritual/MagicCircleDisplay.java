@@ -63,9 +63,9 @@ public class MagicCircleDisplay {
             circleItem.setItemMeta(meta);
         }
         
-        // Create main magic circle (on ground, rotating)
+        // Create main magic circle (on ground, rotating) - raised by 1 block
         // Use fixed yaw/pitch to prevent player view affecting orientation
-        Location displayLoc = center.clone().add(0, 0.01, 0);
+        Location displayLoc = center.clone().add(0, 1.01, 0);
         displayLoc.setYaw(0);
         displayLoc.setPitch(0);
         ItemDisplay mainCircle = createCircleDisplay(displayLoc, circleItem, size);
@@ -81,16 +81,16 @@ public class MagicCircleDisplay {
             sideCircleItem.setItemMeta(sideMeta);
         }
         
-        // Add side circles for higher ranks (INCREASED DISTANCE from 4 to 5)
+        // Add side circles for higher ranks (INCREASED DISTANCE from 5 to 6)
         if (rank >= 5) {
-            // 2 side circles (left and right) - 5 blocks from main circle
-            double sideDistance = 5.0;
+            // 2 side circles (left and right) - 6 blocks from main circle, raised by 1 block
+            double sideDistance = 6.0;
             double sideSize = size * 0.4;
             
-            Location leftLoc = center.clone().add(-sideDistance, 0.01, 0);
+            Location leftLoc = center.clone().add(-sideDistance, 1.01, 0);
             leftLoc.setYaw(0);
             leftLoc.setPitch(0);
-            Location rightLoc = center.clone().add(sideDistance, 0.01, 0);
+            Location rightLoc = center.clone().add(sideDistance, 1.01, 0);
             rightLoc.setYaw(0);
             rightLoc.setPitch(0);
             
@@ -102,14 +102,14 @@ public class MagicCircleDisplay {
         }
         
         if (rank >= 7) {
-            // 4 side circles (cardinal directions) - 5 blocks from main circle
-            double sideDistance = 5.0;
+            // 4 side circles (cardinal directions) - 6 blocks from main circle, raised by 1 block
+            double sideDistance = 6.0;
             double sideSize = size * 0.4;
             
-            Location northLoc = center.clone().add(0, 0.01, -sideDistance);
+            Location northLoc = center.clone().add(0, 1.01, -sideDistance);
             northLoc.setYaw(0);
             northLoc.setPitch(0);
-            Location southLoc = center.clone().add(0, 0.01, sideDistance);
+            Location southLoc = center.clone().add(0, 1.01, sideDistance);
             southLoc.setYaw(0);
             southLoc.setPitch(0);
             

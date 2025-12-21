@@ -6,6 +6,7 @@ import com.muzlik.fragment.FragmentType;
 import com.muzlik.fx.FXLibrary;
 import com.muzlik.fx.SoundPreset;
 import com.muzlik.ritual.structure.RitualStructureProtectionListener;
+import com.muzlik.ritual.structure.SchematicRitualStructure;
 import com.muzlik.ritual.structure.SimpleRitualStructure;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -53,7 +54,7 @@ public class RitualManager {
         this.failureCooldowns = new ConcurrentHashMap<>();
         this.abilitySlotManager = null; // Will be set later
         this.displayManager = new RitualDisplayManager(plugin);
-        this.structureProtection = new RitualStructureProtectionListener();
+        this.structureProtection = new RitualStructureProtectionListener(plugin);
         
         // Initialize cinematic VFX engine
         if (plugin instanceof com.muzlik.FrostSMPPlugin) {
@@ -105,6 +106,12 @@ public class RitualManager {
             return false;
         }
         
+        // Validate ritual location
+        Location ritualLocation = player.getLocation().clone();
+        if (!isValidRitualLocation(player, ritualLocation)) {
+            return false; // Error messages sent by validation method
+        }
+        
         // Check if this is a Fragment Creation ritual and if it was already completed
         if (type == RitualType.FRAGMENT_CREATION && fragmentType != null) {
             com.muzlik.fragment.PlayerFragmentData fragmentData = fragmentManager.getPlayerData(player);
@@ -133,8 +140,6 @@ public class RitualManager {
             player.sendMessage("§7Ritual catalyst consumed...");
         }
         
-        // Create ritual instance with block-centered location
-        Location ritualLocation = player.getLocation().clone();
         // Center to block coordinates (e.g., 225.7 -> 225.5, 64.3 -> 64.0, 504.2 -> 504.5)
         ritualLocation.setX(ritualLocation.getBlockX() + 0.5);
         ritualLocation.setY(ritualLocation.getBlockY());
@@ -163,8 +168,8 @@ public class RitualManager {
                 displayManager.createDisplay(player, ritual.getLocation(), fragmentType, fragmentItem, ritual.getDuration(), fragmentRank);
             }
             
-            // Spawn ritual structure (pillars and altar)
-            SimpleRitualStructure structure = new SimpleRitualStructure(player.getUniqueId(), ritual.getLocation(), fragmentType);
+            // Spawn ritual structure (schematic-based with fallback)
+            SchematicRitualStructure structure = new SchematicRitualStructure(plugin, player.getUniqueId(), ritual.getLocation(), fragmentType);
             structure.spawn();
             structureProtection.registerStructure(player.getUniqueId(), structure);
         }
@@ -175,6 +180,41 @@ public class RitualManager {
         
         // Send Discord notification
         sendDiscordRitualStart(player, ritual);
+        
+        return true;
+    }
+    
+    /**
+     * Validate ritual location
+     * - Must be in Overworld
+     * - Must be above ground (no blocks above for 150 blocks)
+     */
+    private boolean isValidRitualLocation(Player player, Location location) {
+        // Check if in Overworld
+        if (location.getWorld().getEnvironment() != org.bukkit.World.Environment.NORMAL) {
+            player.sendMessage("§c✗ Rituals can only be performed in the Overworld!");
+            player.sendMessage("§7You cannot perform rituals in the Nether or End.");
+            return false;
+        }
+        
+        // Check if above ground (no blocks above for 150 blocks)
+        Location checkLoc = location.clone();
+        int blocksChecked = 0;
+        int maxHeight = Math.min(location.getBlockY() + 150, location.getWorld().getMaxHeight());
+        
+        for (int y = location.getBlockY() + 1; y < maxHeight; y++) {
+            checkLoc.setY(y);
+            org.bukkit.block.Block block = checkLoc.getBlock();
+            
+            // Check if block is solid (not air, not transparent)
+            if (block.getType().isSolid() && !block.getType().isAir()) {
+                player.sendMessage("§c✗ Rituals must be performed above ground!");
+                player.sendMessage("§7There are blocks above you. Find an open area under the sky.");
+                player.sendMessage("§8(Blocked at Y=" + y + " by " + block.getType().name() + ")");
+                return false;
+            }
+            blocksChecked++;
+        }
         
         return true;
     }

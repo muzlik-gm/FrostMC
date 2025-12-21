@@ -9,10 +9,10 @@ import org.bukkit.block.data.BlockData;
 import java.util.*;
 
 /**
- * Complex ritual structure system - spawns elaborate multi-layer structures
+ * Simple ritual structure system - spawns elaborate multi-layer structures
  * 10x more complex than MVP - beautiful, ritual-friendly designs
  */
-public class SimpleRitualStructure {
+public class SimpleRitualStructure implements RitualStructure {
     private final UUID ritualId;
     private final Location center;
     private final FragmentType fragmentType;

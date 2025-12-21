@@ -26,9 +26,9 @@ public class RitualDisplayManager {
     private final Map<UUID, RitualDisplay> activeDisplays;
     
     // Configuration
-    private static final double FRAGMENT_HEIGHT = 2.5; // Height above ritual center
-    private static final double BEAM_SOURCE_DISTANCE = 35.0; // Distance of beam sources from center (reduced from 100 for visibility)
-    private static final double BEAM_SOURCE_HEIGHT = 15.0; // Height of beam sources above ground (reduced from 50)
+    private static final double FRAGMENT_HEIGHT = 3.5; // Height above ritual center (raised by 1 block)
+    private static final double BEAM_SOURCE_DISTANCE = 36.0; // Distance of beam sources from center (increased from 35 for side circles)
+    private static final double BEAM_SOURCE_HEIGHT = 16.0; // Height of beam sources above ground (raised by 1 block)
     private static final int BEAM_COUNT = 6; // Number of beams in circle
     private static final double BEAM_TARGET_OFFSET = -0.5; // Lower the beam target by 0.5 blocks
     
@@ -238,7 +238,7 @@ public class RitualDisplayManager {
                 double angle = (2 * Math.PI * i / runeCount) + (tick * 0.05);
                 Location runeLoc = display.center.clone().add(
                     runeRadius * Math.cos(angle),
-                    0.3 + 0.1 * Math.sin(tick * 0.1 + i),
+                    1.3 + 0.1 * Math.sin(tick * 0.1 + i),
                     runeRadius * Math.sin(angle)
                 );
                 world.spawnParticle(Particle.ENCHANTMENT_TABLE, runeLoc, 2, 0.1, 0.1, 0.1, 0.2);
@@ -254,7 +254,7 @@ public class RitualDisplayManager {
                 double angle = (2 * Math.PI * i / flowCount) + (tick * 0.03);
                 Location startLoc = display.center.clone().add(
                     circleRadius * Math.cos(angle),
-                    0.1,
+                    1.1,
                     circleRadius * Math.sin(angle)
                 );
                 
@@ -270,7 +270,7 @@ public class RitualDisplayManager {
             // Random particles in the ritual area
             double randomX = (Math.random() - 0.5) * 6;
             double randomZ = (Math.random() - 0.5) * 6;
-            Location ambientLoc = display.center.clone().add(randomX, 0.1, randomZ);
+            Location ambientLoc = display.center.clone().add(randomX, 1.1, randomZ);
             world.spawnParticle(Particle.PORTAL, ambientLoc, 1, 0, 0.2, 0, 0.1);
         }
         
@@ -283,7 +283,7 @@ public class RitualDisplayManager {
                 double angle = (2 * Math.PI * i / outerCount) - (tick * 0.02);
                 Location outerLoc = display.center.clone().add(
                     outerRadius * Math.cos(angle),
-                    0.2,
+                    1.2,
                     outerRadius * Math.sin(angle)
                 );
                 world.spawnParticle(Particle.REDSTONE, outerLoc, 1, 0, 0, 0, 0, dustOptions);
@@ -496,7 +496,7 @@ public class RitualDisplayManager {
         
         // Center glow (intensity increases with rank)
         int glowParticles = Math.min(rank * 2, 12); // Reduced from 16
-        world.spawnParticle(Particle.REDSTONE, center.clone().add(0, 0.1, 0), 
+        world.spawnParticle(Particle.REDSTONE, center.clone().add(0, 1.1, 0), 
             glowParticles, 0.3, 0.05, 0.3, 0, dustOptions);
     }
     
@@ -508,7 +508,7 @@ public class RitualDisplayManager {
             double angle = (2 * Math.PI * i / points) + rotation;
             double x = center.getX() + radius * Math.cos(angle);
             double z = center.getZ() + radius * Math.sin(angle);
-            Location particleLoc = new Location(world, x, center.getY() + 0.1, z);
+            Location particleLoc = new Location(world, x, center.getY() + 1.1, z);
             world.spawnParticle(Particle.REDSTONE, particleLoc, 1, 0, 0, 0, 0, dust);
         }
     }
@@ -521,7 +521,7 @@ public class RitualDisplayManager {
             double angle = (2 * Math.PI * i / runeCount) + rotation;
             double x = center.getX() + radius * Math.cos(angle);
             double z = center.getZ() + radius * Math.sin(angle);
-            Location runeLoc = new Location(world, x, center.getY() + 0.1, z);
+            Location runeLoc = new Location(world, x, center.getY() + 1.1, z);
             
             // Draw small rune symbol (cross pattern)
             world.spawnParticle(Particle.REDSTONE, runeLoc, 1, 0, 0, 0, 0, dust);
@@ -546,8 +546,8 @@ public class RitualDisplayManager {
             double z2 = center.getZ() + radius * Math.sin(angle2);
             
             // Draw line between points
-            drawLine(world, new Location(world, x1, center.getY() + 0.1, z1),
-                    new Location(world, x2, center.getY() + 0.1, z2), dust, 10);
+            drawLine(world, new Location(world, x1, center.getY() + 1.1, z1),
+                    new Location(world, x2, center.getY() + 1.1, z2), dust, 10);
         }
     }
     
@@ -564,8 +564,8 @@ public class RitualDisplayManager {
             double x2 = center.getX() + radius * Math.cos(angle2);
             double z2 = center.getZ() + radius * Math.sin(angle2);
             
-            drawLine(world, new Location(world, x1, center.getY() + 0.1, z1),
-                    new Location(world, x2, center.getY() + 0.1, z2), dust, 8);
+            drawLine(world, new Location(world, x1, center.getY() + 1.1, z1),
+                    new Location(world, x2, center.getY() + 1.1, z2), dust, 8);
         }
     }
     
@@ -577,7 +577,7 @@ public class RitualDisplayManager {
             double angle = (2 * Math.PI * i / petals) + rotation;
             double x = center.getX() + radius * Math.cos(angle);
             double z = center.getZ() + radius * Math.sin(angle);
-            Location petalCenter = new Location(world, x, center.getY() + 0.1, z);
+            Location petalCenter = new Location(world, x, center.getY() + 1.1, z);
             
             // Draw small circle at each petal position
             drawCircle(world, petalCenter, 0.5, dust, -rotation, 12);
@@ -592,7 +592,7 @@ public class RitualDisplayManager {
             double angle = (2 * Math.PI * i / runeCount) + rotation;
             double x = center.getX() + radius * Math.cos(angle);
             double z = center.getZ() + radius * Math.sin(angle);
-            Location runeLoc = new Location(world, x, center.getY() + 0.1, z);
+            Location runeLoc = new Location(world, x, center.getY() + 1.1, z);
             
             // Draw complex rune (diamond pattern)
             world.spawnParticle(Particle.REDSTONE, runeLoc, 1, 0, 0, 0, 0, dust);

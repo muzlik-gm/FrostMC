@@ -5,6 +5,7 @@ api-version: 1.21
 description: A power token plugin with 10 unique powers and 3 abilities each
 authors: [muzlik]
 website: https://muzlik.com
+softdepend: [WorldEdit, FastAsyncWorldEdit, DiscordSRV]
 
 commands:
   power:

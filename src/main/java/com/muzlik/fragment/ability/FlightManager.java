@@ -22,12 +22,19 @@ public class FlightManager {
     // Active flight sessions
     private final Map<UUID, FlightSession> activeSessions = new HashMap<>();
     
-    // Recharging sessions (cancelled early, no cooldown)
-    private final Map<UUID, RechargeSession> rechargeSessions = new HashMap<>();
+    // Cooldown sessions (after time limit expires)
+    private final Map<UUID, CooldownSession> cooldownSessions = new HashMap<>();
     
     // Track when flight ended to prevent immediate reactivation
     private final Map<UUID, Long> reactivationLockout = new HashMap<>();
     private static final long LOCKOUT_DURATION = 2000L; // 2 seconds
+    
+    // Flight time limits (in seconds)
+    private static final int AIR_FLIGHT_DURATION = 60; // 1 minute
+    private static final int DRAGON_FLIGHT_DURATION = 600; // 10 minutes
+    
+    // Cooldown duration (in seconds)
+    private static final int FLIGHT_COOLDOWN = 90; // 1.5 minutes
     
     public FlightManager(FrostSMPPlugin plugin) {
         this.plugin = plugin;
@@ -52,22 +59,17 @@ public class FlightManager {
             return;
         }
         
-        // Check if recharging - if so, resume flight
-        if (rechargeSessions.containsKey(uuid)) {
-            RechargeSession recharge = rechargeSessions.remove(uuid);
-            recharge.cancel();
-            
-            // Resume with remaining time
-            FlightSession session = new FlightSession(player, fragmentType, rank, recharge.remainingTime);
-            activeSessions.put(uuid, session);
-            session.start();
-            
-            player.sendMessage("§aꜰʟɪɢʜᴛ ʀᴇsᴜᴍᴇᴅ!");
+        // Check if on cooldown
+        if (cooldownSessions.containsKey(uuid)) {
+            CooldownSession cooldown = cooldownSessions.get(uuid);
+            int remaining = cooldown.getRemainingSeconds();
+            player.sendMessage("§cꜰʟɪɢʜᴛ ᴏɴ ᴄᴏᴏʟᴅᴏᴡɴ! §7" + remaining + "s ʀᴇᴍᴀɪɴɪɴɢ");
             return;
         }
         
         // Start new flight session
-        FlightSession session = new FlightSession(player, fragmentType, rank, getMaxDuration(fragmentType));
+        int duration = getFlightDuration(fragmentType);
+        FlightSession session = new FlightSession(player, fragmentType, rank, duration);
         activeSessions.put(uuid, session);
         session.start();
     }
@@ -82,8 +84,8 @@ public class FlightManager {
     /**
      * Check if player is recharging
      */
-    public boolean isRecharging(Player player) {
-        return rechargeSessions.containsKey(player.getUniqueId());
+    public boolean isOnCooldown(Player player) {
+        return cooldownSessions.containsKey(player.getUniqueId());
     }
     
     /**
@@ -92,26 +94,6 @@ public class FlightManager {
     public int getRemainingTime(Player player) {
         FlightSession session = activeSessions.get(player.getUniqueId());
         return session != null ? session.remainingTime : 0;
-    }
-    
-    /**
-     * Attempt to cancel flight (requires 10s hold)
-     */
-    public void attemptCancel(Player player) {
-        FlightSession session = activeSessions.get(player.getUniqueId());
-        if (session != null) {
-            session.startCancelAttempt();
-        }
-    }
-    
-    /**
-     * Stop cancel attempt
-     */
-    public void stopCancelAttempt(Player player) {
-        FlightSession session = activeSessions.get(player.getUniqueId());
-        if (session != null) {
-            session.stopCancelAttempt();
-        }
     }
     
     /**
@@ -126,14 +108,21 @@ public class FlightManager {
     }
     
     /**
-     * Get max duration for fragment type
+     * Get flight duration for fragment type
+     */
+    private int getFlightDuration(FragmentType type) {
+        return switch (type) {
+            case DRAGON -> DRAGON_FLIGHT_DURATION; // 10 minutes
+            case AIR -> AIR_FLIGHT_DURATION;       // 1 minute
+            default -> AIR_FLIGHT_DURATION;        // Default to 1 minute
+        };
+    }
+    
+    /**
+     * Get max duration for fragment type (legacy method for compatibility)
      */
     private int getMaxDuration(FragmentType type) {
-        return switch (type) {
-            case DRAGON -> 1800; // 30 minutes
-            case AIR -> 600;     // 10 minutes
-            default -> 300;      // 5 minutes (fallback)
-        };
+        return getFlightDuration(type);
     }
     
     /**
@@ -143,8 +132,8 @@ public class FlightManager {
         // Create a copy to avoid ConcurrentModificationException
         new java.util.ArrayList<>(activeSessions.values()).forEach(session -> session.end(false));
         activeSessions.clear();
-        new java.util.ArrayList<>(rechargeSessions.values()).forEach(RechargeSession::cancel);
-        rechargeSessions.clear();
+        new java.util.ArrayList<>(cooldownSessions.values()).forEach(CooldownSession::cancel);
+        cooldownSessions.clear();
         reactivationLockout.clear();
     }
     
@@ -158,8 +147,6 @@ public class FlightManager {
         private int remainingTime; // in seconds
         private BukkitTask updateTask;
         private BukkitTask visualTask;
-        private BukkitTask cancelTask;
-        private int cancelProgress = 0;
         
         public FlightSession(Player player, FragmentType fragmentType, int rank, int duration) {
             this.player = player;
@@ -179,16 +166,10 @@ public class FlightManager {
                 public void run() {
                     remainingTime--;
                     
-                    // Show time remaining every 60 seconds
-                    if (remainingTime % 60 == 0 && remainingTime > 0) {
-                        int minutes = remainingTime / 60;
-                        player.sendMessage("§7ꜰʟɪɢʜᴛ ᴛɪᴍᴇ: §f" + minutes + "ᴍ §7ʀᴇᴍᴀɪɴɪɴɢ");
-                    }
-                    
-                    // Warning at 1 minute
-                    if (remainingTime == 60) {
-                        player.sendMessage("§c⚠ ꜰʟɪɢʜᴛ ᴇɴᴅɪɴɢ ɪɴ 1 ᴍɪɴᴜᴛᴇ!");
-                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 0.5f);
+                    // Show time remaining periodically
+                    if (remainingTime == 30 || remainingTime == 15 || remainingTime == 10 || remainingTime == 5) {
+                        player.sendMessage("§7ꜰʟɪɢʜᴛ ᴛɪᴍᴇ: §f" + remainingTime + "s §7ʀᴇᴍᴀɪɴɪɴɢ");
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, 1.0f);
                     }
                     
                     // End flight when time runs out
@@ -219,53 +200,13 @@ public class FlightManager {
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1.5f, 1.2f);
             
             String fragmentName = fragmentType == FragmentType.DRAGON ? "§5ᴅʀᴀɢᴏɴ" : "§fᴀɪʀ";
-            int minutes = remainingTime / 60;
-            player.sendMessage(fragmentName + " §7ꜰʟɪɢʜᴛ ᴀᴄᴛɪᴠᴀᴛᴇᴅ! §8(" + minutes + "ᴍ)");
-            player.sendMessage("§8ʜᴏʟᴅ sɴᴇᴀᴋ + ʟᴇꜰᴛ ᴄʟɪᴄᴋ 10s ᴛᴏ ᴄᴀɴᴄᴇʟ");
-        }
-        
-        public void startCancelAttempt() {
-            if (cancelTask != null) return; // Already cancelling
-            
-            cancelProgress = 0;
-            player.sendMessage("§eᴄᴀɴᴄᴇʟʟɪɴɢ ꜰʟɪɢʜᴛ... §7(ʜᴏʟᴅ 10s)");
-            
-            cancelTask = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    cancelProgress++;
-                    
-                    // Progress indicator every 2 seconds
-                    if (cancelProgress % 2 == 0) {
-                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.5f, 1.0f);
-                        player.sendMessage("§7ᴄᴀɴᴄᴇʟʟɪɴɢ... §e" + cancelProgress + "§7/§e10");
-                    }
-                    
-                    // Cancel complete after 10 seconds
-                    if (cancelProgress >= 10) {
-                        this.cancel(); // Cancel this task first
-                        FlightSession.this.cancel(); // Then cancel the flight session
-                        player.sendMessage("§aꜰʟɪɢʜᴛ ᴄᴀɴᴄᴇʟʟᴇᴅ! §7ʀᴇᴄʜᴀʀɢɪɴɢ...");
-                        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.5f);
-                    }
-                }
-            }.runTaskTimer(plugin, 0L, 20L);
-        }
-        
-        public void stopCancelAttempt() {
-            if (cancelTask != null) {
-                cancelTask.cancel();
-                cancelTask = null;
-                cancelProgress = 0;
-                player.sendMessage("§7ᴄᴀɴᴄᴇʟ sᴛᴏᴘᴘᴇᴅ");
-            }
+            player.sendMessage(fragmentName + " §7ꜰʟɪɢʜᴛ ᴀᴄᴛɪᴠᴀᴛᴇᴅ! §8(" + remainingTime + "s)");
         }
         
         public void end(boolean startCooldown) {
             // Stop tasks
             if (updateTask != null) updateTask.cancel();
             if (visualTask != null) visualTask.cancel();
-            if (cancelTask != null) cancelTask.cancel();
             
             // Disable flight (only for survival/adventure mode)
             if (player.getGameMode() != org.bukkit.GameMode.CREATIVE && 
@@ -284,53 +225,15 @@ public class FlightManager {
             player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_HURT, 1.0f, 0.8f);
             
             if (startCooldown) {
-                player.sendMessage("§cꜰʟɪɢʜᴛ ᴇɴᴅᴇᴅ! §8ᴄᴏᴏʟᴅᴏᴡɴ sᴛᴀʀᴛᴇᴅ");
-                // Cooldown is handled by CooldownManager in the ability system
+                player.sendMessage("§cꜰʟɪɢʜᴛ ᴇɴᴅᴇᴅ! §7ᴄᴏᴏʟᴅᴏᴡɴ: §e" + FLIGHT_COOLDOWN + "s");
+                
+                // Start cooldown
+                CooldownSession cooldown = new CooldownSession(player, fragmentType);
+                cooldownSessions.put(player.getUniqueId(), cooldown);
+                cooldown.start();
             } else {
                 player.sendMessage("§7ꜰʟɪɢʜᴛ ᴇɴᴅᴇᴅ");
             }
-        }
-        
-        private void cancel() {
-            // Stop tasks FIRST to prevent any interference
-            if (updateTask != null) {
-                updateTask.cancel();
-                updateTask = null;
-            }
-            if (visualTask != null) {
-                visualTask.cancel();
-                visualTask = null;
-            }
-            if (cancelTask != null) {
-                cancelTask.cancel();
-                cancelTask = null;
-            }
-            
-            // FORCE disable flight - do it multiple times to ensure it sticks
-            player.setAllowFlight(false);
-            player.setFlying(false);
-            
-            // Schedule another disable check after 1 tick to ensure it worked
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (player.isOnline()) {
-                        player.setAllowFlight(false);
-                        player.setFlying(false);
-                    }
-                }
-            }.runTaskLater(plugin, 1L);
-            
-            // Remove from active sessions
-            activeSessions.remove(player.getUniqueId());
-            
-            // Add reactivation lockout to prevent immediate reactivation
-            reactivationLockout.put(player.getUniqueId(), System.currentTimeMillis() + LOCKOUT_DURATION);
-            
-            // Start recharge (no cooldown)
-            RechargeSession recharge = new RechargeSession(player, fragmentType, remainingTime);
-            rechargeSessions.put(player.getUniqueId(), recharge);
-            recharge.start();
         }
         
         private void spawnFlightCarpet() {
@@ -364,43 +267,40 @@ public class FlightManager {
     }
     
     /**
-     * Recharge session (cancelled flight, no cooldown)
+     * Cooldown session (after flight time limit expires)
      */
-    private class RechargeSession {
+    private class CooldownSession {
         private final Player player;
         private final FragmentType fragmentType;
-        private int remainingTime; // Time left when cancelled
-        private int rechargeTime; // Time to fully recharge
-        private BukkitTask rechargeTask;
+        private int remainingSeconds;
+        private BukkitTask cooldownTask;
         
-        public RechargeSession(Player player, FragmentType fragmentType, int remainingTime) {
+        public CooldownSession(Player player, FragmentType fragmentType) {
             this.player = player;
             this.fragmentType = fragmentType;
-            this.remainingTime = remainingTime;
-            this.rechargeTime = getMaxDuration(fragmentType) - remainingTime;
+            this.remainingSeconds = FLIGHT_COOLDOWN;
+        }
+        
+        public int getRemainingSeconds() {
+            return remainingSeconds;
         }
         
         public void start() {
-            int minutes = rechargeTime / 60;
-            player.sendMessage("§7ʀᴇᴄʜᴀʀɢɪɴɢ... §e" + minutes + "ᴍ §7ᴜɴᴛɪʟ ꜰᴜʟʟ");
-            
-            rechargeTask = new BukkitRunnable() {
+            cooldownTask = new BukkitRunnable() {
                 @Override
                 public void run() {
-                    rechargeTime--;
-                    remainingTime++;
+                    remainingSeconds--;
                     
-                    // Notify every 5 minutes
-                    if (rechargeTime % 300 == 0 && rechargeTime > 0) {
-                        int mins = rechargeTime / 60;
-                        player.sendMessage("§7ʀᴇᴄʜᴀʀɢɪɴɢ... §e" + mins + "ᴍ §7ʀᴇᴍᴀɪɴɪɴɢ");
+                    // Notify at specific intervals
+                    if (remainingSeconds == 60 || remainingSeconds == 30 || remainingSeconds == 10) {
+                        player.sendMessage("§7ꜰʟɪɢʜᴛ ᴄᴏᴏʟᴅᴏᴡɴ: §e" + remainingSeconds + "s");
                     }
                     
-                    // Fully recharged
-                    if (rechargeTime <= 0) {
-                        rechargeSessions.remove(player.getUniqueId());
-                        player.sendMessage("§aꜰʟɪɢʜᴛ ꜰᴜʟʟʏ ʀᴇᴄʜᴀʀɢᴇᴅ!");
-                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
+                    // Cooldown complete
+                    if (remainingSeconds <= 0) {
+                        cooldownSessions.remove(player.getUniqueId());
+                        player.sendMessage("§aꜰʟɪɢʜᴛ ʀᴇᴀᴅʏ!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.5f);
                         cancel();
                     }
                 }
@@ -408,8 +308,8 @@ public class FlightManager {
         }
         
         public void cancel() {
-            if (rechargeTask != null) {
-                rechargeTask.cancel();
+            if (cooldownTask != null) {
+                cooldownTask.cancel();
             }
         }
     }
