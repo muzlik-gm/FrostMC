@@ -5,6 +5,8 @@ import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fx.FXLibrary;
 import com.muzlik.fx.SoundPreset;
+import com.muzlik.ritual.structure.RitualStructureProtectionListener;
+import com.muzlik.ritual.structure.SimpleRitualStructure;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.boss.BarColor;
@@ -39,6 +41,7 @@ public class RitualManager {
     private long failureCooldown = 60000; // 1 minute in milliseconds
     private final Map<UUID, Long> failureCooldowns;
     private RitualDisplayManager displayManager;
+    private RitualStructureProtectionListener structureProtection;
 
     public RitualManager(JavaPlugin plugin, FragmentManager fragmentManager, FXLibrary fxLibrary, ConfigManager configManager) {
         this.plugin = plugin;
@@ -50,6 +53,7 @@ public class RitualManager {
         this.failureCooldowns = new ConcurrentHashMap<>();
         this.abilitySlotManager = null; // Will be set later
         this.displayManager = new RitualDisplayManager(plugin);
+        this.structureProtection = new RitualStructureProtectionListener();
         
         // Initialize cinematic VFX engine
         if (plugin instanceof com.muzlik.FrostSMPPlugin) {
@@ -152,6 +156,11 @@ public class RitualManager {
                 int fragmentRank = fragmentManager.getRankManager().getBaseRank(fragmentType);
                 displayManager.createDisplay(player, ritual.getLocation(), fragmentType, fragmentItem, ritual.getDuration(), fragmentRank);
             }
+            
+            // Spawn ritual structure (pillars and altar)
+            SimpleRitualStructure structure = new SimpleRitualStructure(player.getUniqueId(), ritual.getLocation(), fragmentType);
+            structure.spawn();
+            structureProtection.registerStructure(player.getUniqueId(), structure);
         }
         
         player.sendMessage("§a✓ Ritual started: §b" + type.getDisplayName());
@@ -173,6 +182,7 @@ public class RitualManager {
             player.sendMessage("§c✗ Ritual cancelled");
             removeRitualBossBar(player.getUniqueId());
             displayManager.removeDisplay(player.getUniqueId());
+            structureProtection.unregisterStructure(player.getUniqueId());
         }
     }
 
@@ -391,6 +401,7 @@ public class RitualManager {
     private void completeRitual(UUID ownerId, RitualInstance ritual) {
         activeRituals.remove(ownerId);
         removeRitualBossBar(ownerId);
+        structureProtection.unregisterStructure(ownerId);
         
         Player owner = plugin.getServer().getPlayer(ownerId);
         RitualType type = ritual.getType();
@@ -599,6 +610,7 @@ public class RitualManager {
         activeRituals.remove(ownerId);
         removeRitualBossBar(ownerId);
         displayManager.removeDisplay(ownerId);
+        structureProtection.unregisterStructure(ownerId);
         
         Player owner = plugin.getServer().getPlayer(ownerId);
         if (owner != null) {
@@ -921,8 +933,20 @@ public class RitualManager {
             displayManager.cleanup();
         }
         
+        // Cleanup all structures
+        if (structureProtection != null) {
+            structureProtection.cleanup();
+        }
+        
         activeRituals.clear();
         ritualBossBars.clear();
         failureCooldowns.clear();
+    }
+    
+    /**
+     * Get the structure protection listener for registration
+     */
+    public RitualStructureProtectionListener getStructureProtectionListener() {
+        return structureProtection;
     }
 }

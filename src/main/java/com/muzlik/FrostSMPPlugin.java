@@ -260,6 +260,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 this
         );
         getServer().getPluginManager().registerEvents(
+                ritualManager.getStructureProtectionListener(),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
                 new com.muzlik.listener.FirstJoinListener(this, fragmentManager),
                 this
         );
