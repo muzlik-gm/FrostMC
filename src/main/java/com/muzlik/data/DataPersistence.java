@@ -146,6 +146,7 @@ public class DataPersistence {
         public String uiMode;
         public long lastFragmentChange;
         public Map<String, FragmentDataContainer> fragments;
+        public java.util.List<String> completedRituals; // One-time fragment creation tracking
         
         // Character Level progression (separate from Fragment level)
         public int characterLevel = 1;

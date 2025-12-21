@@ -103,6 +103,16 @@ public class RitualManager {
             return false;
         }
         
+        // Check if this is a Fragment Creation ritual and if it was already completed
+        if (type == RitualType.FRAGMENT_CREATION && fragmentType != null) {
+            com.muzlik.fragment.PlayerFragmentData fragmentData = fragmentManager.getPlayerData(player);
+            if (fragmentData != null && fragmentData.hasCompletedRitual(fragmentType)) {
+                player.sendMessage("§c✗ You have already created the " + fragmentType.getDisplayName() + " Fragment!");
+                player.sendMessage("§7You cannot perform this ritual again.");
+                return false;
+            }
+        }
+        
         // Check if player has the catalyst in their inventory
         if (catalyst != null) {
             ItemStack heldItem = player.getInventory().getItemInMainHand();
@@ -258,12 +268,59 @@ public class RitualManager {
                 
                 // New system is in RitualDisplayManager.drawMagicCircles()
                 // which provides rank-based complexity and better performance
+                
+                // Play dramatic ambient sounds during ritual
+                playRitualAmbientSounds(ritual, progressPercent);
             }
         }
         
         // Check completion
         if (elapsed >= ritual.getDuration()) {
             completeRitual(ritualOwnerId, ritual);
+        }
+    }
+    
+    /**
+     * Play dramatic ambient sounds during ritual based on progress
+     */
+    private void playRitualAmbientSounds(RitualInstance ritual, int progressPercent) {
+        Location loc = ritual.getLocation();
+        
+        // Base ambient sound - plays throughout
+        if (Math.random() < 0.3) { // 30% chance per second
+            loc.getWorld().playSound(loc, org.bukkit.Sound.BLOCK_PORTAL_AMBIENT, 0.5f, 0.7f);
+        }
+        
+        // Dramatic building sounds based on progress
+        if (progressPercent < 25) {
+            // Early stage - mysterious whispers
+            if (Math.random() < 0.2) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_ENDERMAN_AMBIENT, 0.4f, 0.5f);
+            }
+        } else if (progressPercent < 50) {
+            // Mid stage - building tension
+            if (Math.random() < 0.25) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.BLOCK_BEACON_AMBIENT, 0.6f, 0.8f);
+            }
+            if (Math.random() < 0.15) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.BLOCK_END_PORTAL_FRAME_FILL, 0.5f, 1.2f);
+            }
+        } else if (progressPercent < 75) {
+            // Late stage - intense energy
+            if (Math.random() < 0.3) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.7f, 1.5f);
+            }
+            if (Math.random() < 0.2) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_WARDEN_HEARTBEAT, 0.4f, 1.0f);
+            }
+        } else {
+            // Final stage - climactic power
+            if (Math.random() < 0.35) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_WITHER_AMBIENT, 0.3f, 1.8f);
+            }
+            if (Math.random() < 0.25) {
+                loc.getWorld().playSound(loc, org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, 0.4f, 1.5f);
+            }
         }
     }
     
@@ -391,6 +448,15 @@ public class RitualManager {
         Player owner = plugin.getServer().getPlayer(ownerId);
         
         if (fragmentType != null) {
+            // Mark ritual as completed (one-time only)
+            if (owner != null) {
+                com.muzlik.fragment.PlayerFragmentData fragmentData = fragmentManager.getPlayerData(owner);
+                if (fragmentData != null) {
+                    fragmentData.markRitualCompleted(fragmentType);
+                    plugin.getLogger().info("Marked " + fragmentType.name() + " ritual as completed for " + owner.getName());
+                }
+            }
+            
             // Drop the fragment from the floating display to the ground
             // The display manager handles this - it drops the floating item
             displayManager.completeAndDropFragment(ownerId);
@@ -400,6 +466,7 @@ public class RitualManager {
                 owner.sendMessage("");
                 owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment has materialized!");
                 owner.sendMessage("§7Pick it up and right-click to activate");
+                owner.sendMessage("§c§l⚠ This fragment can only be created once!");
             }
             
             // Broadcast completion

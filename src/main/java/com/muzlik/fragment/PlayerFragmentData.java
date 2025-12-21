@@ -21,12 +21,14 @@ import java.util.Set;
 public class PlayerFragmentData {
     private final Set<FragmentType> ownedFragments;  // Currently usable fragments
     private final Set<FragmentType> chargedFragments; // Rituals completed, ready to activate
+    private final Set<FragmentType> completedRituals; // Fragments that have been successfully created (one-time only)
     private FragmentType activeFragment;
     private long lastFragmentSwitch;
 
     public PlayerFragmentData() {
         this.ownedFragments = new HashSet<>();
         this.chargedFragments = new HashSet<>();
+        this.completedRituals = new HashSet<>();
         this.activeFragment = null;
         this.lastFragmentSwitch = 0;
     }
@@ -125,5 +127,30 @@ public class PlayerFragmentData {
      */
     public void setLastFragmentSwitch(long lastFragmentSwitch) {
         this.lastFragmentSwitch = lastFragmentSwitch;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // COMPLETED RITUALS (one-time fragment creation tracking)
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Mark a fragment ritual as completed (one-time only)
+     */
+    public void markRitualCompleted(FragmentType type) {
+        completedRituals.add(type);
+    }
+
+    /**
+     * Check if a fragment ritual has been completed before
+     */
+    public boolean hasCompletedRitual(FragmentType type) {
+        return completedRituals.contains(type);
+    }
+
+    /**
+     * Get all completed rituals
+     */
+    public Collection<FragmentType> getCompletedRituals() {
+        return new HashSet<>(completedRituals);
     }
 }

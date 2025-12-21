@@ -132,6 +132,23 @@ public class PlayerDataListener implements Listener {
                         ": Level=" + charLevel + ", XP=" + String.format("%.1f", charXP)); */
                 }
                 
+                // Load completed rituals (one-time fragment creation tracking)
+                if (data.completedRituals != null && !data.completedRituals.isEmpty()) {
+                    com.muzlik.fragment.PlayerFragmentData playerData = fragmentManager.getPlayerData(player);
+                    if (playerData != null) {
+                        for (String ritualName : data.completedRituals) {
+                            try {
+                                FragmentType fragmentType = FragmentType.valueOf(ritualName);
+                                playerData.markRitualCompleted(fragmentType);
+                            } catch (IllegalArgumentException e) {
+                                plugin.getLogger().warning("Invalid completed ritual type for " + player.getName() + ": " + ritualName);
+                            }
+                        }
+                        /* plugin.getLogger().info("Loaded " + data.completedRituals.size() + 
+                            " completed rituals for " + player.getName()); */
+                    }
+                }
+                
                 /* plugin.getLogger().info("Loaded " + (data.fragments != null ? data.fragments.size() : 0) + 
                     " fragments for " + player.getName()); */
             });
@@ -190,6 +207,20 @@ public class PlayerDataListener implements Listener {
             data.characterXp = characterLevelManager.getCharacterXPForSave(player);
             /* plugin.getLogger().info("Saving Character Level for " + player.getName() + 
                 ": Level=" + data.characterLevel + ", XP=" + String.format("%.1f", data.characterXp)); */
+        }
+        
+        // Save completed rituals (one-time fragment creation tracking)
+        com.muzlik.fragment.PlayerFragmentData playerData = fragmentManager.getPlayerData(player);
+        if (playerData != null) {
+            java.util.Collection<FragmentType> completedRituals = playerData.getCompletedRituals();
+            if (!completedRituals.isEmpty()) {
+                data.completedRituals = new java.util.ArrayList<>();
+                for (FragmentType fragmentType : completedRituals) {
+                    data.completedRituals.add(fragmentType.name());
+                }
+                /* plugin.getLogger().info("Saving " + completedRituals.size() + 
+                    " completed rituals for " + player.getName()); */
+            }
         }
         
         // Save asynchronously
