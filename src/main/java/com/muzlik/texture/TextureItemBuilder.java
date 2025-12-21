@@ -127,7 +127,7 @@ public class TextureItemBuilder {
                 .hideFlags();
         
         if (glow) {
-            builder.glow();
+            // DO NoTHING
         }
         
         return builder.build();
@@ -143,7 +143,7 @@ public class TextureItemBuilder {
                 .hideFlags();
         
         if (glow) {
-            builder.glow();
+            // DO NOTHING
         }
         
         return builder.build();

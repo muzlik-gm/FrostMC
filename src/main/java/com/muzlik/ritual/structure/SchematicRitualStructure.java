@@ -35,7 +35,7 @@ public class SchematicRitualStructure implements RitualStructure {
     private final FragmentType fragmentType;
     private final JavaPlugin plugin;
     private final Map<Location, BlockData> originalBlocks;
-    private final Set<Location> protectedArea;
+    private final Set<Location> structureBlocks; // Only the actual structure blocks
     private final boolean worldEditAvailable;
     private SimpleRitualStructure fallbackStructure;
     
@@ -45,7 +45,7 @@ public class SchematicRitualStructure implements RitualStructure {
         this.center = center.clone();
         this.fragmentType = fragmentType;
         this.originalBlocks = new HashMap<>();
-        this.protectedArea = new HashSet<>();
+        this.structureBlocks = new HashSet<>();
         this.worldEditAvailable = checkWorldEdit();
         
         // Create fallback structure
@@ -131,7 +131,7 @@ public class SchematicRitualStructure implements RitualStructure {
             // Raise by +1 block so everything is one block higher
             BlockVector3 pasteLocation = BlockVector3.at(
                 center.getBlockX() - originToCenter.getBlockX(),
-                center.getBlockY() - originToCenter.getBlockY() + 1,
+                center.getBlockY() - originToCenter.getBlockY(),
                 center.getBlockZ() - originToCenter.getBlockZ()
             );
             
@@ -155,9 +155,6 @@ public class SchematicRitualStructure implements RitualStructure {
             } catch (com.sk89q.worldedit.WorldEditException e) {
                 throw new IOException("Failed to paste schematic: " + e.getMessage(), e);
             }
-            
-            // Mark protected area with larger radius
-            markProtectedArea(20);
         }
     }
     
@@ -177,20 +174,28 @@ public class SchematicRitualStructure implements RitualStructure {
             for (int y = clipboardMin.getBlockY(); y <= clipboardMax.getBlockY(); y++) {
                 for (int z = clipboardMin.getBlockZ(); z <= clipboardMax.getBlockZ(); z++) {
                     BlockVector3 clipboardPos = BlockVector3.at(x, y, z);
-                    BlockVector3 worldPos = clipboardPos.add(offset);
                     
-                    Location loc = new Location(
-                        center.getWorld(),
-                        worldPos.getBlockX(),
-                        worldPos.getBlockY(),
-                        worldPos.getBlockZ()
-                    );
-                    
-                    Block block = loc.getBlock();
-                    originalBlocks.put(loc.clone(), block.getBlockData().clone());
+                    // Check if this position has a non-air block in the schematic
+                    com.sk89q.worldedit.world.block.BaseBlock schematicBlock = clipboard.getFullBlock(clipboardPos);
+                    if (!schematicBlock.getBlockType().getMaterial().isAir()) {
+                        BlockVector3 worldPos = clipboardPos.add(offset);
+                        
+                        Location loc = new Location(
+                            center.getWorld(),
+                            worldPos.getBlockX(),
+                            worldPos.getBlockY(),
+                            worldPos.getBlockZ()
+                        );
+                        
+                        Block block = loc.getBlock();
+                        originalBlocks.put(loc.clone(), block.getBlockData().clone());
+                        structureBlocks.add(loc.clone()); // Track structure blocks
+                    }
                 }
             }
         }
+        
+        plugin.getLogger().info(String.format("Protected %d structure blocks", structureBlocks.size()));
     }
     
     /**
@@ -216,26 +221,6 @@ public class SchematicRitualStructure implements RitualStructure {
         }
         
         return schematicFile;
-    }
-    
-    /**
-     * Mark area as protected
-     */
-    private void markProtectedArea(int radius) {
-        int centerX = center.getBlockX();
-        int centerY = center.getBlockY();
-        int centerZ = center.getBlockZ();
-        
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    Location loc = new Location(center.getWorld(), centerX + x, centerY + y, centerZ + z);
-                    protectedArea.add(loc);
-                }
-            }
-        }
-        
-        plugin.getLogger().info(String.format("Protected %d blocks in %d block radius", protectedArea.size(), radius));
     }
     
     /**
@@ -276,7 +261,7 @@ public class SchematicRitualStructure implements RitualStructure {
             cleanupTask.runTaskLater(plugin, 2L);
             
             originalBlocks.clear();
-            protectedArea.clear();
+            structureBlocks.clear();
         } else {
             // Use fallback
             fallbackStructure.despawn();
@@ -284,20 +269,21 @@ public class SchematicRitualStructure implements RitualStructure {
     }
     
     /**
-     * Check if location is in protected area
+     * Check if location is part of the ritual structure
+     * Only protects the actual structure blocks, not the surrounding area
      */
     public boolean isProtected(Location location) {
-        if (!protectedArea.isEmpty()) {
+        if (!structureBlocks.isEmpty()) {
             // Check by coordinates instead of Location object equality
             int x = location.getBlockX();
             int y = location.getBlockY();
             int z = location.getBlockZ();
             
-            for (Location protectedLoc : protectedArea) {
-                if (protectedLoc.getBlockX() == x && 
-                    protectedLoc.getBlockY() == y && 
-                    protectedLoc.getBlockZ() == z &&
-                    protectedLoc.getWorld().equals(location.getWorld())) {
+            for (Location structureLoc : structureBlocks) {
+                if (structureLoc.getBlockX() == x && 
+                    structureLoc.getBlockY() == y && 
+                    structureLoc.getBlockZ() == z &&
+                    structureLoc.getWorld().equals(location.getWorld())) {
                     return true;
                 }
             }
