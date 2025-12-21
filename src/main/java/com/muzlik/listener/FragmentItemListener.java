@@ -53,22 +53,8 @@ public class FragmentItemListener implements Listener {
             return;
         }
 
-        // Check if it's a regular fragment item (for starting rituals)
-        FragmentType fragmentType = FragmentUtil.getFragmentTypeFromItem(item);
-        if (fragmentType == null) {
-            return;
-        }
-
-        event.setCancelled(true);
-
-        boolean changerRequired = configManager.isFragmentChangerRequired();
-
-        if (changerRequired) {
-            player.sendMessage("§eThis Fragment is dormant. Use a §bFragment Changer §eto awaken its power.");
-            return;
-        }
-
-        ritualManager.startRitual(player, com.muzlik.ritual.RitualType.FRAGMENT_CREATION, item, fragmentType);
+        // Note: Ritual starting is handled by RitualListener
+        // This listener only handles fragment activation (picking up completed ritual fragments)
     }
     
     /**

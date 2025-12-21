@@ -27,7 +27,7 @@ public class RitualDisplayManager {
     
     // Configuration
     private static final double FRAGMENT_HEIGHT = 2.5; // Height above ritual center
-    private static final double BEAM_SOURCE_DISTANCE = 20.0; // Distance of beam sources from center (reduced from 100 for visibility)
+    private static final double BEAM_SOURCE_DISTANCE = 35.0; // Distance of beam sources from center (reduced from 100 for visibility)
     private static final double BEAM_SOURCE_HEIGHT = 15.0; // Height of beam sources above ground (reduced from 50)
     private static final int BEAM_COUNT = 6; // Number of beams in circle
     private static final double BEAM_TARGET_OFFSET = -0.5; // Lower the beam target by 0.5 blocks
@@ -65,6 +65,8 @@ public class RitualDisplayManager {
         floatingItem.setGlowing(true);
         floatingItem.setCustomName("§5§l" + fragmentType.getDisplayName() + " Fragment");
         floatingItem.setCustomNameVisible(true);
+        floatingItem.setPersistent(true); // Prevent entity cleanup
+        floatingItem.setUnlimitedLifetime(true); // Never despawn
         display.floatingItem = floatingItem;
         
         // 2. Calculate beam source positions (high up in a circle)
@@ -109,8 +111,8 @@ public class RitualDisplayManager {
      */
     private void createEnderCrystalBeams(RitualDisplay display, World world, Location targetLoc) {
         // Beam target should be BELOW the fragment location to almost touch it
-        // Subtract 2.0 blocks to make beams point just below the fragment
-        Location beamTargetLoc = targetLoc.clone().add(0, -2.0, 0);
+        // Subtract 1.6 blocks to make beams point just below the fragment
+        Location beamTargetLoc = targetLoc.clone().add(0, -1.6, 0);
         
         // Spawn invisible armor stand at adjusted location as beam target
         ArmorStand beamTarget = (ArmorStand) world.spawnEntity(beamTargetLoc, EntityType.ARMOR_STAND);
@@ -758,6 +760,8 @@ public class RitualDisplayManager {
             floatingItem.setInvulnerable(false); // Allow normal item behavior
             floatingItem.setCustomName("§5§l⚡ " + fragmentType.getDisplayName() + " Fragment §5§l⚡");
             floatingItem.setCustomNameVisible(true);
+            floatingItem.setPersistent(true); // Prevent entity cleanup
+            floatingItem.setUnlimitedLifetime(true); // Never despawn
             
             // Give it a small upward velocity for dramatic effect
             floatingItem.setVelocity(new Vector(0, 0.3, 0));
@@ -776,6 +780,8 @@ public class RitualDisplayManager {
                     droppedItem.setGlowing(true);
                     droppedItem.setCustomName("§5§l⚡ " + fragmentType.getDisplayName() + " Fragment §5§l⚡");
                     droppedItem.setCustomNameVisible(true);
+                    droppedItem.setPersistent(true); // Prevent entity cleanup
+                    droppedItem.setUnlimitedLifetime(true); // Never despawn
                     droppedItem.setVelocity(new Vector(0, 0.3, 0));
                     
                 }
