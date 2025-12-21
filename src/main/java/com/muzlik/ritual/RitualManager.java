@@ -133,11 +133,17 @@ public class RitualManager {
             player.sendMessage("§7Ritual catalyst consumed...");
         }
         
-        // Create ritual instance
+        // Create ritual instance with block-centered location
+        Location ritualLocation = player.getLocation().clone();
+        // Center to block coordinates (e.g., 225.7 -> 225.5, 64.3 -> 64.0, 504.2 -> 504.5)
+        ritualLocation.setX(ritualLocation.getBlockX() + 0.5);
+        ritualLocation.setY(ritualLocation.getBlockY());
+        ritualLocation.setZ(ritualLocation.getBlockZ() + 0.5);
+        
         RitualInstance ritual = new RitualInstance(
             player.getUniqueId(),
             type,
-            player.getLocation().clone(),
+            ritualLocation,
             type.getDefaultDuration() * 1000L, // Convert to milliseconds
             catalyst,
             fragmentType
