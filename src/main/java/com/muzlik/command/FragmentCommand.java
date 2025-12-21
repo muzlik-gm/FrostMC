@@ -1040,19 +1040,15 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             
-            // Check if it's already active
-            if (type.equals(fragmentManager.getActiveFragment(player))) {
-                player.sendMessage("§eš  This Fragment is already active");
-                return;
-            }
-            
-            // Check cooldown
-            if (!fragmentManager.canSwitchFragment(player)) {
-                long cooldown = fragmentManager.getFragmentSwitchCooldown(player);
-                long minutes = cooldown / 60000;
-                long seconds = (cooldown % 60000) / 1000;
-                player.sendMessage("§cœ— Fragment switch cooldown: " + minutes + "m " + seconds + "s");
-                player.sendMessage("§7Complete a Fragment Changer ritual to switch immediately");
+            // Check if player already has ANY fragment active
+            FragmentType currentActive = fragmentManager.getActiveFragment(player);
+            if (currentActive != null) {
+                if (currentActive == type) {
+                    player.sendMessage("§e⚠ This Fragment is already active");
+                } else {
+                    player.sendMessage("§c✗ You already have the " + currentActive.getDisplayName() + " Fragment active!");
+                    player.sendMessage("§7Use §e/fragment withdraw §7to deactivate it first.");
+                }
                 return;
             }
             

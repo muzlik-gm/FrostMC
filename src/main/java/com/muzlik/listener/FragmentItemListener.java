@@ -119,10 +119,15 @@ public class FragmentItemListener implements Listener {
      * Activate a fragment for the player
      */
     private void activateFragment(Player player, ItemStack item, FragmentType fragmentType) {
-        // Check if player already has this fragment active
-        if (fragmentManager.getPlayerData(player) != null && 
-            fragmentManager.getPlayerData(player).getActiveFragment() == fragmentType) {
-            player.sendMessage("§e⚠ You already have the " + fragmentType.getDisplayName() + " Fragment active!");
+        // Check if player already has ANY fragment active
+        FragmentType currentActive = fragmentManager.getActiveFragment(player);
+        if (currentActive != null) {
+            if (currentActive == fragmentType) {
+                player.sendMessage("§e⚠ You already have the " + fragmentType.getDisplayName() + " Fragment active!");
+            } else {
+                player.sendMessage("§c✗ You already have the " + currentActive.getDisplayName() + " Fragment active!");
+                player.sendMessage("§7Use §e/fragment withdraw §7to deactivate it first.");
+            }
             return;
         }
         
