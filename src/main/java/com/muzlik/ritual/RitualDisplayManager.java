@@ -101,7 +101,6 @@ public class RitualDisplayManager {
         // Start update task for timer and beams
         startDisplayUpdate(player.getUniqueId(), display);
         
-        plugin.getLogger().info("✨ Created ritual display with ender crystal beams and magic circle textures");
     }
     
     /**
@@ -129,7 +128,6 @@ public class RitualDisplayManager {
         // Spawn end crystals at beam source positions
         display.enderCrystals = new ArrayList<>();
         for (Location beamSource : display.beamSources) {
-            plugin.getLogger().info("🔮 Spawning ender crystal at: " + beamSource.getBlockX() + ", " + beamSource.getBlockY() + ", " + beamSource.getBlockZ());
             
             EnderCrystal crystal = (EnderCrystal) world.spawnEntity(beamSource, EntityType.ENDER_CRYSTAL);
             crystal.setShowingBottom(false); // No bedrock base
@@ -140,10 +138,8 @@ public class RitualDisplayManager {
             
             display.enderCrystals.add(crystal);
             
-            plugin.getLogger().info("✅ Crystal spawned, beam target: " + beamTargetLoc.toBlockLocation());
         }
         
-        plugin.getLogger().info("✨ Spawned " + display.enderCrystals.size() + " ender crystals with beams");
     }
 
     
@@ -686,7 +682,6 @@ public class RitualDisplayManager {
             display.magicCircleDisplay.remove();
         }
         
-        plugin.getLogger().info("🗑️ Removed ritual display (cleaned up all entities)");
     }
     
     /**
@@ -752,7 +747,6 @@ public class RitualDisplayManager {
         
         // Now drop the fragment to the ground
         if (floatingItem != null && !floatingItem.isDead()) {
-            plugin.getLogger().info("✅ Dropping fragment item to ground...");
             
             // Clear the reference so it won't be removed by cleanup
             display.floatingItem = null;
@@ -768,7 +762,6 @@ public class RitualDisplayManager {
             // Give it a small upward velocity for dramatic effect
             floatingItem.setVelocity(new Vector(0, 0.3, 0));
             
-            plugin.getLogger().info("✅ Fragment item configured for drop: " + floatingItem.getItemStack().getType());
         } else {
             // Floating item was removed or doesn't exist - create a new one
             plugin.getLogger().warning("⚠️ Floating item was null or dead, creating new fragment item...");
@@ -785,13 +778,11 @@ public class RitualDisplayManager {
                     droppedItem.setCustomNameVisible(true);
                     droppedItem.setVelocity(new Vector(0, 0.3, 0));
                     
-                    plugin.getLogger().info("✅ Created new fragment item and dropped it!");
                 }
             }
         }
         
         activeDisplays.remove(playerId);
-        plugin.getLogger().info("✅ Ritual complete - Fragment dropped to ground!");
     }
     
     /**

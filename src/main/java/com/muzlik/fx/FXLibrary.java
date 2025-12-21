@@ -391,7 +391,6 @@ public class FXLibrary {
      */
     public void setParticleDensityMultiplier(double multiplier) {
         this.particleDensityMultiplier = Math.max(0.1, Math.min(5.0, multiplier));
-        plugin.getLogger().info("Particle Density Multiplier: " + this.particleDensityMultiplier);
     }
 
     /**

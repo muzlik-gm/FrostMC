@@ -53,9 +53,7 @@ public class ResourcePackGenerator {
             // Generate texture mapping documentation
             generateTextureMapping(resourcePackDir);
             
-            plugin.getLogger().info("Resource pack generated at: " + resourcePackDir.getAbsolutePath());
-            plugin.getLogger().info("Fragment textures have been copied automatically!");
-            plugin.getLogger().info("Zip the 'resourcepack' folder and distribute to players!");
+            plugin.getLogger().info("Resource pack generated successfully!");
             
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to generate resource pack: " + e.getMessage());
@@ -252,8 +250,6 @@ public class ResourcePackGenerator {
         try (FileWriter writer = new FileWriter(file)) {
             gson.toJson(root, writer);
         }
-        
-        plugin.getLogger().info("  Generated model: " + category + "/" + name + ".json → " + texturePath);
     }
     
     /**
@@ -287,12 +283,9 @@ public class ResourcePackGenerator {
                 try {
                     copyFile(sourceFile, destFile);
                     copiedCount++;
-                    plugin.getLogger().info("  Copied: " + fileName);
                 } catch (IOException e) {
                     plugin.getLogger().warning("Failed to copy " + fileName + ": " + e.getMessage());
                 }
-            } else {
-                plugin.getLogger().warning("  Missing: " + fileName);
             }
         }
         
@@ -316,12 +309,6 @@ public class ResourcePackGenerator {
             File uiDest = new File(resourcePackDir, "assets/minecraft/textures/item/ui");
             copiedCount += copyPngFiles(uiSource, uiDest);
         }
-        
-        if (copiedCount > 0) {
-            plugin.getLogger().info("Copied " + copiedCount + " texture files to resource pack!");
-        } else {
-            plugin.getLogger().warning("No texture files found to copy. Add PNG files manually.");
-        }
     }
     
     /**
@@ -342,7 +329,6 @@ public class ResourcePackGenerator {
                 try {
                     copyFile(sourceFile, destFile);
                     count++;
-                    plugin.getLogger().info("  Copied: " + sourceFile.getName());
                 } catch (IOException e) {
                     plugin.getLogger().warning("Failed to copy " + sourceFile.getName() + ": " + e.getMessage());
                 }

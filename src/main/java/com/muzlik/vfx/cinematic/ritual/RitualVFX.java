@@ -49,7 +49,6 @@ public class RitualVFX {
             return;
         }
         
-        plugin.getLogger().info("🎨 Creating magic circles for " + fragmentType + " at stage " + stage + " (" + progressPercent + "%)");
         
         // Outer ring with elemental symbols (clockwise) - raised 0.5 blocks
         MagicCircle outerCircle = vfxEngine.getMagicCircleFactory().createFragmentCircle(
@@ -66,7 +65,6 @@ public class RitualVFX {
             fragmentType, center.clone().add(0, 0.6, 0), 4, player
         );
         
-        plugin.getLogger().info("✨ Spawning magic circles...");
         
         // Spawn vertical beam to sky (like ender dragon healing beam) - ALWAYS spawn during ritual
         createVerticalBeam(center, fragmentType, player);
@@ -75,21 +73,17 @@ public class RitualVFX {
         switch (stage) {
             case CHARGING:
                 vfxEngine.spawnMagicCircle(outerCircle, 20);
-                plugin.getLogger().info("  → Outer circle spawned");
                 if (progressPercent > 25) {
                     vfxEngine.spawnMagicCircle(middleCircle, 20);
-                    plugin.getLogger().info("  → Middle circle spawned");
                 }
                 if (progressPercent > 50) {
                     vfxEngine.spawnMagicCircle(innerCircle, 20);
-                    plugin.getLogger().info("  → Inner circle spawned");
                 }
                 break;
                 
             case ACTIVATION:
                 vfxEngine.spawnMagicCircle(outerCircle, 20);
                 vfxEngine.spawnMagicCircle(middleCircle, 20);
-                plugin.getLogger().info("  → Outer + Middle circles spawned");
                 vfxEngine.spawnMagicCircle(innerCircle, 20);
                 // Intensified particles
                 createIntensifiedEffect(center, fragmentType, player);

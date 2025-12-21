@@ -123,7 +123,6 @@ public class MagicCircleDisplay {
         // Start rotation animation
         startRotation();
         
-        plugin.getLogger().info("✨ Created magic circle display (rank " + rank + ", texture: " + customModelData + ")");
     }
     
     /**

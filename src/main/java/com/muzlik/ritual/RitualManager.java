@@ -55,7 +55,6 @@ public class RitualManager {
         if (plugin instanceof com.muzlik.FrostSMPPlugin) {
             this.cinematicVFXEngine = ((com.muzlik.FrostSMPPlugin) plugin).getCinematicVFXEngine();
             if (this.cinematicVFXEngine != null) {
-                plugin.getLogger().info("✅ RitualManager: Cinematic VFX Engine initialized - Magic circles enabled!");
             } else {
                 plugin.getLogger().warning("⚠️ RitualManager: Cinematic VFX Engine is NULL - Using FXLibrary fallback");
             }
@@ -75,7 +74,6 @@ public class RitualManager {
     private void checkDiscordSRV() {
         if (Bukkit.getPluginManager().getPlugin("DiscordSRV") != null) {
             discordSRVEnabled = true;
-            plugin.getLogger().info("DiscordSRV detected - ritual notifications enabled");
         }
     }
 
@@ -453,7 +451,6 @@ public class RitualManager {
                 com.muzlik.fragment.PlayerFragmentData fragmentData = fragmentManager.getPlayerData(owner);
                 if (fragmentData != null) {
                     fragmentData.markRitualCompleted(fragmentType);
-                    plugin.getLogger().info("Marked " + fragmentType.name() + " ritual as completed for " + owner.getName());
                 }
             }
             
@@ -736,7 +733,6 @@ public class RitualManager {
             // Don't remove the ritual - let grace period handle it
             // But DO cleanup the display if player was the owner
             // The ritual will continue if other players are in the area
-            plugin.getLogger().info("Player " + player.getName() + " disconnected during ritual - grace period will handle it");
         }
         
         failureCooldowns.remove(playerId);
