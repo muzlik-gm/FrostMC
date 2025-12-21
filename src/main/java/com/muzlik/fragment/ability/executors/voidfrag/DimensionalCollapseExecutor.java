@@ -1,10 +1,11 @@
 package com.muzlik.fragment.ability.executors.voidfrag;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
@@ -65,8 +66,8 @@ public class DimensionalCollapseExecutor implements AbilityExecutor {
                         // Damage once when they get close
                         if (target.getLocation().distance(center) < 2.5 && !hitEntities.contains(entity.getUniqueId())) {
                             target.damage(damage, player);
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 10));
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 60, 2));
+                            target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 60, 10));
+                            target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.WEAKNESS, 60, 2));
                             hitEntities.add(entity.getUniqueId());
                             
                             // Hit VFX - FIXED: Use safe particles

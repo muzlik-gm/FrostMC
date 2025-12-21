@@ -160,7 +160,6 @@ public class AbilitySlotManager {
     private int getFragmentBaseRank(FragmentType fragmentType) {
         switch (fragmentType) {
             case WATER:
-            case EARTH:
                 return 2;
             case FIRE:
             case AIR:
@@ -168,8 +167,6 @@ public class AbilitySlotManager {
             case DARK:
             case LIGHT:
                 return 4;
-            case MOB:
-                return 5;
             case STORM:
                 return 6;
             case VOID:

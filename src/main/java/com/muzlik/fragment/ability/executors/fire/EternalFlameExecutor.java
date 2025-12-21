@@ -2,13 +2,13 @@ package com.muzlik.fragment.ability.executors.fire;
 
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.util.PotionEffectHelper;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
@@ -30,9 +30,9 @@ public class EternalFlameExecutor implements AbilityExecutor {
         double baseDuration = 15.0;
         int duration = (int) (context.getScalingEngine().scaleDuration(baseDuration, rank) * 20);
         
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 4));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, 1));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 4));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, duration, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0));
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         

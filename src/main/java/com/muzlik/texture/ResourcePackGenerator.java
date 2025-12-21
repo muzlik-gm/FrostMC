@@ -277,8 +277,8 @@ public class ResourcePackGenerator {
         fragmentsDest.mkdirs();
         
         // List of Fragment texture files to copy
-        String[] fragmentFiles = {"fire.png", "water.png", "air.png", "earth.png", "dark.png", 
-                                  "light.png", "void.png", "mob.png", "dragon.png", "storm.png"};
+        String[] fragmentFiles = {"fire.png", "water.png", "air.png", "dark.png", 
+                                  "light.png", "void.png", "dragon.png", "storm.png"};
         
         for (String fileName : fragmentFiles) {
             File sourceFile = new File(texturesSource, fileName);

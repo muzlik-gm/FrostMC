@@ -213,11 +213,9 @@ public class FragmentGiveGUI implements Listener {
             case FIRE: return Material.FIRE_CHARGE;
             case WATER: return Material.HEART_OF_THE_SEA;
             case AIR: return Material.FEATHER;
-            case EARTH: return Material.MOSS_BLOCK;
             case DARK: return Material.WITHER_SKELETON_SKULL;
             case LIGHT: return Material.GLOWSTONE;
             case VOID: return Material.ENDER_PEARL;
-            case MOB: return Material.ZOMBIE_HEAD;
             case DRAGON: return Material.DRAGON_HEAD;
             case STORM: return Material.LIGHTNING_ROD;
             default: return Material.BARRIER;

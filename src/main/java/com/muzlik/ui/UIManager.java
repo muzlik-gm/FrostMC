@@ -553,13 +553,13 @@ public class UIManager {
             case FIRE -> Particle.FLAME;
             case WATER -> Particle.WATER_SPLASH;
             case AIR -> Particle.CLOUD;
-            case EARTH -> Particle.BLOCK_CRACK;
             case DARK -> Particle.SMOKE_LARGE;
             case LIGHT -> Particle.END_ROD;
             case VOID -> Particle.PORTAL;
-            case MOB -> Particle.VILLAGER_HAPPY;
             case DRAGON -> Particle.DRAGON_BREATH;
             case STORM -> Particle.ELECTRIC_SPARK;
+            case TIME -> Particle.END_ROD; // Yellow particles for time
+            case LUCK -> Particle.VILLAGER_HAPPY; // Green particles for luck
             case ADMIN -> Particle.SMOKE_LARGE; // Admin fragment particle
         };
     }

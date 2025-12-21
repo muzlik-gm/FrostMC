@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.light;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -11,7 +13,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
@@ -77,7 +78,7 @@ public class BeamExecutor implements AbilityExecutor {
                     target.damage(damage, player);
                     
                     // Apply blindness
-                    target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 80, 0)); // 4 seconds
+                    target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.BLINDNESS, 80, 0)); // 4 seconds
                     
                     // Impact VFX
                     int impactCount = 15 + (rank * 5);

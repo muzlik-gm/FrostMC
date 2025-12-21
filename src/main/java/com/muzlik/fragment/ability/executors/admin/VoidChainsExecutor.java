@@ -1,11 +1,12 @@
 package com.muzlik.fragment.ability.executors.admin;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.FrostSMPPlugin;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -43,8 +44,8 @@ public class VoidChainsExecutor implements AbilityExecutor {
                         LivingEntity living = (LivingEntity) entity;
                         
                         // Immobilize
-                        living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 25, 10, false, false));
-                        living.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 25, 250, false, false));
+                        living.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 25, 10));
+                        living.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.JUMP, 25, 250));
                         
                         // Pull toward player
                         Vector pullDir = playerLoc.toVector().subtract(living.getLocation().toVector()).normalize();

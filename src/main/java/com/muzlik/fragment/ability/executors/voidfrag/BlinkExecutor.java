@@ -1,5 +1,6 @@
 package com.muzlik.fragment.ability.executors.voidfrag;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -80,6 +81,11 @@ public class BlinkExecutor implements AbilityExecutor {
             .core(Particle.PORTAL, coreCount, ParticlePattern.BURST, spread, spread * 1.5, spread, 0.1, null)
             .secondary(Particle.DRAGON_BREATH, secondaryCount, ParticlePattern.SPHERE, spread * 0.8, spread, spread * 0.8, 0.08, null)
             .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.POINT, spread * 0.6, spread * 0.8, spread * 0.6, 0.05, null);
+        
+        // Magic circle at departure location - void themed
+        if (isDeparture) {
+            teleportVfx.withMagicCircle(FragmentType.VOID, 1.8 + (rank * 0.15), 25 + (rank * 3));
+        }
         
         if (rank >= 6 && isDeparture) {
             teleportVfx.cinematic(0.2 + (rank * 0.03), CinematicEffect.REALITY_WARP);

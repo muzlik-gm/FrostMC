@@ -1,6 +1,9 @@
 package com.muzlik.fragment.ability.executors.storm;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.FrostSMPPlugin;
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -9,7 +12,6 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -59,13 +61,10 @@ public class StormSurgeExecutor implements AbilityExecutor {
                         LivingEntity living = (LivingEntity) entity;
                         
                         // Apply Slowness II
-                        living.addPotionEffect(new PotionEffect(
+                        living.addPotionEffect(PotionEffectHelper.createHiddenEffect(
                             PotionEffectType.SLOW,
                             40, // 2 seconds
-                            1, // Level II
-                            false,
-                            false,
-                            false
+                            1 // Level II
                         ));
                         
                         // Deal damage every second (20 ticks)
@@ -114,6 +113,9 @@ public class StormSurgeExecutor implements AbilityExecutor {
                      radius * 0.8, radius * 0.8, radius * 0.8, 0.05, null);
         vfx.ambient(Particle.CLOUD, 30, ParticlePattern.RING,
                    radius * 1.2, 3.0, radius * 1.2, 0.02, null);
+        
+        // Magic circle for storm surge - larger for area effect
+        vfx.withMagicCircle(FragmentType.STORM, radius * 0.8, (int)(durationSeconds * 20));
         
         if (rank >= 7) {
             vfx.cinematic(0.2, com.muzlik.vfx.CinematicEffect.STORM_PULSE);

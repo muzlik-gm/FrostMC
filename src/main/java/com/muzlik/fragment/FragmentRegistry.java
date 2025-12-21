@@ -26,13 +26,13 @@ public class FragmentRegistry {
         registerFireFragment();
         registerWaterFragment();
         registerAirFragment();
-        registerEarthFragment();
         registerDarkFragment();
         registerLightFragment();
         registerVoidFragment();
-        registerMobFragment();
         registerDragonFragment();
         registerStormFragment();
+        registerTimeFragment();
+        registerLuckFragment();
         registerAdminFragment();
         
         // Logging removed for cleaner console
@@ -220,51 +220,7 @@ public class FragmentRegistry {
         fragmentManager.registerFragment(builder.build());
     }
 
-    private void registerEarthFragment() {
-        ColorScheme colors = fxLibrary.getColorScheme(FragmentType.EARTH);
-        
-        FragmentDefinition.Builder builder = new FragmentDefinition.Builder(FragmentType.EARTH)
-            .baseRank(2)
-            .colorScheme(colors)
-            .xpCurve(XPCurve.LINEAR)
-            .deathXPPenalty(0.05)
-            .theme("Defense, tanking, terrain control")
-            .complexityLevel(3);
-        
-        // Core Abilities ONLY (Rank 2 cannot expand) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_punch", FragmentType.EARTH)
-            .displayName("Punch")
-            .description("Powerful earth-enhanced punch, 7 hearts damage + knockback")
-            .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
-            .manaCost(20)
-            .cooldown(5000)
-            .executor(new com.muzlik.fragment.ability.executors.earth.PunchExecutor())
-            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
-            .build());
-            
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_wall", FragmentType.EARTH)
-            .displayName("Wall")
-            .description("+8 armor points for 8 seconds, reduces damage by 40%")
-            .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
-            .manaCost(30)
-            .cooldown(10000)
-            .executor(new com.muzlik.fragment.ability.executors.earth.WallExecutor())
-            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
-            .build());
-            
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("earth_slam", FragmentType.EARTH)
-            .displayName("Slam")
-            .description("Slams ground creating 7-block radius shockwave, 6 hearts damage + stun 2s")
-            .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
-            .manaCost(50)
-            .cooldown(16000)
-            .executor(new com.muzlik.fragment.ability.executors.earth.SlamExecutor())
-            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
-            .build());
-        
-        // Note: Earth Fragment (Rank 2) cannot unlock additional abilities beyond these 3 core abilities
-        fragmentManager.registerFragment(builder.build());
-    }
+
 
     private void registerDarkFragment() {
         ColorScheme colors = fxLibrary.getColorScheme(FragmentType.DARK);
@@ -449,52 +405,7 @@ public class FragmentRegistry {
         fragmentManager.registerFragment(builder.build());
     }
 
-    private void registerMobFragment() {
-        ColorScheme colors = fxLibrary.getColorScheme(FragmentType.MOB);
-        
-        FragmentDefinition.Builder builder = new FragmentDefinition.Builder(FragmentType.MOB)
-            .baseRank(5)
-            .colorScheme(colors)
-            .xpCurve(XPCurve.LINEAR)
-            .deathXPPenalty(0.10)
-            .theme("Summoning, minion control, beast mastery")
-            .complexityLevel(6);
-        
-        // Core Abilities (Always Available) - Slots 0, 1, 2
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_summon", FragmentType.MOB)
-            .displayName("Summon")
-            .description("Summons wolf pack (3 wolves) that fight for 30s, scales with rank")
-            .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
-            .manaCost(30)
-            .cooldown(8000)
-            .executor(new com.muzlik.fragment.ability.executors.mob.SummonExecutor())
-            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
-            .build());
-            
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_guardian", FragmentType.MOB)
-            .displayName("Guardian")
-            .description("Summons Iron Golem that protects caster for 45s, taunts enemies")
-            .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
-            .manaCost(45)
-            .cooldown(15000)
-            .executor(new com.muzlik.fragment.ability.executors.mob.GuardianExecutor())
-            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
-            .build());
-            
-        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("mob_legion", FragmentType.MOB)
-            .displayName("Legion")
-            .description("Summons 5 skeleton warriors + 2 zombie brutes that fight for 60s")
-            .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
-            .manaCost(80)
-            .cooldown(30000)
-            // FIXED: Ultimate slot should be available from rank 1
-            .executor(new com.muzlik.fragment.ability.executors.mob.LegionExecutor())
-            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
-            .build());
-        
-        // Note: MOB Fragment unlocks Slot 3 at Rank 7, Slot 4 at Rank 9 (not implemented yet)
-        fragmentManager.registerFragment(builder.build());
-    }
+
 
     private void registerDragonFragment() {
         ColorScheme colors = fxLibrary.getColorScheme(FragmentType.DRAGON);
@@ -610,6 +521,142 @@ public class FragmentRegistry {
             .build());
         
         // Note: STORM Fragment unlocks Slot 3 at Rank 8, Slot 4 at Rank 10 (not implemented yet)
+        fragmentManager.registerFragment(builder.build());
+    }
+
+    private void registerTimeFragment() {
+        ColorScheme colors = fxLibrary.getColorScheme(FragmentType.TIME);
+        
+        FragmentDefinition.Builder builder = new FragmentDefinition.Builder(FragmentType.TIME)
+            .baseRank(7)
+            .colorScheme(colors)
+            .xpCurve(XPCurve.EXPONENTIAL)
+            .deathXPPenalty(0.18)
+            .theme("Temporal manipulation, time control, chronological power")
+            .complexityLevel(7);
+        
+        // Core Abilities (Always Available) - Slots 0, 1, 2
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("time_temporal_slow", FragmentType.TIME)
+            .displayName("Temporal Slow")
+            .description("Slows down target entity with time distortion")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
+            .manaCost(30)
+            .cooldown(18000)
+            .executor(new com.muzlik.fragment.ability.executors.time.TemporalSlowExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("time_acceleration", FragmentType.TIME)
+            .displayName("Time Acceleration")
+            .description("Grants speed and haste with time acceleration")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
+            .manaCost(40)
+            .cooldown(20000)
+            .executor(new com.muzlik.fragment.ability.executors.time.TimeAccelerationExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("time_dilation_field", FragmentType.TIME)
+            .displayName("Time Dilation Field")
+            .description("Create area where time flows differently for allies and enemies")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
+            .manaCost(70)
+            .cooldown(60000)
+            .executor(new com.muzlik.fragment.ability.executors.time.TimeDilationFieldExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("time_temporal_rewind", FragmentType.TIME)
+            .displayName("Temporal Rewind")
+            .description("Restore health and position from 5 seconds ago")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
+            .manaCost(60)
+            .cooldown(45000)
+            .rankRequirement(8) // Changed from 4 to 8 (TIME starts at rank 7)
+            .executor(new com.muzlik.fragment.ability.executors.time.TemporalRewindExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("time_chrono_stasis", FragmentType.TIME)
+            .displayName("Chrono Stasis")
+            .description("Freeze enemies in time temporarily")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
+            .manaCost(50)
+            .cooldown(30000)
+            .rankRequirement(10) // Changed from 6 to 10 (requires significant progression)
+            .executor(new com.muzlik.fragment.ability.executors.time.ChronoStasisExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+        
+        fragmentManager.registerFragment(builder.build());
+    }
+
+    private void registerLuckFragment() {
+        ColorScheme colors = fxLibrary.getColorScheme(FragmentType.LUCK);
+        
+        FragmentDefinition.Builder builder = new FragmentDefinition.Builder(FragmentType.LUCK)
+            .baseRank(6)
+            .colorScheme(colors)
+            .xpCurve(XPCurve.EXPONENTIAL)
+            .deathXPPenalty(0.15)
+            .theme("Probability manipulation, fortune, serendipity")
+            .complexityLevel(6);
+        
+        // Core Abilities (Always Available) - Slots 0, 1, 2
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("luck_fortune_strike", FragmentType.LUCK)
+            .displayName("Fortune Strike")
+            .description("Increased critical hit chance and damage")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
+            .manaCost(35)
+            .cooldown(15000)
+            .executor(new com.muzlik.fragment.ability.executors.luck.FortuneStrikeExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("luck_lucky_dodge", FragmentType.LUCK)
+            .displayName("Lucky Dodge")
+            .description("Chance to evade incoming attacks")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
+            .manaCost(30)
+            .cooldown(18000)
+            .executor(new com.muzlik.fragment.ability.executors.luck.LuckyDodgeExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("luck_serendipity_aura", FragmentType.LUCK)
+            .displayName("Serendipity Aura")
+            .description("Share luck effects with nearby allies")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ULTIMATE)
+            .manaCost(65)
+            .cooldown(70000)
+            .executor(new com.muzlik.fragment.ability.executors.luck.SerendipityAuraExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("luck_treasure_hunter", FragmentType.LUCK)
+            .displayName("Treasure Hunter")
+            .description("Increase loot drops from mobs")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
+            .manaCost(45)
+            .cooldown(40000)
+            .rankRequirement(7) // Changed from 4 to 7 (LUCK starts at rank 6)
+            .executor(new com.muzlik.fragment.ability.executors.luck.TreasureHunterExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+            
+        builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("luck_probability_manipulation", FragmentType.LUCK)
+            .displayName("Probability Manipulation")
+            .description("Influence random outcomes")
+            .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
+            .manaCost(55)
+            .cooldown(50000)
+            .rankRequirement(9) // Changed from 6 to 9 (requires significant progression)
+            .executor(new com.muzlik.fragment.ability.executors.luck.ProbabilityManipulationExecutor())
+            .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
+            .build());
+        
         fragmentManager.registerFragment(builder.build());
     }
 

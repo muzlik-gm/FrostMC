@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.dragon;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -9,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -45,7 +46,7 @@ public class WingsExecutor implements AbilityExecutor {
         
         // Grant speed boost
         int speedLevel = 1 + (rank / 3); // Speed II at rank 3, III at rank 6, etc.
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration + 20, speedLevel));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, duration + 20, speedLevel));
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
@@ -110,9 +111,34 @@ public class WingsExecutor implements AbilityExecutor {
     private void createWingVFX(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
         Location playerLoc = player.getLocation().add(0, 1, 0);
         
-        // Create wing particles behind and to sides of player
-        Location leftWing = playerLoc.clone().add(-2.0, 0.5, -1.0);
-        Location rightWing = playerLoc.clone().add(2.0, 0.5, -1.0);
+        // Get player's direction (yaw in radians)
+        // In Minecraft: yaw 0 = south, 90 = west, 180 = north, 270 = east
+        float yaw = playerLoc.getYaw();
+        double yawRadians = Math.toRadians(yaw + 90); // Add 90 to align with direction vector
+        
+        // Calculate wing positions relative to player's direction
+        // Wings are positioned behind and to the sides
+        double wingDistance = 2.0; // Distance to the side
+        double wingBackOffset = 1.0; // Behind the player
+        double wingHeight = 0.5; // Height offset
+        
+        // Direction the player is facing
+        double dirX = -Math.sin(yawRadians);
+        double dirZ = Math.cos(yawRadians);
+        
+        // Perpendicular direction (for left/right)
+        double perpX = -dirZ;
+        double perpZ = dirX;
+        
+        // Left wing (to the left and behind)
+        double leftX = perpX * wingDistance - dirX * wingBackOffset;
+        double leftZ = perpZ * wingDistance - dirZ * wingBackOffset;
+        Location leftWing = playerLoc.clone().add(leftX, wingHeight, leftZ);
+        
+        // Right wing (to the right and behind)
+        double rightX = -perpX * wingDistance - dirX * wingBackOffset;
+        double rightZ = -perpZ * wingDistance - dirZ * wingBackOffset;
+        Location rightWing = playerLoc.clone().add(rightX, wingHeight, rightZ);
         
         int wingCount = 6 + rank;
         int trailCount = 4 + rank;
@@ -132,9 +158,13 @@ public class WingsExecutor implements AbilityExecutor {
         leftWingVfx.spawn();
         rightWingVfx.spawn();
         
-        // Trail behind player when moving fast
+        // Trail behind player when moving fast (also direction-aware)
         if (player.getVelocity().length() > 0.3) {
-            VFXLayerBuilder trailVfx = new VFXLayerBuilder(plugin, playerLoc.clone().add(0, 0, -1), rank, player)
+            double trailX = -dirX * wingBackOffset;
+            double trailZ = -dirZ * wingBackOffset;
+            Location trailLoc = playerLoc.clone().add(trailX, 0, trailZ);
+            
+            VFXLayerBuilder trailVfx = new VFXLayerBuilder(plugin, trailLoc, rank, player)
                 .withPerformanceManager(plugin.getVFXPerformanceManager())
                 .ambient(Particle.SMOKE_NORMAL, trailCount, ParticlePattern.POINT, 0.5, 0.5, 0.5, 0.02, null);
             trailVfx.spawn();

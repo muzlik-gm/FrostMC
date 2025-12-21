@@ -72,6 +72,8 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     private EnvironmentManager environmentManager;
     private AbilityVFXHelper abilityVFXHelper;
     private com.muzlik.vfx.VFXPerformanceManager vfxPerformanceManager;
+    private com.muzlik.vfx.cinematic.CinematicVFXEngine cinematicVFXEngine;
+    private com.muzlik.vfx.cinematic.miniblock.MiniBlockManager miniBlockManager;
     
     // Block Manipulation System
     private com.muzlik.block.BlockManipulationEngine blockManipulationEngine;
@@ -84,6 +86,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
     // Player Preferences System (control schemes, ability toggle)
     private com.muzlik.player.PlayerPreferencesManager preferencesManager;
+    
+    // Luck Fragment Passive System
+    private com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager luckPassiveManager;
 
     @Override
     public void onEnable() {
@@ -135,6 +140,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         environmentManager = new EnvironmentManager(this, effectRegistry);
         environmentManager.startRevertTask();
         
+        // Initialize cinematic VFX system
+        cinematicVFXEngine = new com.muzlik.vfx.cinematic.CinematicVFXEngine(this, effectRegistry);
+        miniBlockManager = cinematicVFXEngine.getMiniBlockManager();
+        
         // Initialize block manipulation system
         blockManipulationEngine = new com.muzlik.block.BlockManipulationEngine(this, effectRegistry, damageAttributionManager);
         blockManipulationEngine.registerCleanupListener();
@@ -172,6 +181,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         
         // Initialize flight system
         flightManager = new com.muzlik.fragment.ability.FlightManager(this);
+        
+        // Initialize Luck Fragment passive system
+        luckPassiveManager = new com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager(this, fragmentManager);
+        luckPassiveManager.start();
         
         // Initialize FX Library
         fxLibrary = new FXLibrary(this);
@@ -298,7 +311,25 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 this
         );
         getServer().getPluginManager().registerEvents(
-                new com.muzlik.listener.FragmentItemListener(ritualManager, configManager),
+                new com.muzlik.listener.FragmentItemListener(ritualManager, configManager, fragmentManager),
+                this
+        );
+        
+        // Register Luck Fragment ability listeners
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.fragment.ability.executors.luck.FortuneStrikeExecutor.FortuneStrikeListener(),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.fragment.ability.executors.luck.LuckyDodgeExecutor.LuckyDodgeListener(),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.fragment.ability.executors.luck.TreasureHunterExecutor.TreasureHunterListener(),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.fragment.ability.executors.luck.ProbabilityManipulationExecutor.ProbabilityManipulationListener(),
                 this
         );
         
@@ -396,12 +427,20 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
             flightManager.shutdown();
         }
         
+        // Shutdown Luck Fragment passive system
+        if (luckPassiveManager != null) {
+            luckPassiveManager.stop();
+        }
+        
         // Shutdown Block Manipulation system
         if (blockManipulationEngine != null) {
             blockManipulationEngine.shutdown();
         }
         
         // Shutdown VFX system
+        if (cinematicVFXEngine != null) {
+            cinematicVFXEngine.cleanup();
+        }
         if (environmentManager != null) {
             environmentManager.shutdown();
         }
@@ -512,8 +551,11 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public AbilityVFXHelper getAbilityVFXHelper() { return abilityVFXHelper; }
     public com.muzlik.vfx.VFXPerformanceManager getVFXPerformanceManager() { return vfxPerformanceManager; }
     public com.muzlik.fragment.ability.FlightManager getFlightManager() { return flightManager; }
+    public com.muzlik.vfx.cinematic.CinematicVFXEngine getCinematicVFXEngine() { return cinematicVFXEngine; }
+    public com.muzlik.vfx.cinematic.miniblock.MiniBlockManager getMiniBlockManager() { return miniBlockManager; }
     public CharacterLevelManager getCharacterLevelManager() { return characterLevelManager; }
     public com.muzlik.player.PlayerPreferencesManager getPreferencesManager() { return preferencesManager; }
+    public com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager getLuckPassiveManager() { return luckPassiveManager; }
 }
 
 

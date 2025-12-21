@@ -60,14 +60,6 @@ public class FXLibrary {
             Particle.CLOUD
         ));
 
-        // EARTH: Brown/Tan/SandyBrown
-        colorSchemes.put(FragmentType.EARTH, new ColorScheme(
-            Color.fromRGB(139, 69, 19),   // Primary: SaddleBrown
-            Color.fromRGB(210, 105, 30),  // Secondary: Chocolate
-            Color.fromRGB(244, 164, 96),  // Accent: SandyBrown
-            Particle.BLOCK_DUST
-        ));
-
         // DARK: Purple/DarkPurple/Violet
         colorSchemes.put(FragmentType.DARK, new ColorScheme(
             Color.fromRGB(75, 0, 130),    // Primary: Indigo
@@ -92,14 +84,6 @@ public class FXLibrary {
             Particle.PORTAL
         ));
 
-        // MOB: Green/LimeGreen/LightGreen
-        colorSchemes.put(FragmentType.MOB, new ColorScheme(
-            Color.fromRGB(34, 139, 34),   // Primary: ForestGreen
-            Color.fromRGB(50, 205, 50),   // Secondary: LimeGreen
-            Color.fromRGB(144, 238, 144), // Accent: LightGreen
-            Particle.SLIME
-        ));
-
         // DRAGON: Crimson/Red/Tomato
         colorSchemes.put(FragmentType.DRAGON, new ColorScheme(
             Color.fromRGB(220, 20, 60),   // Primary: Crimson
@@ -114,6 +98,22 @@ public class FXLibrary {
             Color.fromRGB(95, 158, 160),  // Secondary: CadetBlue
             Color.fromRGB(176, 196, 222), // Accent: LightSteelBlue
             Particle.ELECTRIC_SPARK
+        ));
+
+        // TIME: Yellow/Gold/LightYellow (Temporal theme)
+        colorSchemes.put(FragmentType.TIME, new ColorScheme(
+            Color.fromRGB(255, 255, 0),   // Primary: Yellow
+            Color.fromRGB(255, 215, 0),   // Secondary: Gold
+            Color.fromRGB(255, 255, 224), // Accent: LightYellow
+            Particle.END_ROD
+        ));
+
+        // LUCK: Green/LimeGreen/SpringGreen (Fortune theme)
+        colorSchemes.put(FragmentType.LUCK, new ColorScheme(
+            Color.fromRGB(0, 255, 0),     // Primary: Green
+            Color.fromRGB(50, 205, 50),   // Secondary: LimeGreen
+            Color.fromRGB(0, 255, 127),   // Accent: SpringGreen
+            Particle.VILLAGER_HAPPY
         ));
 
         // ADMIN: DarkRed/Black/Crimson (Destructive power)

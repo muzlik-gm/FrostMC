@@ -268,13 +268,13 @@ public class FragmentIconBuilder {
             case FIRE -> Material.FIRE_CHARGE;
             case WATER -> Material.HEART_OF_THE_SEA;
             case AIR -> Material.FEATHER;
-            case EARTH -> Material.MOSSY_COBBLESTONE;
             case DARK -> Material.OBSIDIAN;
             case LIGHT -> Material.GLOWSTONE;
             case VOID -> Material.ENDER_PEARL;
-            case MOB -> Material.SPAWNER;
             case DRAGON -> Material.DRAGON_EGG;
             case STORM -> Material.LIGHTNING_ROD;
+            case TIME -> Material.CLOCK;
+            case LUCK -> Material.RABBIT_FOOT;
             case ADMIN -> Material.NETHER_STAR; // Admin fragment icon
         };
     }

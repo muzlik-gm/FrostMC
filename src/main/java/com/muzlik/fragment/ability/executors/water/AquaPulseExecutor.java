@@ -1,5 +1,8 @@
 package com.muzlik.fragment.ability.executors.water;
 
+import com.muzlik.util.PotionEffectHelper;
+
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -10,7 +13,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
@@ -38,7 +40,7 @@ public class AquaPulseExecutor implements AbilityExecutor {
         for (org.bukkit.entity.Entity entity : player.getWorld().getNearbyEntities(loc, radius, radius, radius)) {
             if (entity instanceof LivingEntity) {
                 LivingEntity target = (LivingEntity) entity;
-                target.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.REGENERATION, 100, 1));
                 if (target.getHealth() < target.getMaxHealth()) {
                     target.setHealth(Math.min(target.getMaxHealth(), target.getHealth() + healing));
                 }
@@ -64,7 +66,9 @@ public class AquaPulseExecutor implements AbilityExecutor {
             // Ambient: WATER_BUBBLE - sparse bubbles for atmosphere
             .ambient(Particle.WATER_BUBBLE, ambientCount, ParticlePattern.RING, radius * 0.3, 0.3 + (rank * 0.1), radius * 0.3, 0.01, null)
             // Impact: Gentle splash - not explosive, healing-focused
-            .impact(Particle.WATER_SPLASH, impactCount, ParticlePattern.BURST, radius * 0.5, 0.5 + (rank * 0.2), radius * 0.5, 0.06 + (rank * 0.02), null);
+            .impact(Particle.WATER_SPLASH, impactCount, ParticlePattern.BURST, radius * 0.5, 0.5 + (rank * 0.2), radius * 0.5, 0.06 + (rank * 0.02), null)
+            // Magic circle - water themed
+            .withMagicCircle(FragmentType.WATER, 2.5 + (rank * 0.2), 35 + (rank * 5));
         
         // Cinematic: Water shimmer at rank 2+, more intense at higher ranks
         if (rank >= 2) {

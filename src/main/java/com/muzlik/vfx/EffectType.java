@@ -65,5 +65,10 @@ public enum EffectType {
     /**
      * Transformation effect (dragon form, etc.)
      */
-    TRANSFORMATION
+    TRANSFORMATION,
+    
+    /**
+     * Magic circle cinematic effect
+     */
+    MAGIC_CIRCLE
 }

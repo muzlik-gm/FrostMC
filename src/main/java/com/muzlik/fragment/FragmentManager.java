@@ -424,6 +424,17 @@ public class FragmentManager {
     }
 
     /**
+     * Create a Fragment item (without giving to player)
+     * @return The fragment ItemStack, or null if fragment type not registered
+     */
+    public org.bukkit.inventory.ItemStack createFragmentItem(FragmentType type) {
+        if (!registeredFragments.containsKey(type)) {
+            return null;
+        }
+        return com.muzlik.texture.TextureItemBuilder.createFragmentItem(type);
+    }
+    
+    /**
      * Create and give a physical Fragment item to a player
      */
     public void giveFragmentItem(Player player, FragmentType type) {
@@ -433,8 +444,7 @@ public class FragmentManager {
         }
         
         // Create the fragment item with texture
-        org.bukkit.inventory.ItemStack fragmentItem = 
-            com.muzlik.texture.TextureItemBuilder.createFragmentItem(type);
+        org.bukkit.inventory.ItemStack fragmentItem = createFragmentItem(type);
         
         // Try to add to inventory
         java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> leftover = 

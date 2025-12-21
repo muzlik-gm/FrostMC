@@ -177,17 +177,17 @@ public class FragmentActivateGUI implements Listener {
      */
     private int getFragmentCustomModelData(FragmentType type) {
         return switch (type) {
-            case FIRE -> 1001;      // fragment_fire.png
-            case WATER -> 1002;     // fragment_water.png
-            case AIR -> 1003;       // fragment_air.png
-            case EARTH -> 1004;     // fragment_earth.png
-            case DARK -> 1005;      // fragment_dark.png
-            case LIGHT -> 1006;     // fragment_light.png
-            case VOID -> 1007;      // fragment_void.png
-            case MOB -> 1008;       // fragment_mob.png
-            case DRAGON -> 1009;    // fragment_dragon.png
-            case STORM -> 1010;     // fragment_storm.png
-            case ADMIN -> 1011;     // fragment_admin.png (hidden)
+            case FIRE -> 1000;      // fragment_fire.png
+            case WATER -> 1001;     // fragment_water.png
+            case AIR -> 1002;       // fragment_air.png
+            case DARK -> 1003;      // fragment_dark.png
+            case LIGHT -> 1004;     // fragment_light.png
+            case VOID -> 1005;      // fragment_void.png
+            case DRAGON -> 1006;    // fragment_dragon.png
+            case STORM -> 1007;     // fragment_storm.png
+            case TIME -> 1008;      // fragment_time.png
+            case LUCK -> 1009;      // fragment_luck.png
+            case ADMIN -> 1099;     // fragment_admin.png (hidden)
         };
     }
     

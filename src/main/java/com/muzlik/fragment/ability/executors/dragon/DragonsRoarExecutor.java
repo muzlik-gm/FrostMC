@@ -1,7 +1,10 @@
 package com.muzlik.fragment.ability.executors.dragon;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.vfx.VFXLayerBuilder;
+import com.muzlik.vfx.ParticlePattern;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
@@ -122,5 +125,13 @@ public class DragonsRoarExecutor implements AbilityExecutor {
         player.getWorld().playSound(eyeLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, volume, pitch);
         player.getWorld().playSound(eyeLoc, Sound.ENTITY_BLAZE_SHOOT, volume * 0.8f, 0.6f);
         
+        // Magic circle at player's feet - dragon themed
+        if (plugin != null) {
+            VFXLayerBuilder circleVfx = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)
+                .withPerformanceManager(plugin.getVFXPerformanceManager())
+                .core(Particle.FLAME, 5, ParticlePattern.POINT, 0.1, 0.1, 0.1, 0.01, null)
+                .withMagicCircle(FragmentType.DRAGON, 2.5 + (rank * 0.25), 40 + (rank * 5));
+            circleVfx.spawn();
+        }
     }
 }

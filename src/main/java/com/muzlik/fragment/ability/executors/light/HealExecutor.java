@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.light;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -60,7 +62,7 @@ public class HealExecutor implements AbilityExecutor {
         
         // Grant Regeneration II for 8 seconds
         int regenDuration = 160 + (rank * 20); // 8s + 1s per rank
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, regenDuration, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.REGENERATION, regenDuration, 1));
         
         // 5-Layer VFX System
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");

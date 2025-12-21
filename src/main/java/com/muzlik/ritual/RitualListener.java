@@ -4,13 +4,15 @@ import com.muzlik.fragment.FragmentType;
 import com.muzlik.recipe.RecipeManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Handles ritual item interactions.
+ * Handles ritual item interactions and player quit cleanup.
  * Rituals are started by placing the ritual item as a block.
  */
 public class RitualListener implements Listener {
@@ -22,6 +24,15 @@ public class RitualListener implements Listener {
         this.plugin = plugin;
         this.ritualManager = ritualManager;
         this.recipeManager = recipeManager;
+    }
+    
+    /**
+     * Handle player quit - ritual will enter grace period if no other players are in the area
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        ritualManager.removePlayer(player);
     }
 
     @EventHandler

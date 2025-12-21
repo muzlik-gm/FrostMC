@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.dark;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -7,7 +9,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -38,10 +39,10 @@ public class ShroudExecutor implements AbilityExecutor {
         transformVFX.spawn();
         
         // Apply shadow effects
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, durationTicks, 0));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, durationTicks, 1)); // +75% damage
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0)); // Bonus speed
-        player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, durationTicks, 0)); // See in darkness
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INVISIBILITY, durationTicks, 0));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, durationTicks, 1)); // +75% damage
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, durationTicks, 0)); // Bonus speed
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.NIGHT_VISION, durationTicks, 0)); // See in darkness
         
         // Continuous shadow aura
         new BukkitRunnable() {

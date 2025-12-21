@@ -77,10 +77,6 @@ public class RitualMaterialRequirements {
                 requirements.add(new MaterialRequirement(Material.FEATHER, 32));
                 requirements.add(new MaterialRequirement(Material.PHANTOM_MEMBRANE, 4));
                 break;
-            case EARTH:
-                requirements.add(new MaterialRequirement(Material.EMERALD, 8));
-                requirements.add(new MaterialRequirement(Material.CLAY_BALL, 32));
-                break;
             case DARK:
                 requirements.add(new MaterialRequirement(Material.WITHER_SKELETON_SKULL, 2));
                 requirements.add(new MaterialRequirement(Material.OBSIDIAN, 16));
@@ -96,10 +92,6 @@ public class RitualMaterialRequirements {
             case VOID:
                 requirements.add(new MaterialRequirement(Material.ENDER_PEARL, 16));
                 requirements.add(new MaterialRequirement(Material.END_CRYSTAL, 2));
-                break;
-            case MOB:
-                requirements.add(new MaterialRequirement(Material.TOTEM_OF_UNDYING, 1));
-                requirements.add(new MaterialRequirement(Material.BONE, 64));
                 break;
             case DRAGON:
                 requirements.add(new MaterialRequirement(Material.DRAGON_HEAD, 1));
@@ -165,9 +157,6 @@ public class RitualMaterialRequirements {
             case AIR:
                 requirements.add(new MaterialRequirement(Material.ELYTRA, 1));
                 break;
-            case EARTH:
-                requirements.add(new MaterialRequirement(Material.EMERALD_BLOCK, 2));
-                break;
             case DARK:
                 requirements.add(new MaterialRequirement(Material.WITHER_SKELETON_SKULL, 3));
                 break;
@@ -179,9 +168,6 @@ public class RitualMaterialRequirements {
                 break;
             case VOID:
                 requirements.add(new MaterialRequirement(Material.END_CRYSTAL, 4));
-                break;
-            case MOB:
-                requirements.add(new MaterialRequirement(Material.TOTEM_OF_UNDYING, 2));
                 break;
             case DRAGON:
                 requirements.add(new MaterialRequirement(Material.DRAGON_HEAD, 1));
@@ -218,10 +204,6 @@ public class RitualMaterialRequirements {
                 requirements.add(new MaterialRequirement(Material.PHANTOM_MEMBRANE, 16));
                 requirements.add(new MaterialRequirement(Material.ELYTRA, 1));
                 break;
-            case EARTH:
-                requirements.add(new MaterialRequirement(Material.EMERALD_BLOCK, 4));
-                requirements.add(new MaterialRequirement(Material.DIAMOND_BLOCK, 4));
-                break;
             case DARK:
                 requirements.add(new MaterialRequirement(Material.WITHER_SKELETON_SKULL, 6));
                 requirements.add(new MaterialRequirement(Material.NETHER_STAR, 1));
@@ -237,10 +219,6 @@ public class RitualMaterialRequirements {
             case VOID:
                 requirements.add(new MaterialRequirement(Material.END_CRYSTAL, 8));
                 requirements.add(new MaterialRequirement(Material.ENDER_PEARL, 64));
-                break;
-            case MOB:
-                requirements.add(new MaterialRequirement(Material.TOTEM_OF_UNDYING, 3));
-                requirements.add(new MaterialRequirement(Material.BONE_BLOCK, 16));
                 break;
             case DRAGON:
                 requirements.add(new MaterialRequirement(Material.DRAGON_HEAD, 2));

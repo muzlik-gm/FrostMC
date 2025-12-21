@@ -18,6 +18,11 @@ public class RitualInstance {
     private final ItemStack catalyst;
     private final FragmentType fragmentType;
     private RitualStage stage;
+    
+    // Grace period tracking
+    private boolean inGracePeriod = false;
+    private long gracePeriodStartTime = 0;
+    private static final long GRACE_PERIOD_DURATION = 10000; // 10 seconds in milliseconds
 
     public RitualInstance(UUID playerId, RitualType type, Location location, 
                          long duration, ItemStack catalyst, FragmentType fragmentType) {
@@ -88,5 +93,56 @@ public class RitualInstance {
      */
     public long getRemainingSeconds() {
         return getRemainingTime() / 1000;
+    }
+    
+    // Grace period methods
+    
+    /**
+     * Start the grace period (no players in ritual area)
+     */
+    public void startGracePeriod() {
+        if (!inGracePeriod) {
+            inGracePeriod = true;
+            gracePeriodStartTime = System.currentTimeMillis();
+        }
+    }
+    
+    /**
+     * End the grace period (player returned to ritual area)
+     */
+    public void endGracePeriod() {
+        inGracePeriod = false;
+        gracePeriodStartTime = 0;
+    }
+    
+    /**
+     * Check if ritual is in grace period
+     */
+    public boolean isInGracePeriod() {
+        return inGracePeriod;
+    }
+    
+    /**
+     * Check if grace period has expired
+     */
+    public boolean isGracePeriodExpired() {
+        if (!inGracePeriod) return false;
+        return System.currentTimeMillis() - gracePeriodStartTime >= GRACE_PERIOD_DURATION;
+    }
+    
+    /**
+     * Get remaining grace period time in seconds
+     */
+    public long getGracePeriodRemainingSeconds() {
+        if (!inGracePeriod) return 0;
+        long elapsed = System.currentTimeMillis() - gracePeriodStartTime;
+        return Math.max(0, (GRACE_PERIOD_DURATION - elapsed) / 1000);
+    }
+    
+    /**
+     * Get grace period duration in seconds
+     */
+    public static long getGracePeriodDurationSeconds() {
+        return GRACE_PERIOD_DURATION / 1000;
     }
 }

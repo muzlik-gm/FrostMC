@@ -54,13 +54,13 @@ public class TextureRegistry {
         FRAGMENT_TEXTURES.put(FragmentType.FIRE, 1000);
         FRAGMENT_TEXTURES.put(FragmentType.WATER, 1001);
         FRAGMENT_TEXTURES.put(FragmentType.AIR, 1002);
-        FRAGMENT_TEXTURES.put(FragmentType.EARTH, 1003);
-        FRAGMENT_TEXTURES.put(FragmentType.DARK, 1004);
-        FRAGMENT_TEXTURES.put(FragmentType.LIGHT, 1005);
-        FRAGMENT_TEXTURES.put(FragmentType.VOID, 1006);
-        FRAGMENT_TEXTURES.put(FragmentType.MOB, 1007);
-        FRAGMENT_TEXTURES.put(FragmentType.DRAGON, 1008);
-        FRAGMENT_TEXTURES.put(FragmentType.STORM, 1009);
+        FRAGMENT_TEXTURES.put(FragmentType.DARK, 1003);
+        FRAGMENT_TEXTURES.put(FragmentType.LIGHT, 1004);
+        FRAGMENT_TEXTURES.put(FragmentType.VOID, 1005);
+        FRAGMENT_TEXTURES.put(FragmentType.DRAGON, 1006);
+        FRAGMENT_TEXTURES.put(FragmentType.STORM, 1007);
+        FRAGMENT_TEXTURES.put(FragmentType.TIME, 1008);
+        FRAGMENT_TEXTURES.put(FragmentType.LUCK, 1009);
     }
     
     /**
@@ -88,47 +88,36 @@ public class TextureRegistry {
         ABILITY_TEXTURES.put("air_armor", 2203);
         ABILITY_TEXTURES.put("air_flight", 2204);
         
-        // Earth Fragment abilities (2300-2399)
-        ABILITY_TEXTURES.put("earth_punch", 2300);
-        ABILITY_TEXTURES.put("earth_slam", 2301);
-        ABILITY_TEXTURES.put("earth_wall", 2302);
-        ABILITY_TEXTURES.put("earth_shaper", 2303);
+        // Dark Fragment abilities (2300-2399)
+        ABILITY_TEXTURES.put("dark_strike", 2300);
+        ABILITY_TEXTURES.put("dark_drain", 2301);
+        ABILITY_TEXTURES.put("dark_void", 2302);
+        ABILITY_TEXTURES.put("dark_clone", 2303);
+        ABILITY_TEXTURES.put("dark_shroud", 2304);
         
-        // Dark Fragment abilities (2400-2499)
-        ABILITY_TEXTURES.put("dark_strike", 2400);
-        ABILITY_TEXTURES.put("dark_drain", 2401);
-        ABILITY_TEXTURES.put("dark_void", 2402);
-        ABILITY_TEXTURES.put("dark_clone", 2403);
-        ABILITY_TEXTURES.put("dark_shroud", 2404);
+        // Light Fragment abilities (2400-2499)
+        ABILITY_TEXTURES.put("light_beam", 2400);
+        ABILITY_TEXTURES.put("light_heal", 2401);
+        ABILITY_TEXTURES.put("light_smite", 2402);
+        ABILITY_TEXTURES.put("light_sanctuary", 2403);
+        ABILITY_TEXTURES.put("light_wings", 2404);
         
-        // Light Fragment abilities (2500-2599)
-        ABILITY_TEXTURES.put("light_beam", 2500);
-        ABILITY_TEXTURES.put("light_heal", 2501);
-        ABILITY_TEXTURES.put("light_smite", 2502);
-        ABILITY_TEXTURES.put("light_sanctuary", 2503);
-        ABILITY_TEXTURES.put("light_wings", 2504);
+        // Void Fragment abilities (2500-2599)
+        ABILITY_TEXTURES.put("void_slash", 2500);
+        ABILITY_TEXTURES.put("void_blink", 2501);
+        ABILITY_TEXTURES.put("void_collapse", 2502);
         
-        // Void Fragment abilities (2600-2699)
-        ABILITY_TEXTURES.put("void_slash", 2600);
-        ABILITY_TEXTURES.put("void_blink", 2601);
-        ABILITY_TEXTURES.put("void_collapse", 2602);
+        // Dragon Fragment abilities (2600-2699)
+        ABILITY_TEXTURES.put("dragon_roar", 2600);
+        ABILITY_TEXTURES.put("dragon_wings", 2601);
+        ABILITY_TEXTURES.put("dragon_cataclysm", 2602);
+        ABILITY_TEXTURES.put("dragon_fury", 2603);
+        ABILITY_TEXTURES.put("dragon_ascension", 2604);
         
-        // Mob Fragment abilities (2700-2799)
-        ABILITY_TEXTURES.put("mob_summon", 2700);
-        ABILITY_TEXTURES.put("mob_guardian", 2701);
-        ABILITY_TEXTURES.put("mob_legion", 2702);
-        
-        // Dragon Fragment abilities (2800-2899)
-        ABILITY_TEXTURES.put("dragon_roar", 2800);
-        ABILITY_TEXTURES.put("dragon_wings", 2801);
-        ABILITY_TEXTURES.put("dragon_cataclysm", 2802);
-        ABILITY_TEXTURES.put("dragon_fury", 2803);
-        ABILITY_TEXTURES.put("dragon_ascension", 2804);
-        
-        // Storm Fragment abilities (2900-2999)
-        ABILITY_TEXTURES.put("storm_bolt", 2900);
-        ABILITY_TEXTURES.put("storm_chain", 2901);
-        ABILITY_TEXTURES.put("storm_descent", 2902);
+        // Storm Fragment abilities (2700-2799)
+        ABILITY_TEXTURES.put("storm_bolt", 2700);
+        ABILITY_TEXTURES.put("storm_chain", 2701);
+        ABILITY_TEXTURES.put("storm_descent", 2702);
         
         // Generic ability slot icons (2950-2959)
         ABILITY_TEXTURES.put("ability_primary", 2950);

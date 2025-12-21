@@ -208,23 +208,7 @@ public class FragmentAbilityListener implements Listener {
         }
         
         if (!canUseAbility) {
-            // Debug: Show player why ability didn't activate
-            if (fragmentManager.getActiveFragment(player) != null) {
-                // Only show message if they have an active fragment
-                if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-                    switch (scheme) {
-                        case SNEAK_CLICK:
-                            player.sendActionBar("§c✗ §7Hold Sneak to use abilities");
-                            break;
-                        case DOUBLE_SNEAK:
-                            player.sendActionBar("§c✗ §7Double-tap Sneak first, then click");
-                            break;
-                        case SWAP_HANDS:
-                            player.sendActionBar("§c✗ §7Press F first, then click");
-                            break;
-                    }
-                }
-            }
+            // Player doesn't meet control scheme requirements - silently ignore
             return;
         }
 
@@ -308,20 +292,7 @@ public class FragmentAbilityListener implements Listener {
         }
         
         if (!canUseAbility) {
-            // Debug: Show player why ability didn't activate (left-click)
-            if (fragmentManager.getActiveFragment(player) != null) {
-                switch (scheme) {
-                    case SNEAK_CLICK:
-                        player.sendActionBar("§c✗ §7Hold Sneak to use abilities");
-                        break;
-                    case DOUBLE_SNEAK:
-                        player.sendActionBar("§c✗ §7Double-tap Sneak first, then click");
-                        break;
-                    case SWAP_HANDS:
-                        player.sendActionBar("§c✗ §7Press F first, then click");
-                        break;
-                }
-            }
+            // Player doesn't meet control scheme requirements - silently ignore
             return;
         }
         

@@ -1,0 +1,76 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/fire.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE000"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/water.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE001"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/air.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE002"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/dark.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE003"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/light.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE004"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/void.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE005"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/dragon.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE006"
+      ]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/fragments/storm.png",
+      "ascent": 9,
+      "height": 14,
+      "chars": [
+        "\uE007"
+      ]
+    }
+  ]
+}

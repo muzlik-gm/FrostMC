@@ -1,5 +1,6 @@
 package com.muzlik.fragment.ability.executors.light;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -120,7 +121,9 @@ public class SmiteExecutor implements AbilityExecutor {
             // Ambient layer: GLOW aura
             .ambient(Particle.GLOW, ambientCount, ParticlePattern.SPHERE, spread * 1.2, spread, spread * 1.2, 0.08, null)
             // Impact layer: FLASH explosion
-            .impact(Particle.FLASH, impactCount, ParticlePattern.BURST, spread * 1.5, spread * 2.5, spread * 1.5, 0.2, null);
+            .impact(Particle.FLASH, impactCount, ParticlePattern.BURST, spread * 1.5, spread * 2.5, spread * 1.5, 0.2, null)
+            // Magic circle at impact location - divine light theme
+            .withMagicCircle(FragmentType.LIGHT, radius * 0.6, 60 + (rank * 10));
         
         // Cinematic layer: Light bloom at rank 5+
         if (rank >= 5) {

@@ -6,6 +6,7 @@ import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.IFragmentAbility;
 import com.muzlik.mana.ManaManager;
+import com.muzlik.texture.TextureRegistry;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -61,8 +62,9 @@ public class FragmentActionBarHUD {
             }
         };
         
-        // Update every 5 ticks (0.25 second) - REDUCED FROM 10 TICKS FOR PERFORMANCE
-        updateTask.runTaskTimer(plugin, 0L, 5L);
+        // Update every 10 ticks (0.5 second) - OPTIMIZED FOR PERFORMANCE
+        // Reduced from 5 ticks to reduce packet spam and improve ping
+        updateTask.runTaskTimer(plugin, 0L, 10L);
     }
     
     /**
@@ -115,7 +117,7 @@ public class FragmentActionBarHUD {
     
     /**
      * Build the HUD message component - PREMIUM STYLE WITH LEVEL + MANA
-     * Format: ✦ LVL: X/MAX | Fragment ⚡ Mana/Max [abilities]
+     * Format: [Icon] ✦ LVL: X/MAX | Fragment ⚡ Mana/Max [abilities]
      * ADMIN FRAGMENT: Custom format with warning symbols
      */
     private Component buildHUDMessage(Player player, FragmentType fragmentType, int currentSlot) {
@@ -126,9 +128,17 @@ public class FragmentActionBarHUD {
         
         Component message = Component.empty();
         
+        // ═══ FRAGMENT ICON ═══
+        // Display fragment texture using Unicode private use area character
+        // The resource pack maps this to the fragment texture
+        String fragmentIcon = getFragmentIcon(fragmentType);
+        TextColor fragmentColor = getFragmentColor(fragmentType);
+        message = message.append(Component.text(fragmentIcon + " ", fragmentColor));
+        
         // ═══ CHARACTER LEVEL SECTION ═══
         // Format: ✦ LVL: X/MAX
-        if (characterLevelManager != null) {
+        // Only show if mana system is enabled (character level affects max mana)
+        if (characterLevelManager != null && manaManager.isManaSystemEnabled()) {
             int characterLevel = characterLevelManager.getCharacterLevel(player);
             int maxLevel = characterLevelManager.getMaxCharacterLevel();
             
@@ -151,9 +161,7 @@ public class FragmentActionBarHUD {
             message = message.append(Component.text(" │ ", NamedTextColor.DARK_GRAY));
         }
         
-        // ═══ FRAGMENT SECTION ═══
-        // Format: FragmentName ⚡ Mana/Max
-        TextColor fragmentColor = getFragmentColor(fragmentType);
+        // ═══ FRAGMENT NAME SECTION ═══
         String fragmentName = toSmallCaps(fragmentType.getDisplayName());
         message = message.append(Component.text(fragmentName + " ", fragmentColor));
         
@@ -355,14 +363,32 @@ public class FragmentActionBarHUD {
             case FIRE -> NamedTextColor.RED;
             case WATER -> NamedTextColor.BLUE;
             case AIR -> NamedTextColor.WHITE;
-            case EARTH -> NamedTextColor.GOLD;
             case DARK -> NamedTextColor.BLACK; // Changed from DARK_PURPLE
             case LIGHT -> NamedTextColor.YELLOW;
             case VOID -> NamedTextColor.DARK_PURPLE; // Changed from DARK_GRAY
-            case MOB -> NamedTextColor.GREEN;
             case DRAGON -> NamedTextColor.DARK_RED;
             case STORM -> NamedTextColor.AQUA;
+            case TIME -> NamedTextColor.YELLOW; // Yellow for time theme
+            case LUCK -> NamedTextColor.GREEN; // Green for luck theme
             case ADMIN -> NamedTextColor.DARK_RED; // Admin fragment color
         };
+    }
+    
+    /**
+     * Get fragment icon character for display in action bar
+     * Uses Unicode private use area characters that the resource pack maps to textures
+     * Format: \uE000 + fragment custom model data offset
+     */
+    private String getFragmentIcon(FragmentType type) {
+        // Get the custom model data for this fragment
+        int customModelData = TextureRegistry.getFragmentTexture(type);
+        
+        // Map to Unicode private use area (U+E000 to U+F8FF)
+        // We use the last 3 digits of the custom model data as offset
+        // 1000 -> \uE000, 1001 -> \uE001, etc.
+        int offset = customModelData % 1000;
+        char iconChar = (char) (0xE000 + offset);
+        
+        return String.valueOf(iconChar);
     }
 }

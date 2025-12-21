@@ -47,9 +47,6 @@ public class RecipeManager {
         // AIR Fragment
         registerFragmentCreation(FragmentType.AIR, Material.FEATHER, Material.PHANTOM_MEMBRANE, Material.DIAMOND);
         
-        // EARTH Fragment
-        registerFragmentCreation(FragmentType.EARTH, Material.STONE, Material.MOSS_BLOCK, Material.DIAMOND);
-        
         // DARK Fragment
         registerFragmentCreation(FragmentType.DARK, Material.OBSIDIAN, Material.WITHER_SKELETON_SKULL, Material.DIAMOND);
         
@@ -58,9 +55,6 @@ public class RecipeManager {
         
         // VOID Fragment - Custom pattern: Netherite Block center, Echo Shards corners, Sculk Catalyst on sides
         registerVoidFragmentCreation();
-        
-        // MOB Fragment - Custom pattern: Nether Star center, Totems corners, Netherite Ingots on sides
-        registerMobFragmentCreation();
         
         // DRAGON Fragment - Custom pattern: Dragon Egg center, Dragon Breath corners, Netherite Ingots on sides
         registerDragonFragmentCreation();
@@ -111,26 +105,7 @@ public class RecipeManager {
         recipeKeys.put("fragment_creation_dragon", key);
     }
 
-    /**
-     * Register Mob Fragment Creation recipe with custom pattern
-     * Pattern: Netherite Ingot center, Bones on sides, Totems in corners
-     * T B T
-     * B N B
-     * T B T
-     */
-    private void registerMobFragmentCreation() {
-        ItemStack result = createFragmentCreationItem(FragmentType.MOB);
-        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_mob");
-        
-        ShapedRecipe recipe = new ShapedRecipe(key, result);
-        recipe.shape("TBT", "BNB", "TBT");
-        recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
-        recipe.setIngredient('B', Material.BONE);
-        recipe.setIngredient('N', Material.NETHERITE_INGOT);
-        
-        plugin.getServer().addRecipe(recipe);
-        recipeKeys.put("fragment_creation_mob", key);
-    }
+
 
     /**
      * Register Void Fragment Creation recipe with custom pattern

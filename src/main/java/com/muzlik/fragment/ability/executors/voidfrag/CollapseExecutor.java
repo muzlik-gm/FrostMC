@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.voidfrag;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -11,7 +13,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -107,8 +108,8 @@ public class CollapseExecutor implements AbilityExecutor {
                 plugin.getDamageAPI().dealTrueDamage(caster, target, damage);
                 
                 // Apply stun (slowness + mining fatigue)
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, stunDuration, 4));
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, stunDuration, 4));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, stunDuration, 4));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW_DIGGING, stunDuration, 4));
             }
         }
         

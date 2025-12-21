@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.air;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.fragment.FragmentType;
@@ -8,7 +10,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
@@ -34,8 +35,8 @@ public class StormSovereignExecutor implements AbilityExecutor {
         plugin.getFlightManager().startFlight(player, FragmentType.AIR, rank);
         
         // Add speed buff for the full duration
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600 * 20, 3, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 600 * 20, 1, false, false));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, 600 * 20, 3));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, 600 * 20, 1));
         
         // 5-Layer VFX System for activation
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)

@@ -2,6 +2,7 @@ package com.muzlik.fragment.ability.executors.water;
 
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.util.PotionEffectHelper;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
@@ -10,7 +11,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
@@ -38,7 +38,7 @@ public class SplashExecutor implements AbilityExecutor {
         for (org.bukkit.entity.Entity entity : player.getWorld().getNearbyEntities(loc, radius, radius, radius)) {
             if (entity instanceof LivingEntity) {
                 LivingEntity target = (LivingEntity) entity;
-                target.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.REGENERATION, 100, 1));
                 if (target.getHealth() < target.getMaxHealth()) {
                     target.setHealth(Math.min(target.getMaxHealth(), target.getHealth() + healing));
                 }

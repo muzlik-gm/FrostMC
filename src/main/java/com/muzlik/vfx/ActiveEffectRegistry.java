@@ -1,5 +1,6 @@
 package com.muzlik.vfx;
 
+import com.muzlik.vfx.cinematic.MagicCircle;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -33,6 +34,9 @@ public class ActiveEffectRegistry {
     // Statistics
     private long totalEffectsSpawned = 0;
     private long totalEffectsCleaned = 0;
+    
+    // Limits for cinematic VFX
+    private static final int MAX_MAGIC_CIRCLES = 50;
     
     /**
      * Constructor
@@ -309,6 +313,25 @@ public class ActiveEffectRegistry {
     }
     
     /**
+     * Check if magic circle limit is reached
+     * 
+     * @return true if at or over limit
+     */
+    public boolean isMagicCircleLimitReached() {
+        long magicCircleCount = effects.values().stream()
+                .filter(entry -> entry.getType() == EffectType.MAGIC_CIRCLE)
+                .count();
+        return magicCircleCount >= MAX_MAGIC_CIRCLES;
+    }
+    
+    /**
+     * Get max magic circles allowed
+     */
+    public int getMaxMagicCircles() {
+        return MAX_MAGIC_CIRCLES;
+    }
+    
+    /**
      * Get statistics about the registry
      * 
      * @return Map of statistic name to value
@@ -342,5 +365,57 @@ public class ActiveEffectRegistry {
     public void shutdown() {
         stopCleanupTask();
         clearAll();
+    }
+    
+    // Magic Circle specific methods
+    
+    /**
+     * Register a magic circle
+     * 
+     * @param circle The magic circle to register
+     */
+    public void registerMagicCircle(MagicCircle circle) {
+        if (isMagicCircleLimitReached()) {
+            plugin.getLogger().log(Level.WARNING, "Magic circle limit reached, cannot register new circle");
+            return;
+        }
+        
+        // Create effect entry for magic circle
+        UUID effectId = UUID.randomUUID();
+        UUID ownerId = circle.getOwner() != null ? circle.getOwner().getUniqueId() : UUID.randomUUID();
+        long currentTime = System.currentTimeMillis();
+        long removalTime = currentTime + (300 * 50); // 15 seconds (300 ticks * 50ms)
+        
+        EffectEntry entry = new EffectEntry(
+            effectId,
+            ownerId,
+            EffectType.MAGIC_CIRCLE,
+            circle.getCenter(),
+            currentTime,
+            removalTime,
+            circle
+        );
+        
+        registerEffect(entry);
+    }
+    
+    /**
+     * Unregister a magic circle
+     * 
+     * @param circle The magic circle to unregister
+     */
+    public void unregisterMagicCircle(MagicCircle circle) {
+        // Find and remove the magic circle effect
+        List<EffectEntry> magicCircles = getEffectsByOwnerAndType(
+            circle.getOwner().getUniqueId(),
+            EffectType.MAGIC_CIRCLE
+        );
+        
+        for (EffectEntry entry : magicCircles) {
+            if (entry.getLocation().equals(circle.getCenter())) {
+                unregisterEffect(entry.getEffectId());
+                break;
+            }
+        }
     }
 }

@@ -1,11 +1,12 @@
 package com.muzlik.fragment.ability.executors.admin;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.FrostSMPPlugin;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
@@ -31,7 +32,7 @@ public class ApocalypseExecutor implements AbilityExecutor {
                 if (entity instanceof Player) {
                     living.damage(80.0, player); // 40 hearts
                     // Screen shake effect (CONFUSION is the new name for NAUSEA in 1.20.4+)
-                    ((Player) entity).addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 200, 1));
+                    ((Player) entity).addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.CONFUSION, 200, 1));
                 } else {
                     living.setHealth(0); // Instant kill mobs
                 }

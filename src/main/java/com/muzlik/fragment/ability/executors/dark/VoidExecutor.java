@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.dark;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -7,7 +9,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -67,10 +68,10 @@ public class VoidExecutor implements AbilityExecutor {
                         
                         // Apply debuffs every 20 ticks (1 second)
                         if (ticks % 20 == 0) {
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 2)); // Wither III
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 2)); // Slowness III
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 60, 1)); // Weakness II
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0)); // Brief blindness
+                            target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.WITHER, 60, 2)); // Wither III
+                            target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 60, 2)); // Slowness III
+                            target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.WEAKNESS, 60, 1)); // Weakness II
+                            target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.BLINDNESS, 40, 0)); // Brief blindness
                         }
                     }
                 }

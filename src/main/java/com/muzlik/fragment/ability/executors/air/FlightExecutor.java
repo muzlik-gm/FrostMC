@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.air;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -7,7 +9,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -41,7 +42,7 @@ public class FlightExecutor implements AbilityExecutor {
         // Enable flight
         player.setAllowFlight(true);
         player.setFlying(true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 1)); // +100% speed
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, durationTicks, 1)); // +100% speed
         
         // Flight duration tracker
         new BukkitRunnable() {

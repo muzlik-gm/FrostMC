@@ -26,43 +26,79 @@
       "predicate": {
         "custom_model_data": 1003
       },
-      "model": "item/fragments/earth"
+      "model": "item/fragments/dark"
     },
     {
       "predicate": {
         "custom_model_data": 1004
       },
-      "model": "item/fragments/dark"
+      "model": "item/fragments/light"
     },
     {
       "predicate": {
         "custom_model_data": 1005
       },
-      "model": "item/fragments/light"
+      "model": "item/fragments/void"
     },
     {
       "predicate": {
         "custom_model_data": 1006
       },
-      "model": "item/fragments/void"
+      "model": "item/fragments/dragon"
     },
     {
       "predicate": {
         "custom_model_data": 1007
       },
-      "model": "item/fragments/mob"
+      "model": "item/fragments/storm"
     },
     {
       "predicate": {
         "custom_model_data": 1008
       },
-      "model": "item/fragments/dragon"
+      "model": "item/fragments/time"
     },
     {
       "predicate": {
         "custom_model_data": 1009
       },
-      "model": "item/fragments/storm"
+      "model": "item/fragments/luck"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5001
+      },
+      "model": "item/magic_circle1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5002
+      },
+      "model": "item/magic_circle2"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5003
+      },
+      "model": "item/magic_circle3"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5004
+      },
+      "model": "item/magic_circle4"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5005
+      },
+      "model": "item/side_magic_circle1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5006
+      },
+      "model": "item/side_magic_circle2"
     }
   ]
 }

@@ -1,5 +1,8 @@
 package com.muzlik.fragment.ability.executors.air;
 
+import com.muzlik.util.PotionEffectHelper;
+
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.util.SafeTeleport;
@@ -8,7 +11,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
@@ -37,7 +39,7 @@ public class DashExecutor implements AbilityExecutor {
         Vector safeVelocity = SafeTeleport.getSafeVelocity(velocity, player);
         
         player.setVelocity(safeVelocity);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 2));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, 80, 2));
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
@@ -51,7 +53,9 @@ public class DashExecutor implements AbilityExecutor {
             // Ambient: Dust swirls
             .ambient(Particle.WHITE_ASH, 20, ParticlePattern.RING, 1.2, 0.5, 1.2, 0.05, null)
             // Impact: SWEEP_ATTACK gust
-            .impact(Particle.SWEEP_ATTACK, 15, ParticlePattern.BURST, 1, 1, 1, 0.15, null);
+            .impact(Particle.SWEEP_ATTACK, 15, ParticlePattern.BURST, 1, 1, 1, 0.15, null)
+            // Magic circle - air dash theme
+            .withMagicCircle(FragmentType.AIR, 1.8 + (rank * 0.15), 20 + (rank * 3));
         
         // Cinematic: Wind distortion at rank 5+
         if (rank >= 5) {

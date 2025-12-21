@@ -21,7 +21,7 @@ public enum ParticlePattern {
         public void render(Location loc, Particle particle, int count, 
                          double offsetX, double offsetY, double offsetZ, 
                          double speed, Object data) {
-            loc.getWorld().spawnParticle(particle, loc, count, offsetX, offsetY, offsetZ, speed, data);
+            safeSpawnParticle(loc, particle, count, offsetX, offsetY, offsetZ, speed, data);
         }
     },
     
@@ -44,7 +44,7 @@ public enum ParticlePattern {
                 double z = radius * Math.cos(phi);
                 
                 Location particleLoc = loc.clone().add(x, y, z);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     },
@@ -65,7 +65,7 @@ public enum ParticlePattern {
                 double z = radius * Math.sin(angle);
                 
                 Location particleLoc = loc.clone().add(x, offsetY, z);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     },
@@ -91,7 +91,7 @@ public enum ParticlePattern {
                 double z = r * Math.sin(angle);
                 
                 Location particleLoc = loc.clone().add(x, y, z);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     },
@@ -112,7 +112,7 @@ public enum ParticlePattern {
                 Vector offset = direction.clone().multiply(length * progress);
                 
                 Location particleLoc = loc.clone().add(offset);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     },
@@ -138,7 +138,7 @@ public enum ParticlePattern {
                 double z = radius * Math.sin(angle);
                 
                 Location particleLoc = loc.clone().add(x, y, z);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     },
@@ -160,7 +160,7 @@ public enum ParticlePattern {
                 double z = offsetZ * Math.cos(phi);
                 
                 Location particleLoc = loc.clone().add(x, y, z);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     },
@@ -208,7 +208,7 @@ public enum ParticlePattern {
                 double z = offsetZ * progress;
                 
                 Location particleLoc = loc.clone().add(x, y, z);
-                loc.getWorld().spawnParticle(particle, particleLoc, 1, 0, 0, 0, speed, data);
+                safeSpawnParticle(particleLoc, particle, 1, 0, 0, 0, speed, data);
             }
         }
     };
@@ -228,4 +228,54 @@ public enum ParticlePattern {
     public abstract void render(Location loc, Particle particle, int count, 
                                 double offsetX, double offsetY, double offsetZ, 
                                 double speed, Object data);
+    
+    /**
+     * Helper method to safely spawn particles with proper data handling
+     * Handles all particles that require specific data types
+     */
+    protected static void safeSpawnParticle(Location loc, Particle particle, int count,
+                                         double offsetX, double offsetY, double offsetZ,
+                                         double speed, Object data) {
+        if (loc == null || loc.getWorld() == null) return;
+        
+        try {
+            // Handle particles that require specific data
+            if (data == null) {
+                // REDSTONE/DUST requires DustOptions
+                if (particle == Particle.REDSTONE || particle.name().equals("DUST")) {
+                    data = new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.0f);
+                }
+                // DUST_COLOR_TRANSITION requires DustTransition
+                else if (particle.name().equals("DUST_COLOR_TRANSITION")) {
+                    data = new org.bukkit.Particle.DustTransition(
+                        org.bukkit.Color.RED, org.bukkit.Color.ORANGE, 1.0f);
+                }
+                // BLOCK_CRACK, BLOCK_DUST, FALLING_DUST require BlockData
+                else if (particle == Particle.BLOCK_CRACK || 
+                         particle == Particle.BLOCK_DUST || 
+                         particle == Particle.FALLING_DUST) {
+                    data = org.bukkit.Material.STONE.createBlockData();
+                }
+                // ITEM_CRACK requires ItemStack
+                else if (particle == Particle.ITEM_CRACK) {
+                    data = new org.bukkit.inventory.ItemStack(org.bukkit.Material.STONE);
+                }
+            }
+            
+            // Spawn with or without data
+            if (data != null) {
+                loc.getWorld().spawnParticle(particle, loc, count, offsetX, offsetY, offsetZ, speed, data);
+            } else {
+                // For particles that don't need data, use the simpler method
+                loc.getWorld().spawnParticle(particle, loc, count, offsetX, offsetY, offsetZ, speed);
+            }
+        } catch (Exception e) {
+            // Fallback: try spawning without data, or skip if that fails too
+            try {
+                loc.getWorld().spawnParticle(particle, loc, count, offsetX, offsetY, offsetZ, speed);
+            } catch (Exception ignored) {
+                // Particle spawn failed, skip silently
+            }
+        }
+    }
 }

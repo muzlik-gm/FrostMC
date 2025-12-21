@@ -1,5 +1,10 @@
 package com.muzlik.vfx;
 
+import com.muzlik.FrostSMPPlugin;
+import com.muzlik.fragment.FragmentType;
+import com.muzlik.vfx.cinematic.CinematicVFXEngine;
+import com.muzlik.vfx.cinematic.MagicCircle;
+import com.muzlik.vfx.cinematic.MagicCircleConfig;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.Player;
@@ -39,6 +44,12 @@ public class VFXLayerBuilder {
     private VFXLayer impactLayer;
     private CinematicEffect cinematicEffect;
     private double cinematicDuration;
+    
+    // Magic circle configuration
+    private boolean spawnMagicCircle = false;
+    private FragmentType magicCircleFragmentType;
+    private double magicCircleRadius = 2.5;
+    private int magicCircleDuration = 40; // ticks
     
     // Tracking
     private final List<VFXLayer> layers;
@@ -182,6 +193,33 @@ public class VFXLayerBuilder {
     }
     
     /**
+     * Add a magic circle beneath the player when ability is cast
+     * Magic circle complexity scales with rank automatically
+     * 
+     * @param fragmentType Fragment type for color theming
+     * @return This builder
+     */
+    public VFXLayerBuilder withMagicCircle(FragmentType fragmentType) {
+        return withMagicCircle(fragmentType, 2.5, 40);
+    }
+    
+    /**
+     * Add a magic circle with custom parameters
+     * 
+     * @param fragmentType Fragment type for color theming
+     * @param radius Circle radius in blocks
+     * @param durationTicks How long the circle lasts
+     * @return This builder
+     */
+    public VFXLayerBuilder withMagicCircle(FragmentType fragmentType, double radius, int durationTicks) {
+        this.spawnMagicCircle = true;
+        this.magicCircleFragmentType = fragmentType;
+        this.magicCircleRadius = radius;
+        this.magicCircleDuration = durationTicks;
+        return this;
+    }
+    
+    /**
      * Spawn the VFX effect
      * 
      * @return UUID of the spawned effect
@@ -254,7 +292,41 @@ public class VFXLayerBuilder {
             }
         }
         
+        // Spawn magic circle if configured
+        if (spawnMagicCircle && magicCircleFragmentType != null && owner != null) {
+            spawnAbilityMagicCircle();
+        }
+        
         return UUID.randomUUID();
+    }
+    
+    /**
+     * Spawn a magic circle for ability casting
+     */
+    private void spawnAbilityMagicCircle() {
+        if (!(plugin instanceof FrostSMPPlugin)) return;
+        
+        FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
+        CinematicVFXEngine cinematicEngine = frostPlugin.getCinematicVFXEngine();
+        if (cinematicEngine == null) return;
+        
+        // Create magic circle at player's feet
+        Location circleLocation = owner.getLocation().clone();
+        
+        // Build magic circle config
+        MagicCircleConfig config = new MagicCircleConfig.Builder()
+            .fragmentType(magicCircleFragmentType)
+            .center(circleLocation)
+            .rank(rank)
+            .owner(owner)
+            .baseRadius(magicCircleRadius)
+            .rotationSpeed(0.08) // Slightly faster for abilities
+            .lifetime(magicCircleDuration)
+            .build();
+        
+        // Create and spawn the magic circle
+        MagicCircle circle = cinematicEngine.getMagicCircleFactory().createMagicCircle(config);
+        cinematicEngine.spawnMagicCircle(circle, magicCircleDuration);
     }
     
     /**

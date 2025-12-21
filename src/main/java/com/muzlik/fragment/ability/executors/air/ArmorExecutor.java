@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.air;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -7,7 +9,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -38,8 +39,8 @@ public class ArmorExecutor implements AbilityExecutor {
         activationVFX.spawn();
         
         // Apply protective effects
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, durationTicks, 1));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, durationTicks, 0));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, durationTicks, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, durationTicks, 0));
         
         // Continuous wind armor effect
         new BukkitRunnable() {

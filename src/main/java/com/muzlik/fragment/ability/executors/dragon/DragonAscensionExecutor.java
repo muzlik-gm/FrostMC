@@ -1,10 +1,11 @@
 package com.muzlik.fragment.ability.executors.dragon;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
@@ -28,13 +29,13 @@ public class DragonAscensionExecutor implements AbilityExecutor {
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
         // Powerful but balanced buffs (under level 4)
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, 3, false, true, true)); // Strength IV
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 3, false, true, true)); // Resistance IV
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, 2, false, true, true)); // Speed III
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, duration, 2, false, true, true)); // Regen III
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0, false, true, true));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, duration, 2, false, true, true)); // Absorption III
-        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, duration, 0, false, true, true));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, duration, 3, true)); // Strength IV
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 3, true)); // Resistance IV
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, duration, 2, true)); // Speed III
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.REGENERATION, duration, 2, true)); // Regen III
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.FIRE_RESISTANCE, duration, 0, true));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.ABSORPTION, duration, 2, true)); // Absorption III
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.GLOWING, duration, 0, true));
         
         // Enable flight
         player.setAllowFlight(true);

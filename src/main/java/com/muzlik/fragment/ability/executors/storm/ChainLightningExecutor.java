@@ -1,8 +1,11 @@
 package com.muzlik.fragment.ability.executors.storm;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.DamageAttributionManager;
+import com.muzlik.vfx.VFXLayerBuilder;
+import com.muzlik.vfx.ParticlePattern;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -21,6 +24,16 @@ public class ChainLightningExecutor implements AbilityExecutor {
         if (firstTarget == null) {
             player.sendMessage("§c✗ No target found!");
             return;
+        }
+        
+        // Magic circle at player's feet
+        com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
+        if (plugin != null) {
+            VFXLayerBuilder circleVfx = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)
+                .withPerformanceManager(plugin.getVFXPerformanceManager())
+                .core(Particle.ELECTRIC_SPARK, 5, ParticlePattern.POINT, 0.1, 0.1, 0.1, 0.01, null)
+                .withMagicCircle(FragmentType.STORM, 2.2 + (rank * 0.2), 35 + (rank * 5));
+            circleVfx.spawn();
         }
         
         // Chain lightning effect

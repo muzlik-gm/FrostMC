@@ -1,5 +1,6 @@
 package com.muzlik.fragment.ability.executors.fire;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.environment.EnvironmentManager;
@@ -54,7 +55,9 @@ public class InfernoExecutor implements AbilityExecutor {
             .core(Particle.FLAME, coreCount, ParticlePattern.SPIRAL, radius * 0.8, 2.0, radius * 0.8, 0.08, null)
             .secondary(Particle.END_ROD, secondaryCount, ParticlePattern.SPIRAL, radius * 0.6, 1.5, radius * 0.6, 0.06, null)
             .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.SPHERE, radius * 0.4, 3.0, radius * 0.4, 0.02, null)
-            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, radius, 0.5, radius, 0.1, null);
+            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, radius, 0.5, radius, 0.1, null)
+            // Magic circle - fire vortex theme, larger for ultimate
+            .withMagicCircle(FragmentType.FIRE, radius * 0.8, 100);
         
         // Cinematic effects at higher ranks
         if (rank >= 3) {

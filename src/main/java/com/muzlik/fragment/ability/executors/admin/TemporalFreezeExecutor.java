@@ -1,11 +1,12 @@
 package com.muzlik.fragment.ability.executors.admin;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.FrostSMPPlugin;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -50,9 +51,9 @@ public class TemporalFreezeExecutor implements AbilityExecutor {
                         LivingEntity living = (LivingEntity) entity;
                         
                         // Complete freeze
-                        living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 25, 255, false, false));
-                        living.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 25, 255, false, false));
-                        living.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 25, 255, false, false));
+                        living.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 25, 255));
+                        living.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.JUMP, 25, 255));
+                        living.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW_DIGGING, 25, 255));
                         living.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
                         
                         // Frozen particles - around entity, not blocking view

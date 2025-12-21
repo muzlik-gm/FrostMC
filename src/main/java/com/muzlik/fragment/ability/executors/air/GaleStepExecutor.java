@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.air;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.util.SafeTeleport;
@@ -8,7 +10,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
@@ -37,7 +38,7 @@ public class GaleStepExecutor implements AbilityExecutor {
         Vector safeVelocity = SafeTeleport.getSafeVelocity(velocity, player);
         
         player.setVelocity(safeVelocity);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, 2));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, 80, 2));
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         

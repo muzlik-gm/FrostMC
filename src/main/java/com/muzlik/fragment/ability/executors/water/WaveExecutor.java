@@ -1,7 +1,9 @@
 package com.muzlik.fragment.ability.executors.water;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.util.PotionEffectHelper;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
@@ -10,7 +12,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -47,6 +48,8 @@ public class WaveExecutor implements AbilityExecutor {
             .core(Particle.WATER_SPLASH, 100, ParticlePattern.CONE, 2, 3, 2, 0.2, null)
             .secondary(Particle.DRIP_WATER, 60, ParticlePattern.BURST, 2, 2, 2, 0.1, null)
             .impact(Particle.WATER_SPLASH, 80, ParticlePattern.BURST, 2, 2, 2, 0.3, null)
+            // Magic circle - water wave theme
+            .withMagicCircle(FragmentType.WATER, 3.0 + (rank * 0.3), 50 + (rank * 8))
             .cinematic(0.25, CinematicEffect.WATER_SHIMMER);
         
         initialVFX.spawn();
@@ -120,7 +123,7 @@ public class WaveExecutor implements AbilityExecutor {
                         target.setVelocity(knockback);
                         
                         // Slow effect
-                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 80, 2, false, false));
+                        target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 80, 2));
                         
                         // Minor damage
                         target.setLastDamageCause(new org.bukkit.event.entity.EntityDamageEvent(

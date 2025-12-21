@@ -2,6 +2,7 @@ package com.muzlik.fragment.ability.executors.fire;
 
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
+import com.muzlik.util.PotionEffectHelper;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
@@ -9,7 +10,6 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -47,9 +47,9 @@ public class IgniteExecutor implements AbilityExecutor {
         transformVFX.spawn();
         
         // Apply effects
-        player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 300, 0)); // 15 seconds
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 300, 3)); // Near immunity
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 300, 0)); // +50% damage
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.FIRE_RESISTANCE, 300, 0)); // 15 seconds
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, 300, 3)); // Near immunity
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, 300, 0)); // +50% damage
         
         // Continuous flame aura
         new BukkitRunnable() {

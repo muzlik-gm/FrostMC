@@ -4,7 +4,8 @@ import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.executors.fire.*;
 import com.muzlik.fragment.ability.executors.water.*;
 import com.muzlik.fragment.ability.executors.air.*;
-import com.muzlik.fragment.ability.executors.earth.*;
+import com.muzlik.fragment.ability.executors.time.*;
+import com.muzlik.fragment.ability.executors.luck.*;
 
 import java.util.*;
 
@@ -22,8 +23,9 @@ public class FragmentAbilityRegistry {
         registerFireAbilities();
         registerWaterAbilities();
         registerAirAbilities();
-        registerEarthAbilities();
-        // Dark, Light, Storm, Void, Mob, Dragon would be registered here
+        registerTimeAbilities();
+        registerLuckAbilities();
+        // Dark, Light, Storm, Void, Dragon would be registered here
     }
     
     private void registerFireAbilities() {
@@ -178,41 +180,124 @@ public class FragmentAbilityRegistry {
         abilities.put(FragmentType.AIR, airAbilities);
     }
     
-    private void registerEarthAbilities() {
-        List<AbilityDefinition> earthAbilities = new ArrayList<>();
+    private void registerTimeAbilities() {
+        List<AbilityDefinition> timeAbilities = new ArrayList<>();
         
-        earthAbilities.add(new AbilityDefinition.Builder("earth_stone_fist", FragmentType.EARTH)
-            .displayName("Stone Fist")
-            .description("Powerful earth punch")
+        timeAbilities.add(new AbilityDefinition.Builder("time_temporal_slow", FragmentType.TIME)
+            .displayName("Temporal Slow")
+            .description("Slows down target entity")
             .slot(AbilitySlot.PRIMARY)
-            .manaCost(20)
-            .cooldown(5000)
-            .executor(new StoneFistExecutor())
+            .manaCost(30)
+            .cooldown(18000)
+            .executor(new TemporalSlowExecutor())
             .activation(ActivationType.RIGHT_CLICK)
             .build());
             
-        earthAbilities.add(new AbilityDefinition.Builder("earth_earthen_fortress", FragmentType.EARTH)
-            .displayName("Earthen Fortress")
-            .description("Massive armor boost")
+        timeAbilities.add(new AbilityDefinition.Builder("time_acceleration", FragmentType.TIME)
+            .displayName("Time Acceleration")
+            .description("Grants speed and haste")
+            .slot(AbilitySlot.SECONDARY)
+            .manaCost(40)
+            .cooldown(20000)
+            .executor(new TimeAccelerationExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        timeAbilities.add(new AbilityDefinition.Builder("time_temporal_rewind", FragmentType.TIME)
+            .displayName("Temporal Rewind")
+            .description("Restore health and position from 5 seconds ago")
+            .slot(AbilitySlot.ADVANCED)
+            .manaCost(60)
+            .cooldown(45000)
+            .rankRequirement(4)
+            .executor(new TemporalRewindExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        timeAbilities.add(new AbilityDefinition.Builder("time_chrono_stasis", FragmentType.TIME)
+            .displayName("Chrono Stasis")
+            .description("Freeze enemies in time")
+            .slot(AbilitySlot.MASTERY)
+            .manaCost(50)
+            .cooldown(30000)
+            .rankRequirement(6)
+            .executor(new ChronoStasisExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        timeAbilities.add(new AbilityDefinition.Builder("time_dilation_field", FragmentType.TIME)
+            .displayName("Time Dilation Field")
+            .description("Create area where time flows differently")
+            .slot(AbilitySlot.ULTIMATE)
+            .manaCost(70)
+            .cooldown(60000)
+            .rankRequirement(7)
+            .executor(new TimeDilationFieldExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        abilities.put(FragmentType.TIME, timeAbilities);
+    }
+    
+    private void registerLuckAbilities() {
+        List<AbilityDefinition> luckAbilities = new ArrayList<>();
+        
+        luckAbilities.add(new AbilityDefinition.Builder("luck_fortune_strike", FragmentType.LUCK)
+            .displayName("Fortune Strike")
+            .description("Increased critical hit chance and damage")
+            .slot(AbilitySlot.PRIMARY)
+            .manaCost(35)
+            .cooldown(15000)
+            .executor(new FortuneStrikeExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        luckAbilities.add(new AbilityDefinition.Builder("luck_lucky_dodge", FragmentType.LUCK)
+            .displayName("Lucky Dodge")
+            .description("Chance to evade incoming attacks")
             .slot(AbilitySlot.SECONDARY)
             .manaCost(30)
-            .cooldown(10000)
-            .executor(new EarthenFortressExecutor())
+            .cooldown(18000)
+            .executor(new LuckyDodgeExecutor())
             .activation(ActivationType.RIGHT_CLICK)
             .build());
             
-        earthAbilities.add(new AbilityDefinition.Builder("earth_seismic_slam", FragmentType.EARTH)
-            .displayName("Seismic Slam")
-            .description("Ground shockwave")
+        luckAbilities.add(new AbilityDefinition.Builder("luck_treasure_hunter", FragmentType.LUCK)
+            .displayName("Treasure Hunter")
+            .description("Increase loot drops from mobs")
+            .slot(AbilitySlot.ADVANCED)
+            .manaCost(45)
+            .cooldown(40000)
+            .rankRequirement(4)
+            .executor(new TreasureHunterExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        luckAbilities.add(new AbilityDefinition.Builder("luck_probability_manipulation", FragmentType.LUCK)
+            .displayName("Probability Manipulation")
+            .description("Influence random outcomes")
+            .slot(AbilitySlot.MASTERY)
+            .manaCost(55)
+            .cooldown(50000)
+            .rankRequirement(6)
+            .executor(new ProbabilityManipulationExecutor())
+            .activation(ActivationType.RIGHT_CLICK)
+            .build());
+            
+        luckAbilities.add(new AbilityDefinition.Builder("luck_serendipity_aura", FragmentType.LUCK)
+            .displayName("Serendipity Aura")
+            .description("Share luck effects with nearby allies")
             .slot(AbilitySlot.ULTIMATE)
-            .manaCost(50)
-            .cooldown(16000)
-            .executor(new SeismicSlamExecutor())
+            .manaCost(65)
+            .cooldown(70000)
+            .rankRequirement(7)
+            .executor(new SerendipityAuraExecutor())
             .activation(ActivationType.RIGHT_CLICK)
             .build());
             
-        abilities.put(FragmentType.EARTH, earthAbilities);
+        abilities.put(FragmentType.LUCK, luckAbilities);
     }
+
     
     public List<AbilityDefinition> getAbilities(FragmentType fragmentType) {
         return abilities.getOrDefault(fragmentType, new ArrayList<>());

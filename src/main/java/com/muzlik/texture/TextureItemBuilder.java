@@ -187,18 +187,20 @@ public class TextureItemBuilder {
     
     /**
      * Create an actual Fragment item that players can hold
+     * Right-click to activate the fragment
      */
     public static ItemStack createFragmentItem(com.muzlik.fragment.FragmentType type) {
         int customModelData = TextureRegistry.getFragmentTexture(type);
         
         return new TextureItemBuilder(customModelData)
-                .name("§b§l" + type.getDisplayName() + " Fragment")
+                .name("§5§l" + type.getDisplayName() + " Fragment Activator")
                 .addLore("§7A powerful elemental fragment")
                 .addLore("§7containing " + type.getDisplayName().toLowerCase() + " energy")
                 .addEmptyLine()
-                .addLore("§7Use §e/fragment activate " + type.name().toLowerCase() + " §7to equip")
+                .addLore("§e➤ Right-click to activate this fragment!")
                 .addEmptyLine()
-                .addLore("§e§lFRAGMENT")
+                .addLore("§8Fragment Type: §5" + type.name())
+                .addLore("§5§lFRAGMENT_ACTIVATOR")
                 .glow()
                 .hideFlags()
                 .build();

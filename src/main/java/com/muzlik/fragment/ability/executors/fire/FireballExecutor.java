@@ -1,5 +1,6 @@
 package com.muzlik.fragment.ability.executors.fire;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -68,7 +69,9 @@ public class FireballExecutor implements AbilityExecutor {
             // Ambient layer: SMOKE_LARGE - subtle smoke wisps
             .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.POINT, spread * 0.6, spread * 0.6, spread * 0.6, 0.01, null)
             // Impact layer: LAVA burst - controlled burst
-            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, spread, spread, spread, 0.05 + (rank * 0.02), null);
+            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, spread, spread, spread, 0.05 + (rank * 0.02), null)
+            // Magic circle at player's feet - scales with rank
+            .withMagicCircle(FragmentType.FIRE, 2.0 + (rank * 0.2), 30 + (rank * 5));
         
         // Cinematic layer: Heat shimmer at rank 2+, more intense at higher ranks
         if (rank >= 2) {

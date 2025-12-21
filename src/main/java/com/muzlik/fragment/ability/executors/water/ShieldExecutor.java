@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.water;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.environment.EnvironmentManager;
@@ -12,7 +14,6 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
@@ -82,8 +83,8 @@ public class ShieldExecutor implements AbilityExecutor {
         }
         
         // Buffs
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, durationTicks, 1, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, durationTicks, 2, false, false));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, durationTicks, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.ABSORPTION, durationTicks, 2));
         
         // 5-Layer VFX System
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, center, rank, player)

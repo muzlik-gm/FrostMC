@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.dragon;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -11,7 +13,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -35,10 +36,10 @@ public class AscensionExecutor implements AbilityExecutor {
         // Grant true dragon form
         player.setAllowFlight(true);
         player.setFlying(true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, 3)); // Strength IV
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 3)); // Resistance IV
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, 2)); // Speed III
-        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, duration, 0)); // Dragon glow
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, duration, 3)); // Strength IV
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 3)); // Resistance IV
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, duration, 2)); // Speed III
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.GLOWING, duration, 0)); // Dragon glow
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         

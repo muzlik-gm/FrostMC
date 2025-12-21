@@ -20,6 +20,8 @@ public class FragmentSymbols {
     public static final String MOB = "⬡";       // Hexagon - organic forms
     public static final String DRAGON = "⬠";    // Pentagon - power/majesty
     public static final String STORM = "⚡";     // Lightning - electricity
+    public static final String TIME = "⏱";      // Clock - temporal manipulation
+    public static final String LUCK = "☘";      // Clover - fortune/luck
     
     // Ability slot symbols
     public static final String PRIMARY = "⚔";   // Sword - basic attack
@@ -54,13 +56,13 @@ public class FragmentSymbols {
             case FIRE -> FIRE;
             case WATER -> WATER;
             case AIR -> AIR;
-            case EARTH -> EARTH;
             case DARK -> DARK;
             case LIGHT -> LIGHT;
             case VOID -> VOID;
-            case MOB -> MOB;
             case DRAGON -> DRAGON;
             case STORM -> STORM;
+            case TIME -> TIME;
+            case LUCK -> LUCK;
             case ADMIN -> "⚠"; // Admin fragment symbol
         };
     }
@@ -82,13 +84,13 @@ public class FragmentSymbols {
             case FIRE -> "§c";      // Red
             case WATER -> "§9";     // Blue
             case AIR -> "§f";       // White
-            case EARTH -> "§6";     // Gold/Brown
             case DARK -> "§0";      // Black (was Purple)
             case LIGHT -> "§e";     // Yellow
             case VOID -> "§5";      // Purple (was Magenta)
-            case MOB -> "§a";       // Green
             case DRAGON -> "§c";    // Red
             case STORM -> "§b";     // Cyan
+            case TIME -> "§e";      // Yellow (temporal theme)
+            case LUCK -> "§a";      // Green (fortune theme)
             case ADMIN -> "§4";     // Dark Red
         };
     }

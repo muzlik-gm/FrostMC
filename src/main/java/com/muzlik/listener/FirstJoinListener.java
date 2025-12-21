@@ -25,19 +25,17 @@ public class FirstJoinListener implements Listener {
     
     static {
         // Starter Fragments (Base Rank 2-3) - High chance (40% total)
-        FRAGMENT_WEIGHTS.put(FragmentType.FIRE, 12);    // 12%
-        FRAGMENT_WEIGHTS.put(FragmentType.WATER, 12);   // 12%
-        FRAGMENT_WEIGHTS.put(FragmentType.AIR, 10);     // 10%
-        FRAGMENT_WEIGHTS.put(FragmentType.EARTH, 10);   // 10%
+        FRAGMENT_WEIGHTS.put(FragmentType.FIRE, 15);    // 15%
+        FRAGMENT_WEIGHTS.put(FragmentType.WATER, 15);   // 15%
+        FRAGMENT_WEIGHTS.put(FragmentType.AIR, 14);     // 14%
         
-        // Intermediate Fragments (Base Rank 4-5) - Medium chance (35% total)
-        FRAGMENT_WEIGHTS.put(FragmentType.DARK, 12);    // 12%
-        FRAGMENT_WEIGHTS.put(FragmentType.LIGHT, 12);   // 12%
-        FRAGMENT_WEIGHTS.put(FragmentType.MOB, 11);     // 11%
+        // Intermediate Fragments (Base Rank 4-5) - Medium chance (36% total)
+        FRAGMENT_WEIGHTS.put(FragmentType.DARK, 18);    // 18%
+        FRAGMENT_WEIGHTS.put(FragmentType.LIGHT, 18);   // 18%
         
-        // Advanced Fragments (Base Rank 6-8) - Low chance (25% total)
+        // Advanced Fragments (Base Rank 6-8) - Low chance (20% total)
         FRAGMENT_WEIGHTS.put(FragmentType.STORM, 10);   // 10%
-        FRAGMENT_WEIGHTS.put(FragmentType.VOID, 8);     // 8%
+        FRAGMENT_WEIGHTS.put(FragmentType.VOID, 7);     // 7%
         FRAGMENT_WEIGHTS.put(FragmentType.DRAGON, 3);   // 3% (rarest)
     }
 

@@ -198,15 +198,6 @@ fragments:
     death_xp_penalty: 0.08         # Lose 8% XP on death
   
   # ─────────────────────────────────────────────────────────────
-  # EARTH FRAGMENT - Defense and durability
-  # Abilities: Rock Throw, Earth Wall, Tremor, Stone Skin, Earthquake
-  # ─────────────────────────────────────────────────────────────
-  earth:
-    base_rank: 2                   # Lower starting power
-    xp_curve: LINEAR               # Consistent leveling speed
-    death_xp_penalty: 0.05         # Lose 5% XP on death
-  
-  # ─────────────────────────────────────────────────────────────
   # DARK FRAGMENT - Life drain and debuffs
   # Abilities: Shadow Bolt, Vampiric Drain, Darkness, Curse, Void Step
   # ─────────────────────────────────────────────────────────────
@@ -232,15 +223,6 @@ fragments:
     base_rank: 7                   # Very high starting power
     xp_curve: EXPONENTIAL          # Gets harder to level up
     death_xp_penalty: 0.20         # Lose 20% XP on death
-  
-  # ─────────────────────────────────────────────────────────────
-  # MOB FRAGMENT - Summon creatures
-  # Abilities: Summon Wolf, Summon Zombie, Summon Skeleton, Summon Blaze, Summon Army
-  # ─────────────────────────────────────────────────────────────
-  mob:
-    base_rank: 5                   # High starting power
-    xp_curve: LINEAR               # Consistent leveling speed
-    death_xp_penalty: 0.10         # Lose 10% XP on death
   
   # ─────────────────────────────────────────────────────────────
   # DRAGON FRAGMENT - Ultimate power (MYTHIC)
@@ -289,7 +271,7 @@ discord:
 # ═══════════════════════════════════════════════════════════════
 new_player:
   give_starter_fragment: false      # Give new players a fragment on first join
-  starter_fragment_type: "water"   # Which fragment to give (water, earth, fire, air, dark, light, void, mob, dragon, storm)
+  starter_fragment_type: "water"   # Which fragment to give (water, fire, air, dark, light, void, dragon, storm)
   auto_activate: true              # Automatically activate the fragment (no need for Fragment Changer ritual)
   welcome_message: true            # Send welcome message explaining the fragment system
 
@@ -299,3 +281,45 @@ new_player:
 # Remember to use "/fragment reload" after making changes!
 # For support, check the plugin documentation or contact the developer.
 # ═══════════════════════════════════════════════════════════════
+
+
+# ═══════════════════════════════════════════════════════════════
+# CINEMATIC VFX SYSTEM
+# ═══════════════════════════════════════════════════════════════
+# Controls the new cinematic visual effects system
+# Movie/Anime-inspired VFX with magic circles and geometric shapes
+# ═══════════════════════════════════════════════════════════════
+cinematic_vfx:
+  enabled: true                      # Enable/disable cinematic effects
+  
+  # Performance limits
+  max_particles_per_player: 500      # Maximum particles per player per tick
+  max_magic_circles: 50              # Maximum active magic circles server-wide
+  max_mini_blocks: 100               # Maximum active mini blocks server-wide
+  
+  # TPS-based scaling thresholds
+  tps_thresholds:
+    normal: 18.0                     # No scaling above this TPS
+    reduced: 15.0                    # 50% particles below this TPS
+    minimal: 10.0                    # 25% particles below this TPS
+  
+  # View blocking prevention
+  view_cone:
+    max_particles: 50                # Max particles in player's view cone
+    angle_degrees: 30                # View cone angle (degrees)
+    radius_blocks: 2.0               # View cone radius (blocks)
+    create_corridor: true            # Create visibility corridor in look direction
+  
+  # Magic circle settings
+  magic_circles:
+    default_lifetime_ticks: 100      # Default duration (5 seconds)
+    rotation_speed: 0.05             # Rotation speed multiplier
+    spawn_duration_ticks: 10         # Fade-in duration
+    fade_duration_ticks: 15          # Fade-out duration
+  
+  # Mini block settings
+  mini_blocks:
+    scale: 0.1667                    # 1/6 scale (DO NOT CHANGE)
+    place_on_impact: false           # Never place blocks on impact
+    max_lifetime_ticks: 200          # Maximum lifetime (10 seconds)
+    default_speed: 1.5               # Default projectile speed

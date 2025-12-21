@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.dragon;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -9,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -27,10 +28,10 @@ public class CataclysmExecutor implements AbilityExecutor {
         int duration = 200 + (rank * 40); // 10s + 2s per rank
         
         // Grant dragon form effects
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, 2)); // Strength III
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 1)); // Resistance II
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, 1)); // Speed II
-        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, duration, 0)); // Dragon glow
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, duration, 2)); // Strength III
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, duration, 1)); // Resistance II
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, duration, 1)); // Speed II
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.GLOWING, duration, 0)); // Dragon glow
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         

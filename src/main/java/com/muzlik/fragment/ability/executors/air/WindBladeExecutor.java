@@ -1,5 +1,6 @@
 package com.muzlik.fragment.ability.executors.air;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -58,7 +59,9 @@ public class WindBladeExecutor implements AbilityExecutor {
             // Ambient: Light dust swirls - barely visible
             .ambient(Particle.SMOKE_NORMAL, ambientCount, ParticlePattern.SPIRAL, spread * 0.8, spread * 0.8, spread * 0.8, 0.01, null)
             // Impact: SWEEP_ATTACK slash - single clean slash
-            .impact(Particle.SWEEP_ATTACK, impactCount, ParticlePattern.BURST, spread, spread, spread, 0.06 + (rank * 0.02), null);
+            .impact(Particle.SWEEP_ATTACK, impactCount, ParticlePattern.BURST, spread, spread, spread, 0.06 + (rank * 0.02), null)
+            // Magic circle - air themed
+            .withMagicCircle(FragmentType.AIR, 1.8 + (rank * 0.15), 25 + (rank * 4));
         
         // Cinematic: Wind distortion at rank 2+, more intense at higher ranks
         if (rank >= 2) {

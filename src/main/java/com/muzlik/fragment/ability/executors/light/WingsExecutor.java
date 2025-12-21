@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.light;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.vfx.VFXLayerBuilder;
@@ -10,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -47,10 +48,10 @@ public class WingsExecutor implements AbilityExecutor {
         int effectDuration = duration + 20; // Slightly longer than transformation
         
         // Immunity to debuffs (give beneficial effects that counteract)
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, effectDuration, 1));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, effectDuration, 1));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, effectDuration, 1)); // +60% damage approximation
-        player.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, effectDuration, 0)); // Angelic glow
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.REGENERATION, effectDuration, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.DAMAGE_RESISTANCE, effectDuration, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.INCREASE_DAMAGE, effectDuration, 1)); // +60% damage approximation
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.GLOWING, effectDuration, 0)); // Angelic glow
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         

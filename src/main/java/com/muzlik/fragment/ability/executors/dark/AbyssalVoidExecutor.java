@@ -1,10 +1,11 @@
 package com.muzlik.fragment.ability.executors.dark;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class AbyssalVoidExecutor implements AbilityExecutor {
@@ -18,9 +19,9 @@ public class AbyssalVoidExecutor implements AbilityExecutor {
         for (Entity entity : player.getWorld().getNearbyEntities(player.getLocation(), radius, 5, radius)) {
             if (entity instanceof LivingEntity && entity != player) {
                 LivingEntity target = (LivingEntity) entity;
-                target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 200, 2));
-                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 200, 2));
-                target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 200, 1));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.WITHER, 200, 2));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 200, 2));
+                target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.WEAKNESS, 200, 1));
             }
         }
         

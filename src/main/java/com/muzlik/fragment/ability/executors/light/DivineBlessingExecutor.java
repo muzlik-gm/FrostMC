@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.light;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
@@ -25,7 +27,7 @@ public class DivineBlessingExecutor implements AbilityExecutor {
                 player.removePotionEffect(type);
             }
         }
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 160, 1));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.REGENERATION, 160, 1));
         
         player.getWorld().spawnParticle(Particle.END_ROD, player.getLocation(), 80, 1, 1, 1, 0.1);
         player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f);

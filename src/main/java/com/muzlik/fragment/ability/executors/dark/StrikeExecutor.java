@@ -1,5 +1,6 @@
 package com.muzlik.fragment.ability.executors.dark;
 
+import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import org.bukkit.*;
@@ -16,9 +17,9 @@ public class StrikeExecutor implements AbilityExecutor {
         double baseDamage = 3.0;
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
-        // Launch wither skull from eye location - EXTREMELY FAST
+        // Launch wither skull from eye location - EXTREMELY FAST (14x speed boost)
         WitherSkull skull = player.launchProjectile(WitherSkull.class);
-        skull.setVelocity(direction.multiply(4.0 + (rank * 0.4))); // VERY FAST: 4.0-5.2 speed
+        skull.setVelocity(direction.multiply(56.0 + (rank * 5.6))); // ULTRA FAST: 56.0-72.8 speed (14x original)
         skull.setCharged(rank >= 3); // Charged (blue) at rank 3+
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
@@ -42,7 +43,9 @@ public class StrikeExecutor implements AbilityExecutor {
             // Ambient: SMOKE_NORMAL - faint haze
             .ambient(Particle.SMOKE_NORMAL, ambientCount, com.muzlik.vfx.ParticlePattern.SPHERE, spread * 0.8, spread * 0.8, spread * 0.8, 0.01, null)
             // Impact: Dark burst - controlled, ominous
-            .impact(Particle.SMOKE_LARGE, impactCount, com.muzlik.vfx.ParticlePattern.BURST, spread, spread, spread, 0.04 + (rank * 0.01), null);
+            .impact(Particle.SMOKE_LARGE, impactCount, com.muzlik.vfx.ParticlePattern.BURST, spread, spread, spread, 0.04 + (rank * 0.01), null)
+            // Magic circle - dark and ominous
+            .withMagicCircle(FragmentType.DARK, 2.0 + (rank * 0.2), 30 + (rank * 5));
         
         // Cinematic: Darkness pulse at rank 2+, more intense at higher ranks
         if (rank >= 2) {

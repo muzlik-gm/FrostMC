@@ -116,11 +116,14 @@ public class PassiveAbilityListener implements Listener {
     }
     
     /**
-     * Handle player death - check for Phoenix Rebirth
+     * Handle player death - check for Phoenix Rebirth and drop fragment
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
+        
+        // First, handle fragment drop (before Phoenix Rebirth check)
+        handleFragmentDrop(player, event);
         
         // Check if player has Fire fragment and Phoenix Rebirth unlocked
         if (!fragmentManager.hasFragment(player, FragmentType.FIRE)) {
@@ -180,6 +183,43 @@ public class PassiveAbilityListener implements Listener {
         player.sendMessage("§8ᴄᴏᴏʟᴅᴏᴡɴ: §c1 ʜᴏᴜʀ");
         
         plugin.getLogger().info("[Phoenix Rebirth] " + player.getName() + " revived!");
+    }
+    
+    /**
+     * Handle fragment drop on death
+     * Deactivates fragment and drops it as an item
+     */
+    private void handleFragmentDrop(Player player, PlayerDeathEvent event) {
+        com.muzlik.fragment.PlayerFragmentData data = fragmentManager.getPlayerData(player);
+        
+        if (data == null) {
+            return;
+        }
+        
+        FragmentType activeFragment = data.getActiveFragment();
+        
+        if (activeFragment == null) {
+            return;
+        }
+        
+        // Deactivate the fragment
+        fragmentManager.setActiveFragment(player, null);
+        
+        // Create fragment item
+        org.bukkit.inventory.ItemStack fragmentItem = fragmentManager.createFragmentItem(activeFragment);
+        
+        if (fragmentItem == null) {
+            plugin.getLogger().warning("[Fragment Drop] Failed to create fragment item for " + player.getName());
+            return;
+        }
+        
+        // Add to death drops
+        event.getDrops().add(fragmentItem);
+        
+        player.sendMessage("§c§l✗ Your fragment has been dropped!");
+        player.sendMessage("§7Pick it up and right-click to reactivate it.");
+        
+        plugin.getLogger().info("[Fragment Drop] " + player.getName() + " dropped " + activeFragment.getDisplayName() + " fragment on death");
     }
     
     /**

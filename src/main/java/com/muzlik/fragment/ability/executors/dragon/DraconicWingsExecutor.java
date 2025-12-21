@@ -1,5 +1,7 @@
 package com.muzlik.fragment.ability.executors.dragon;
 
+import com.muzlik.util.PotionEffectHelper;
+
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
 import com.muzlik.fragment.FragmentType;
@@ -8,7 +10,6 @@ import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
@@ -27,8 +28,8 @@ public class DraconicWingsExecutor implements AbilityExecutor {
         plugin.getFlightManager().startFlight(player, FragmentType.DRAGON, rank);
         
         // Add speed buff and fall damage immunity for full duration
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1800 * 20, 3, false, false));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 1800 * 20, 0, false, false));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, 1800 * 20, 3));
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW_FALLING, 1800 * 20, 0));
         
         // Reduced VFX for activation
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)

@@ -32,11 +32,13 @@ public class RitualManager {
     private com.muzlik.fragment.ability.AbilitySlotManager abilitySlotManager;
     private BukkitRunnable updateTask;
     private boolean discordSRVEnabled = false;
+    private com.muzlik.vfx.cinematic.CinematicVFXEngine cinematicVFXEngine;
     
     // Configuration
     private double proximityDistance = 5.0;
     private long failureCooldown = 60000; // 1 minute in milliseconds
     private final Map<UUID, Long> failureCooldowns;
+    private RitualDisplayManager displayManager;
 
     public RitualManager(JavaPlugin plugin, FragmentManager fragmentManager, FXLibrary fxLibrary, ConfigManager configManager) {
         this.plugin = plugin;
@@ -47,6 +49,19 @@ public class RitualManager {
         this.configManager = configManager;
         this.failureCooldowns = new ConcurrentHashMap<>();
         this.abilitySlotManager = null; // Will be set later
+        this.displayManager = new RitualDisplayManager(plugin);
+        
+        // Initialize cinematic VFX engine
+        if (plugin instanceof com.muzlik.FrostSMPPlugin) {
+            this.cinematicVFXEngine = ((com.muzlik.FrostSMPPlugin) plugin).getCinematicVFXEngine();
+            if (this.cinematicVFXEngine != null) {
+                plugin.getLogger().info("✅ RitualManager: Cinematic VFX Engine initialized - Magic circles enabled!");
+            } else {
+                plugin.getLogger().warning("⚠️ RitualManager: Cinematic VFX Engine is NULL - Using FXLibrary fallback");
+            }
+        } else {
+            plugin.getLogger().warning("⚠️ RitualManager: Plugin is not FrostSMPPlugin instance");
+        }
         
         // Check if DiscordSRV is available
         checkDiscordSRV();
@@ -88,6 +103,24 @@ public class RitualManager {
             return false;
         }
         
+        // Check if player has the catalyst in their inventory
+        if (catalyst != null) {
+            ItemStack heldItem = player.getInventory().getItemInMainHand();
+            if (heldItem == null || !heldItem.isSimilar(catalyst)) {
+                // Check if catalyst is in inventory at all
+                if (!player.getInventory().containsAtLeast(catalyst, 1)) {
+                    player.sendMessage("§c✗ You need the ritual catalyst in your inventory!");
+                    return false;
+                }
+            }
+            
+            // Consume the catalyst from inventory
+            ItemStack toRemove = catalyst.clone();
+            toRemove.setAmount(1);
+            player.getInventory().removeItem(toRemove);
+            player.sendMessage("§7Ritual catalyst consumed...");
+        }
+        
         // Create ritual instance
         RitualInstance ritual = new RitualInstance(
             player.getUniqueId(),
@@ -102,6 +135,16 @@ public class RitualManager {
         
         // Create boss bar
         createRitualBossBar(player, ritual);
+        
+        // Create floating fragment display with particle beams
+        if (fragmentType != null) {
+            ItemStack fragmentItem = fragmentManager.createFragmentItem(fragmentType);
+            if (fragmentItem != null) {
+                // Get the fragment's base rank from the fragment definition
+                int fragmentRank = fragmentManager.getRankManager().getBaseRank(fragmentType);
+                displayManager.createDisplay(player, ritual.getLocation(), fragmentType, fragmentItem, ritual.getDuration(), fragmentRank);
+            }
+        }
         
         player.sendMessage("§a✓ Ritual started: §b" + type.getDisplayName());
         player.sendMessage("§7Stay within " + proximityDistance + " blocks for " + 
@@ -120,7 +163,8 @@ public class RitualManager {
         RitualInstance ritual = activeRituals.remove(player.getUniqueId());
         if (ritual != null) {
             player.sendMessage("§c✗ Ritual cancelled");
-            removeRitualBossBar(player);
+            removeRitualBossBar(player.getUniqueId());
+            displayManager.removeDisplay(player.getUniqueId());
         }
     }
 
@@ -140,41 +184,127 @@ public class RitualManager {
 
     /**
      * Update ritual (called by update task)
+     * Now supports grace period - any player can maintain the ritual
+     * @param shouldPlayVFX Whether to play VFX this tick (to avoid playing 4x per second)
      */
-    private void updateRitual(Player player, RitualInstance ritual) {
-        // Check proximity
-        if (!isInRitualProximity(player, ritual)) {
-            failRitual(player, ritual, "Moved too far from ritual location");
-            return;
+    private void updateRitual(UUID ritualOwnerId, RitualInstance ritual, boolean shouldPlayVFX) {
+        Player owner = plugin.getServer().getPlayer(ritualOwnerId);
+        Location ritualLoc = ritual.getLocation();
+        
+        // Check if ANY player is in the ritual area (not just the owner)
+        boolean anyPlayerInArea = isAnyPlayerInRitualArea(ritual);
+        
+        // Handle grace period logic
+        if (!anyPlayerInArea) {
+            if (!ritual.isInGracePeriod()) {
+                // Start grace period - no players in area
+                ritual.startGracePeriod();
+                
+                // Warn players within 150 blocks
+                warnNearbyPlayers(ritual, "§c⚠ RITUAL ABANDONED! §7Grace period started - " + 
+                    RitualInstance.getGracePeriodDurationSeconds() + "s until ritual fails!");
+                
+                // Warn the owner specifically if online
+                if (owner != null && owner.isOnline()) {
+                    owner.sendMessage("§c⚠ You left the ritual area! Return within " + 
+                        RitualInstance.getGracePeriodDurationSeconds() + " seconds or the ritual will fail!");
+                }
+            } else {
+                // Check if grace period expired
+                if (ritual.isGracePeriodExpired()) {
+                    failRitual(ritualOwnerId, ritual, "No players in ritual area for too long");
+                    return;
+                }
+                
+                // Update grace period countdown in boss bar
+                updateRitualBossBarGracePeriod(ritualOwnerId, ritual);
+            }
+            return; // Don't progress ritual during grace period
+        } else {
+            // Player returned - end grace period if active
+            if (ritual.isInGracePeriod()) {
+                ritual.endGracePeriod();
+                warnNearbyPlayers(ritual, "§a✓ Ritual resumed! §7A player has returned to the ritual area.");
+            }
         }
         
         // Update progress
         long elapsed = System.currentTimeMillis() - ritual.getStartTime();
         int progressPercent = (int) ((elapsed * 100) / ritual.getDuration());
         
-        // Update boss bar
-        updateRitualBossBar(player, ritual);
+        // Update boss bar (every tick for smooth progress)
+        updateRitualBossBar(ritualOwnerId, ritual);
         
-        // Update stage
-        RitualStage newStage = RitualStage.fromProgress(progressPercent);
-        if (newStage != ritual.getStage()) {
-            ritual.setStage(newStage);
-            player.sendMessage("§e⚡ Ritual stage: §b" + newStage.name());
+        // Update stage - notify owner if online (only check once per second)
+        if (shouldPlayVFX) {
+            RitualStage newStage = RitualStage.fromProgress(progressPercent);
+            if (newStage != ritual.getStage()) {
+                ritual.setStage(newStage);
+                if (owner != null && owner.isOnline()) {
+                    owner.sendMessage("§e⚡ Ritual stage: §b" + newStage.name());
+                }
+            }
         }
         
-        // Display effects
-        FragmentType fragmentType = determineFragmentType(ritual);
-        if (fragmentType != null) {
-            fxLibrary.playRitualEffect(
-                ritual.getLocation(),
-                ritual.getStage(),
-                fxLibrary.getColorScheme(fragmentType)
-            );
+        // Display effects - Only play once per second to avoid spam
+        if (shouldPlayVFX) {
+            FragmentType fragmentType = determineFragmentType(ritual);
+            if (fragmentType != null) {
+                // OLD VFX SYSTEM DISABLED - Using new rank-based magic circles in RitualDisplayManager instead
+                // The old system was causing:
+                // 1. Duplicate magic circles (light blue + dark blue)
+                // 2. Performance issues (high ping due to excessive particles)
+                // 3. Visual clutter
+                
+                // New system is in RitualDisplayManager.drawMagicCircles()
+                // which provides rank-based complexity and better performance
+            }
         }
         
         // Check completion
         if (elapsed >= ritual.getDuration()) {
-            completeRitual(player, ritual);
+            completeRitual(ritualOwnerId, ritual);
+        }
+    }
+    
+    /**
+     * Check if ANY player is in the ritual area
+     */
+    private boolean isAnyPlayerInRitualArea(RitualInstance ritual) {
+        Location ritualLoc = ritual.getLocation();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getWorld().equals(ritualLoc.getWorld()) && 
+                player.getLocation().distance(ritualLoc) <= proximityDistance) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Get any player in the ritual area (for VFX purposes)
+     */
+    private Player getAnyPlayerInRitualArea(RitualInstance ritual) {
+        Location ritualLoc = ritual.getLocation();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getWorld().equals(ritualLoc.getWorld()) && 
+                player.getLocation().distance(ritualLoc) <= proximityDistance) {
+                return player;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Warn all players within 150 blocks of the ritual
+     */
+    private void warnNearbyPlayers(RitualInstance ritual, String message) {
+        Location ritualLoc = ritual.getLocation();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getWorld().equals(ritualLoc.getWorld()) && 
+                player.getLocation().distance(ritualLoc) <= 150) {
+                player.sendMessage(message);
+            }
         }
     }
 
@@ -203,78 +333,87 @@ public class RitualManager {
     /**
      * Complete a ritual
      */
-    private void completeRitual(Player player, RitualInstance ritual) {
-        activeRituals.remove(player.getUniqueId());
-        removeRitualBossBar(player);
+    private void completeRitual(UUID ownerId, RitualInstance ritual) {
+        activeRituals.remove(ownerId);
+        removeRitualBossBar(ownerId);
         
+        Player owner = plugin.getServer().getPlayer(ownerId);
         RitualType type = ritual.getType();
         
         switch (type) {
             case FRAGMENT_CREATION:
-                completeFragmentCreation(player, ritual);
+                completeFragmentCreation(ownerId, ritual);
                 break;
             case FRAGMENT_CHANGER:
-                completeFragmentChanger(player, ritual);
+                if (owner != null) completeFragmentChanger(owner, ritual);
                 break;
             case RANK_UP:
-                completeRankUp(player, ritual);
+                if (owner != null) completeRankUp(owner, ritual);
                 break;
             case ABILITY_EXPANSION:
-                completeAbilityExpansion(player, ritual);
+                if (owner != null) completeAbilityExpansion(owner, ritual);
                 break;
             case MASTERY_EXPANSION:
-                completeMasteryExpansion(player, ritual);
+                if (owner != null) completeMasteryExpansion(owner, ritual);
                 break;
             default:
-                player.sendMessage("§a✓ Ritual complete!");
+                if (owner != null) owner.sendMessage("§a✓ Ritual complete!");
                 break;
         }
         
-        // Play completion effects
+        // Play completion effects - Use cinematic VFX if available
         FragmentType fragmentType = determineFragmentType(ritual);
         if (fragmentType != null) {
-            fxLibrary.playRitualEffect(
-                ritual.getLocation(),
-                RitualStage.COMPLETION,
-                fxLibrary.getColorScheme(fragmentType)
-            );
-            fxLibrary.playSound(ritual.getLocation(), SoundPreset.RITUAL_COMPLETE, 1.0f, 1.0f);
+            Player vfxPlayer = owner != null ? owner : getAnyPlayerInRitualArea(ritual);
+            if (cinematicVFXEngine != null && vfxPlayer != null) {
+                // Use cinematic completion animation
+                com.muzlik.vfx.cinematic.ritual.RitualAnimationSequence ritualAnimations = cinematicVFXEngine.getRitualAnimations();
+                ritualAnimations.playCompletionAnimation(ritual.getLocation(), fragmentType, vfxPlayer);
+            } else {
+                // Fallback to FXLibrary
+                fxLibrary.playRitualEffect(
+                    ritual.getLocation(),
+                    RitualStage.COMPLETION,
+                    fxLibrary.getColorScheme(fragmentType)
+                );
+                fxLibrary.playSound(ritual.getLocation(), SoundPreset.RITUAL_COMPLETE, 1.0f, 1.0f);
+            }
         }
     }
 
     /**
      * Complete Fragment Creation ritual
-     * This CHARGES the fragment - player needs Fragment Changer to activate it
+     * Drops the fragment on the ground - does NOT give to inventory or activate
      */
-    private void completeFragmentCreation(Player player, RitualInstance ritual) {
+    private void completeFragmentCreation(UUID ownerId, RitualInstance ritual) {
         // Determine Fragment type from catalyst item
         FragmentType fragmentType = determineFragmentType(ritual);
+        Player owner = plugin.getServer().getPlayer(ownerId);
         
         if (fragmentType != null) {
-            if (configManager.isFragmentChangerRequired()) {
-                // CHARGE the fragment instead of granting directly
-                fragmentManager.chargeFragment(player, fragmentType);
+            // Drop the fragment from the floating display to the ground
+            // The display manager handles this - it drops the floating item
+            displayManager.completeAndDropFragment(ownerId);
 
-                // Give the physical fragment item with texture
-                fragmentManager.giveFragmentItem(player, fragmentType);
-
-                player.sendMessage("§a✓ Fragment Creation complete!");
-                player.sendMessage("");
-                player.sendMessage("§e§l⚡ Fragment is now CHARGED!");
-                player.sendMessage("§7Right-click a §eFragment Changer §7to activate it");
-            } else {
-                // Grant and activate the fragment directly
-                fragmentManager.grantAndActivateFragment(player, fragmentType);
-
-                // Give the physical fragment item with texture
-                fragmentManager.giveFragmentItem(player, fragmentType);
-
-                player.sendMessage("§a✓ Fragment Creation complete!");
-                player.sendMessage("");
-                player.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment is now ACTIVE!");
+            if (owner != null) {
+                owner.sendMessage("§a✓ Fragment Creation complete!");
+                owner.sendMessage("");
+                owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment has materialized!");
+                owner.sendMessage("§7Pick it up and right-click to activate");
             }
+            
+            // Broadcast completion
+            Location loc = ritual.getLocation();
+            String ownerName = owner != null ? owner.getName() : "Unknown";
+            Bukkit.broadcastMessage(String.format(
+                "§a§l✓ RITUAL COMPLETE! §r§7%s has created a §b%s Fragment §7at §f%d, %d, %d",
+                ownerName,
+                fragmentType.getDisplayName(),
+                loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()
+            ));
         } else {
-            player.sendMessage("§c✗ Failed to determine Fragment type");
+            if (owner != null) owner.sendMessage("§c✗ Failed to determine Fragment type");
+            displayManager.removeDisplay(ownerId);
         }
     }
 
@@ -392,19 +531,34 @@ public class RitualManager {
     /**
      * Fail a ritual
      */
-    private void failRitual(Player player, RitualInstance ritual, String reason) {
-        activeRituals.remove(player.getUniqueId());
-        removeRitualBossBar(player);
+    private void failRitual(UUID ownerId, RitualInstance ritual, String reason) {
+        activeRituals.remove(ownerId);
+        removeRitualBossBar(ownerId);
+        displayManager.removeDisplay(ownerId);
         
-        player.sendMessage("§c✗ Ritual failed: " + reason);
+        Player owner = plugin.getServer().getPlayer(ownerId);
+        if (owner != null) {
+            owner.sendMessage("§c✗ Ritual failed: " + reason);
+        }
+        
+        // Broadcast failure to nearby players
+        warnNearbyPlayers(ritual, "§c✗ RITUAL FAILED! §7" + reason);
         
         // Apply failure cooldown
-        failureCooldowns.put(player.getUniqueId(), System.currentTimeMillis() + failureCooldown);
+        failureCooldowns.put(ownerId, System.currentTimeMillis() + failureCooldown);
         
-        // Play failure effects
+        // Play failure effects - Use cinematic VFX if available
         FragmentType fragmentType = determineFragmentType(ritual);
         if (fragmentType != null) {
-            fxLibrary.playSound(ritual.getLocation(), SoundPreset.RITUAL_FAIL, 1.0f, 0.8f);
+            Player vfxPlayer = owner != null ? owner : getAnyPlayerInRitualArea(ritual);
+            if (cinematicVFXEngine != null && vfxPlayer != null) {
+                // Use cinematic failure animation
+                com.muzlik.vfx.cinematic.ritual.RitualAnimationSequence ritualAnimations = cinematicVFXEngine.getRitualAnimations();
+                ritualAnimations.playFailureAnimation(ritual.getLocation(), fragmentType, vfxPlayer);
+            } else {
+                // Fallback to FXLibrary
+                fxLibrary.playSound(ritual.getLocation(), SoundPreset.RITUAL_FAIL, 1.0f, 0.8f);
+            }
         }
     }
 
@@ -446,6 +600,8 @@ public class RitualManager {
 
     /**
      * Start ritual update task
+     * Now handles player disconnects with grace period instead of immediate cancel
+     * Runs 4 times per second (every 5 ticks) for responsive grace period detection
      */
     private void startUpdateTask() {
         if (updateTask != null) {
@@ -453,23 +609,28 @@ public class RitualManager {
         }
         
         updateTask = new BukkitRunnable() {
+            private int tickCounter = 0;
+            
             @Override
             public void run() {
-                for (Map.Entry<UUID, RitualInstance> entry : activeRituals.entrySet()) {
-                    Player player = plugin.getServer().getPlayer(entry.getKey());
-                    if (player == null || !player.isOnline()) {
-                        // Player disconnected, cancel ritual
-                        activeRituals.remove(entry.getKey());
-                        continue;
-                    }
+                tickCounter++;
+                
+                // Use iterator to safely remove entries during iteration
+                java.util.Iterator<Map.Entry<UUID, RitualInstance>> iterator = activeRituals.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<UUID, RitualInstance> entry = iterator.next();
+                    UUID ownerId = entry.getKey();
+                    RitualInstance ritual = entry.getValue();
                     
-                    updateRitual(player, entry.getValue());
+                    // Update ritual - grace period handles player absence
+                    // Pass tickCounter to control VFX frequency (only every 4th call = once per second)
+                    updateRitual(ownerId, ritual, tickCounter % 4 == 0);
                 }
             }
         };
         
-        // Run every second (20 ticks)
-        updateTask.runTaskTimer(plugin, 20L, 20L);
+        // Run 4 times per second (every 5 ticks) for responsive grace period detection
+        updateTask.runTaskTimer(plugin, 5L, 5L);
     }
 
     /**
@@ -497,63 +658,123 @@ public class RitualManager {
     }
 
     /**
-     * Remove player data
+     * Remove player data and cleanup ritual display
+     * Called when player disconnects
      */
     public void removePlayer(Player player) {
-        activeRituals.remove(player.getUniqueId());
-        failureCooldowns.remove(player.getUniqueId());
+        UUID playerId = player.getUniqueId();
+        RitualInstance ritual = activeRituals.get(playerId);
+        
+        if (ritual != null) {
+            // Don't remove the ritual - let grace period handle it
+            // But DO cleanup the display if player was the owner
+            // The ritual will continue if other players are in the area
+            plugin.getLogger().info("Player " + player.getName() + " disconnected during ritual - grace period will handle it");
+        }
+        
+        failureCooldowns.remove(playerId);
+    }
+    
+    /**
+     * Force cleanup a ritual (for admin commands or shutdown)
+     */
+    public void forceCleanupRitual(UUID playerId) {
+        RitualInstance ritual = activeRituals.remove(playerId);
+        if (ritual != null) {
+            removeRitualBossBar(playerId);
+            displayManager.removeDisplay(playerId);
+        }
+        failureCooldowns.remove(playerId);
     }
 
     /**
-     * Create boss bar for ritual
+     * Create boss bar for ritual - visible to ALL players
      */
     private void createRitualBossBar(Player player, RitualInstance ritual) {
         FragmentType fragmentType = determineFragmentType(ritual);
         BarColor color = getFragmentBarColor(fragmentType);
+        Location loc = ritual.getLocation();
         
-        String title = "§e⚡ " + ritual.getType().getDisplayName();
-        if (fragmentType != null) {
-            title += " §8- §b" + fragmentType.getDisplayName();
-        }
+        String title = String.format("§e⚡ %s §8- §b%s §8| §7Location: §f%d, %d, %d", 
+            ritual.getType().getDisplayName(),
+            fragmentType != null ? fragmentType.getDisplayName() : "Unknown",
+            loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         
         BossBar bossBar = Bukkit.createBossBar(title, color, BarStyle.SEGMENTED_10);
         bossBar.setProgress(0.0);
-        bossBar.addPlayer(player);
+        
+        // Add ALL online players to the boss bar
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+            bossBar.addPlayer(onlinePlayer);
+        }
+        
         bossBar.setVisible(true);
         
         ritualBossBars.put(player.getUniqueId(), bossBar);
+        
+        // Announce ritual start in chat to all players
+        String announcement = String.format(
+            "§e§l⚡ RITUAL STARTED! §r§7%s is performing §b%s §7at §f%d, %d, %d",
+            player.getName(),
+            ritual.getType().getDisplayName(),
+            loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()
+        );
+        Bukkit.broadcastMessage(announcement);
     }
     
     /**
      * Update boss bar for ritual
      */
-    private void updateRitualBossBar(Player player, RitualInstance ritual) {
-        BossBar bossBar = ritualBossBars.get(player.getUniqueId());
+    private void updateRitualBossBar(UUID ownerId, RitualInstance ritual) {
+        BossBar bossBar = ritualBossBars.get(ownerId);
         if (bossBar == null) return;
         
         // Calculate progress
         double progress = Math.min(1.0, (double) ritual.getProgressPercent() / 100.0);
         bossBar.setProgress(progress);
         
-        // Update title with time remaining
+        // Update title with time remaining and coordinates
         long remainingSeconds = ritual.getRemainingSeconds();
         long minutes = remainingSeconds / 60;
         long seconds = remainingSeconds % 60;
+        Location loc = ritual.getLocation();
         
         FragmentType fragmentType = determineFragmentType(ritual);
-        String title = String.format("§e⚡ %s §8- §b%s §8| §7Time: §f%d:%02d", 
+        String title = String.format("§e⚡ %s §8- §b%s §8| §7Time: §f%d:%02d §8| §7Loc: §f%d, %d, %d", 
             ritual.getType().getDisplayName(),
             fragmentType != null ? fragmentType.getDisplayName() : "Unknown",
-            minutes, seconds);
+            minutes, seconds,
+            loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         
         bossBar.setTitle(title);
     }
     
     /**
+     * Update boss bar during grace period
+     */
+    private void updateRitualBossBarGracePeriod(UUID ownerId, RitualInstance ritual) {
+        BossBar bossBar = ritualBossBars.get(ownerId);
+        if (bossBar == null) return;
+        
+        // Show grace period countdown
+        long graceRemaining = ritual.getGracePeriodRemainingSeconds();
+        Location loc = ritual.getLocation();
+        
+        FragmentType fragmentType = determineFragmentType(ritual);
+        String title = String.format("§c⚠ GRACE PERIOD §8- §b%s §8| §cTime: §f%ds §8| §7Loc: §f%d, %d, %d", 
+            fragmentType != null ? fragmentType.getDisplayName() : "Unknown",
+            graceRemaining,
+            loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+        
+        bossBar.setTitle(title);
+        bossBar.setColor(BarColor.RED);
+    }
+    
+    /**
      * Remove boss bar for ritual
      */
-    private void removeRitualBossBar(Player player) {
-        BossBar bossBar = ritualBossBars.remove(player.getUniqueId());
+    private void removeRitualBossBar(UUID ownerId) {
+        BossBar bossBar = ritualBossBars.remove(ownerId);
         if (bossBar != null) {
             bossBar.removeAll();
             bossBar.setVisible(false);
@@ -570,13 +791,13 @@ public class RitualManager {
             case FIRE -> BarColor.RED;
             case WATER -> BarColor.BLUE;
             case AIR -> BarColor.WHITE;
-            case EARTH -> BarColor.GREEN;
             case DARK -> BarColor.PURPLE;
             case LIGHT -> BarColor.YELLOW;
             case VOID -> BarColor.PURPLE;
-            case MOB -> BarColor.GREEN;
             case DRAGON -> BarColor.RED;
             case STORM -> BarColor.BLUE;
+            case TIME -> BarColor.YELLOW;
+            case LUCK -> BarColor.GREEN;
             case ADMIN -> BarColor.RED;
         };
     }
@@ -630,6 +851,11 @@ public class RitualManager {
         for (BossBar bossBar : ritualBossBars.values()) {
             bossBar.removeAll();
             bossBar.setVisible(false);
+        }
+        
+        // Cleanup all ritual displays
+        if (displayManager != null) {
+            displayManager.cleanup();
         }
         
         activeRituals.clear();

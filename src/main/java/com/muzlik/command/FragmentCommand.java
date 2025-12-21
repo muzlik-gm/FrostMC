@@ -154,6 +154,10 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "toggle":
                 handleToggle(player);
                 break;
+            case "withdraw":
+            case "deactivate":
+                handleWithdraw(player);
+                break;
             case "forceactivate":
                 if (!player.hasPermission("fragment.admin")) {
                     player.sendMessage("§cYou don't have permission to use this command");
@@ -240,25 +244,25 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "fire": item = createFragmentCreationItem(FragmentType.FIRE); break;
             case "water": item = createFragmentCreationItem(FragmentType.WATER); break;
             case "air": item = createFragmentCreationItem(FragmentType.AIR); break;
-            case "earth": item = createFragmentCreationItem(FragmentType.EARTH); break;
             case "dark": item = createFragmentCreationItem(FragmentType.DARK); break;
             case "light": item = createFragmentCreationItem(FragmentType.LIGHT); break;
             case "void": item = createFragmentCreationItem(FragmentType.VOID); break;
-            case "mob": item = createFragmentCreationItem(FragmentType.MOB); break;
             case "dragon": item = createFragmentCreationItem(FragmentType.DRAGON); break;
             case "storm": item = createFragmentCreationItem(FragmentType.STORM); break;
+            case "time": item = createFragmentCreationItem(FragmentType.TIME); break;
+            case "luck": item = createFragmentCreationItem(FragmentType.LUCK); break;
             
             // Actual Fragment items (with textures)
             case "fire_fragment": item = recipeManager.createFragmentItem(FragmentType.FIRE); break;
             case "water_fragment": item = recipeManager.createFragmentItem(FragmentType.WATER); break;
             case "air_fragment": item = recipeManager.createFragmentItem(FragmentType.AIR); break;
-            case "earth_fragment": item = recipeManager.createFragmentItem(FragmentType.EARTH); break;
             case "dark_fragment": item = recipeManager.createFragmentItem(FragmentType.DARK); break;
             case "light_fragment": item = recipeManager.createFragmentItem(FragmentType.LIGHT); break;
             case "void_fragment": item = recipeManager.createFragmentItem(FragmentType.VOID); break;
-            case "mob_fragment": item = recipeManager.createFragmentItem(FragmentType.MOB); break;
             case "dragon_fragment": item = recipeManager.createFragmentItem(FragmentType.DRAGON); break;
             case "storm_fragment": item = recipeManager.createFragmentItem(FragmentType.STORM); break;
+            case "time_fragment": item = recipeManager.createFragmentItem(FragmentType.TIME); break;
+            case "luck_fragment": item = recipeManager.createFragmentItem(FragmentType.LUCK); break;
             
             // Other items
             case "changer": item = createFragmentChangerItem(); break;
@@ -833,6 +837,43 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         }
     }
     
+    /**
+     * Handle withdraw command - Deactivate fragment and give item to player
+     */
+    private void handleWithdraw(Player player) {
+        com.muzlik.fragment.PlayerFragmentData data = fragmentManager.getPlayerData(player);
+        
+        if (data == null) {
+            player.sendMessage("§cNo fragment data found!");
+            return;
+        }
+        
+        FragmentType activeFragment = data.getActiveFragment();
+        
+        if (activeFragment == null) {
+            player.sendMessage("§cYou don't have an active fragment!");
+            return;
+        }
+        
+        // Deactivate the fragment
+        fragmentManager.setActiveFragment(player, null);
+        
+        // Create fragment item
+        ItemStack fragmentItem = fragmentManager.createFragmentItem(activeFragment);
+        
+        if (fragmentItem == null) {
+            player.sendMessage("§cFailed to create fragment item!");
+            return;
+        }
+        
+        // Give item to player
+        player.getInventory().addItem(fragmentItem);
+        
+        player.sendMessage("§a✓ Fragment withdrawn!");
+        player.sendMessage("§7Your §b" + activeFragment.getDisplayName() + " Fragment §7has been deactivated and added to your inventory.");
+        player.sendMessage("§7Right-click it to activate again.");
+    }
+    
     private void sendHelp(Player player) {
         player.sendMessage("");
         player.sendMessage("§8§m                                        ");
@@ -844,6 +885,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment info §8- Fragment stats");
         player.sendMessage("  §f/fragment level §8- Character level");
         player.sendMessage("  §f/fragment abilities §8- List abilities");
+        player.sendMessage("  §f/fragment withdraw §8- Deactivate & get item");
         player.sendMessage("  §f/fragment activate <type> §8- Switch");
         player.sendMessage("  §f/fragment controls §8- Change controls");
         player.sendMessage("  §f/fragment toggle §8- Enable/disable abilities");
@@ -1099,7 +1141,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             // Player commands
-            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "mana", "activate", "controls", "toggle"));
+            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "mana", "activate", "controls", "toggle", "withdraw"));
             
             // Admin commands (only show to admins)
             if (sender.hasPermission("fragment.admin")) {
@@ -1113,19 +1155,19 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
             } else if (args[0].equalsIgnoreCase("activate")) {
                 // Player command - show fragments (HIDE ADMIN)
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM", "TIME", "LUCK"));
             } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("grant")) {
                 // Admin command - show fragments (HIDE ADMIN)
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM", "TIME", "LUCK"));
             } else if (args[0].equalsIgnoreCase("controls") || args[0].equalsIgnoreCase("control")) {
                 completions.addAll(Arrays.asList("sneak_click", "double_sneak", "swap_hands", "click_only", "next", "prev"));
             }
         } else if (args.length == 3) {
             if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("give")) {
-                completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "changer", "manaflask"));
+                completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "time", "luck", "changer", "manaflask"));
             } else if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
                 // HIDE ADMIN FROM TAB COMPLETION (but still allow manual typing)
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM"));
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM", "TIME", "LUCK"));
             }
         } else if (args.length == 4) {
             if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {
