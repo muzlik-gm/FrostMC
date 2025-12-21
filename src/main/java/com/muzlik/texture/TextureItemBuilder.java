@@ -201,7 +201,6 @@ public class TextureItemBuilder {
                 .addEmptyLine()
                 .addLore("§8Fragment Type: §5" + type.name())
                 .addLore("§5§lFRAGMENT_ACTIVATOR")
-                .glow()
                 .hideFlags()
                 .build();
     }
