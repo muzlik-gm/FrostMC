@@ -573,7 +573,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(60)
             .cooldown(45000)
-            .rankRequirement(8) // Changed from 4 to 8 (TIME starts at rank 7)
+            .rankRequirement(8) // TIME: baseRank=7, maxRank=9, unlock at rank 8
             .executor(new com.muzlik.fragment.ability.executors.time.TemporalRewindExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -584,7 +584,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(50)
             .cooldown(30000)
-            .rankRequirement(10) // Changed from 6 to 10 (requires significant progression)
+            .rankRequirement(9) // TIME: maxRank=9, unlock at max rank
             .executor(new com.muzlik.fragment.ability.executors.time.ChronoStasisExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -641,7 +641,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(45)
             .cooldown(40000)
-            .rankRequirement(7) // Changed from 4 to 7 (LUCK starts at rank 6)
+            .rankRequirement(7) // LUCK: baseRank=6, maxRank=8, unlock at rank 7
             .executor(new com.muzlik.fragment.ability.executors.luck.TreasureHunterExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
@@ -652,7 +652,7 @@ public class FragmentRegistry {
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(55)
             .cooldown(50000)
-            .rankRequirement(9) // Changed from 6 to 9 (requires significant progression)
+            .rankRequirement(8) // LUCK: maxRank=8, unlock at max rank
             .executor(new com.muzlik.fragment.ability.executors.luck.ProbabilityManipulationExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());
