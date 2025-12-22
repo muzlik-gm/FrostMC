@@ -70,8 +70,8 @@ public class DragonicFuryExecutor implements AbilityExecutor {
             Location spawnLoc = loc.clone().add(0, 1.5, 0).add(playerDirection.clone().multiply(2.0));
             Fireball fireball = player.getWorld().spawn(spawnLoc, Fireball.class);
             fireball.setDirection(direction.multiply(1.5)); // Set velocity
-            fireball.setYield(0.0f); // No block damage - we handle explosion manually
-            fireball.setIsIncendiary(false); // No fire spread
+            fireball.setYield(3.5f); // Explosion power - will be overridden by our custom explosion
+            fireball.setIsIncendiary(false); // We handle fire in custom explosion
             fireball.setShooter(player);
             
             // Store fireball data for explosion handling

@@ -41,11 +41,13 @@ public class FireballExecutor implements AbilityExecutor {
         double baseDamage = 3.0;
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
-        // FIXED: Spawn fireball at eye location + 1.5 blocks forward (don't modify original location)
+        // Spawn LARGE fireball (not small) for better visibility and explosion
         Location spawnLoc = eyeLoc.clone().add(direction.clone().multiply(1.5));
-        SmallFireball fireball = eyeLoc.getWorld().spawn(spawnLoc, SmallFireball.class);
+        org.bukkit.entity.Fireball fireball = eyeLoc.getWorld().spawn(spawnLoc, org.bukkit.entity.Fireball.class);
         fireball.setShooter(player);
-        fireball.setVelocity(direction.multiply(2.0 + (rank * 0.1))); // Faster at higher ranks
+        fireball.setDirection(direction.multiply(1.5 + (rank * 0.1))); // Faster at higher ranks
+        fireball.setYield(2.0f); // Explosion power (2.0 = moderate destruction)
+        fireball.setIsIncendiary(true); // Sets fire to blocks
         
         // 5-Layer VFX System - CLEAN AND FOCUSED for primary ability
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");

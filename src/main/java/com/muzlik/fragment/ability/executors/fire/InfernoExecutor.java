@@ -3,134 +3,124 @@ package com.muzlik.fragment.ability.executors.fire;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.AbilityContext;
 import com.muzlik.fragment.ability.AbilityExecutor;
-import com.muzlik.vfx.environment.EnvironmentManager;
 import com.muzlik.vfx.VFXLayerBuilder;
 import com.muzlik.vfx.ParticlePattern;
 import com.muzlik.vfx.CinematicEffect;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Inferno - Fire Fragment Ultimate Ability
- * Creates a massive vortex of fire that pulls enemies in
+ * Meteor Strike - Fire Fragment Ultimate Ability
+ * Rains down explosive fireballs from the sky in the target area
+ * Creates a devastating bombardment that damages and ignites enemies
  * 
- * VFX: 5-Layer System with cinematic screen tremor
- * - Core: FLAME spiral vortex
- * - Secondary: END_ROD swirling
+ * VFX: 5-Layer System with cinematic screen shake
+ * - Core: FLAME explosions
+ * - Secondary: END_ROD trails
  * - Ambient: SMOKE_LARGE rising
  * - Impact: LAVA bursts
- * - Cinematic: Screen tremor at rank 5+
+ * - Cinematic: Screen shake at rank 3+
  */
 public class InfernoExecutor implements AbilityExecutor {
     @Override
     public void execute(AbilityContext context) {
         Player player = context.getPlayer();
-        Location center = player.getLocation();
+        Location targetLoc = player.getTargetBlock(null, 50).getLocation().add(0, 1, 0);
         int rank = context.getRank();
-        double baseRadius = 6.0;
+        double baseRadius = 8.0;
         double radius = context.getScalingEngine().scaleRange(baseRadius, rank);
-        double baseDamage = 5.0; // EXTREME NERF: 8.0 → 5.0 (2.5 hearts, ultimate DoT vortex)
+        double baseDamage = 6.0;
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
-        EnvironmentManager envManager = plugin.getEnvironmentManager();
         
-        // QUALITY-FOCUSED initial VFX - dramatic but controlled
-        // These are reduced counts that still look impressive through pattern design
-        int coreCount = 35 + (rank * 12);      // 35 → 71 at rank 3 (was 100 → 220)
-        int secondaryCount = 18 + (rank * 8);  // 18 → 42 at rank 3 (was 50 → 140)
-        int ambientCount = 12 + (rank * 6);    // 12 → 30 at rank 3 (was 40 → 115)
-        int impactCount = 10 + (rank * 5);     // 10 → 25 at rank 3 (was 30 → 90)
+        // Initial warning VFX at target location
+        int coreCount = 40 + (rank * 15);
+        int secondaryCount = 25 + (rank * 10);
+        int ambientCount = 15 + (rank * 8);
         
-        // Initial dramatic burst
-        VFXLayerBuilder initialVFX = new VFXLayerBuilder(plugin, center, rank, player)
+        VFXLayerBuilder warningVFX = new VFXLayerBuilder(plugin, targetLoc, rank, player)
             .withPerformanceManager(plugin.getVFXPerformanceManager())
-            .core(Particle.FLAME, coreCount, ParticlePattern.SPIRAL, radius * 0.8, 2.0, radius * 0.8, 0.08, null)
-            .secondary(Particle.END_ROD, secondaryCount, ParticlePattern.SPIRAL, radius * 0.6, 1.5, radius * 0.6, 0.06, null)
-            .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.SPHERE, radius * 0.4, 3.0, radius * 0.4, 0.02, null)
-            .impact(Particle.LAVA, impactCount, ParticlePattern.BURST, radius, 0.5, radius, 0.1, null)
-            // Magic circle - fire vortex theme, larger for ultimate
-            .withMagicCircle(FragmentType.FIRE, radius * 0.8, 100);
+            .core(Particle.FLAME, coreCount, ParticlePattern.SPHERE, radius * 0.5, 0.5, radius * 0.5, 0.05, null)
+            .secondary(Particle.END_ROD, secondaryCount, ParticlePattern.BURST, radius * 0.3, 0.3, radius * 0.3, 0.03, null)
+            .ambient(Particle.SMOKE_LARGE, ambientCount, ParticlePattern.SPHERE, radius * 0.4, 1.0, radius * 0.4, 0.02, null)
+            .withMagicCircle(FragmentType.FIRE, radius * 0.8, 80);
         
-        // Cinematic effects at higher ranks
         if (rank >= 3) {
-            initialVFX.cinematic(0.2 + (rank * 0.05), CinematicEffect.SCREEN_SHAKE);
+            warningVFX.cinematic(0.15 + (rank * 0.05), CinematicEffect.SCREEN_SHAKE);
         }
         
-        initialVFX.spawn();
+        warningVFX.spawn();
         
-        // Create sustained vortex effect
+        // Warning sound
+        targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.5f);
+        targetLoc.getWorld().playSound(targetLoc, Sound.BLOCK_FIRE_AMBIENT, 1.5f, 0.8f);
+        
+        // Rain down meteors over 3 seconds
+        int meteorCount = 8 + (rank * 2); // 8-14 meteors
+        
         new BukkitRunnable() {
-            int ticks = 0;
-            final int duration = 100; // 5 seconds
+            int meteorsSpawned = 0;
             
             @Override
             public void run() {
-                if (ticks >= duration) {
+                if (meteorsSpawned >= meteorCount) {
                     cancel();
                     return;
                 }
                 
-                // Continuous vortex VFX - REDUCED for performance
-                if (ticks % 4 == 0) { // Every 4 ticks instead of every tick
-                    // Minimal sustained counts - just enough to maintain the effect
-                    int sustainedCore = 8 + (rank * 2);     // 8 → 14 at rank 3 (was 25 constant)
-                    int sustainedSecondary = 4 + rank;      // 4 → 7 at rank 3 (was 12 constant)
-                    int sustainedAmbient = 3 + rank;        // 3 → 6 at rank 3 (was 8 constant)
-                    
-                    new VFXLayerBuilder(plugin, center, rank, player)
-                        .withPerformanceManager(plugin.getVFXPerformanceManager())
-                        .core(Particle.FLAME, sustainedCore, ParticlePattern.SPIRAL, radius * 0.6, 1.0, radius * 0.6, 0.04, null)
-                        .secondary(Particle.END_ROD, sustainedSecondary, ParticlePattern.SPIRAL, radius * 0.4, 0.8, radius * 0.4, 0.03, null)
-                        .ambient(Particle.SMOKE_LARGE, sustainedAmbient, ParticlePattern.SPHERE, radius * 0.3, 2.0, radius * 0.3, 0.01, null)
-                        .spawn();
-                }
+                // Random location within radius
+                double angle = Math.random() * Math.PI * 2;
+                double distance = Math.random() * radius;
+                double offsetX = Math.cos(angle) * distance;
+                double offsetZ = Math.sin(angle) * distance;
                 
-                // Pull and damage enemies
-                for (org.bukkit.entity.Entity entity : center.getWorld().getNearbyEntities(center, radius, radius, radius)) {
-                    if (entity instanceof LivingEntity && entity != player) {
-                        LivingEntity target = (LivingEntity) entity;
+                Location meteorTarget = targetLoc.clone().add(offsetX, 0, offsetZ);
+                Location meteorSpawn = meteorTarget.clone().add(0, 30, 0); // Spawn 30 blocks up
+                
+                // Spawn fireball falling down
+                Fireball meteor = meteorSpawn.getWorld().spawn(meteorSpawn, Fireball.class);
+                meteor.setDirection(new Vector(0, -1, 0));
+                meteor.setYield(2.5f); // Explosion power
+                meteor.setIsIncendiary(true);
+                meteor.setShooter(player);
+                
+                // Trail particles
+                new BukkitRunnable() {
+                    int ticks = 0;
+                    @Override
+                    public void run() {
+                        if (!meteor.isValid() || ticks++ > 60) {
+                            cancel();
+                            return;
+                        }
                         
-                        // Pull towards center
-                        Vector pullVector = center.toVector().subtract(target.getLocation().toVector()).normalize().multiply(0.3);
-                        target.setVelocity(pullVector);
+                        Location loc = meteor.getLocation();
+                        loc.getWorld().spawnParticle(Particle.FLAME, loc, 5, 0.2, 0.2, 0.2, 0.02);
+                        loc.getWorld().spawnParticle(Particle.SMOKE_LARGE, loc, 2, 0.1, 0.1, 0.1, 0.01);
+                        loc.getWorld().spawnParticle(Particle.LAVA, loc, 1, 0.1, 0.1, 0.1, 0);
                         
-                        // Damage every 20 ticks (1 second)
-                        if (ticks % 20 == 0) {
-                            target.damage(damage, player);
-                            target.setFireTicks(60);
+                        if (ticks % 10 == 0) {
+                            loc.getWorld().playSound(loc, Sound.ENTITY_BLAZE_SHOOT, 0.5f, 0.6f);
                         }
                     }
-                }
+                }.runTaskTimer(plugin, 0L, 2L);
                 
-                // Environment effects - ignite blocks occasionally
-                if (ticks % 10 == 0 && envManager != null) {
-                    for (int x = -2; x <= 2; x++) {
-                        for (int z = -2; z <= 2; z++) {
-                            if (Math.random() < 0.3) {
-                                Block block = center.clone().add(x, 0, z).getBlock();
-                                if (block.getType() == Material.GRASS_BLOCK || block.getType() == Material.DIRT) {
-                                    // Temporarily set block to fire (simplified)
-                                    block.setType(Material.FIRE);
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                ticks++;
+                meteorsSpawned++;
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }.runTaskTimer(plugin, 10L, 6L); // Start after 0.5s, spawn every 0.3s
         
-        // Sound effects
-        center.getWorld().playSound(center, Sound.ENTITY_BLAZE_AMBIENT, 2.0f, 0.8f);
-        center.getWorld().playSound(center, Sound.BLOCK_FIRE_AMBIENT, 1.5f, 1.0f);
+        player.sendMessage("§c☄ Meteor Strike incoming!");
     }
 }
