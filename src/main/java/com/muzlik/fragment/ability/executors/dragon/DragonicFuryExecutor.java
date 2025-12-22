@@ -142,10 +142,13 @@ public class DragonicFuryExecutor implements AbilityExecutor {
             world.playSound(impactLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.5f);
             
             // ACTUAL BLOCK DESTRUCTION - Create real explosion
+            // Check config to see if block breaking is enabled
+            com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) Bukkit.getPluginManager().getPlugin("FrostSMP");
+            boolean breakBlocks = plugin != null && plugin.getConfig().getBoolean("abilities.break_blocks", true);
+            boolean createFire = plugin != null && plugin.getConfig().getBoolean("abilities.create_fire", true);
+            
             // Power 3.5 = destructive but not excessive (TNT is 4.0)
-            // setFire = true for dragon-themed destruction
-            // breakBlocks = true for actual block destruction
-            world.createExplosion(impactLoc, 3.5f, true, true, data.shooter);
+            world.createExplosion(impactLoc, 3.5f, createFire, breakBlocks, data.shooter);
             
             // Damage and knockback to nearby entities
             for (Entity entity : world.getNearbyEntities(impactLoc, data.explosionRadius, data.explosionRadius, data.explosionRadius)) {

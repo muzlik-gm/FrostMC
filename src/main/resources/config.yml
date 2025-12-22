@@ -243,6 +243,15 @@ fragments:
     death_xp_penalty: 0.18         # Lose 18% XP on death
 
 # ═══════════════════════════════════════════════════════════════
+# ABILITY SETTINGS
+# ═══════════════════════════════════════════════════════════════
+# Global settings for all abilities
+# ═══════════════════════════════════════════════════════════════
+abilities:
+  break_blocks: true               # Allow abilities to break blocks (explosions, etc.)
+  create_fire: true                # Allow abilities to create fire blocks
+
+# ═══════════════════════════════════════════════════════════════
 # ADMIN FRAGMENT (HIDDEN)
 # ═══════════════════════════════════════════════════════════════
 # Special admin-only fragment with destructive powers
@@ -251,7 +260,7 @@ fragments:
 # ═══════════════════════════════════════════════════════════════
 admin_fragment:
   enabled: true                    # Enable/disable admin fragment
-  break_blocks: false              # Allow terrain destruction (Cataclysm, Apocalypse, etc.)
+  break_blocks: true               # Allow terrain destruction (Cataclysm, Apocalypse, etc.) - overrides global setting
   broadcast_apocalypse: true       # Broadcast message when Apocalypse is used
 
 # ═══════════════════════════════════════════════════════════════
