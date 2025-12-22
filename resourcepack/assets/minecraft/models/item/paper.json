@@ -99,6 +99,30 @@
         "custom_model_data": 5006
       },
       "model": "item/side_magic_circle2"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4000
+      },
+      "model": "item/ui/back"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4001
+      },
+      "model": "item/ui/stats"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4002
+      },
+      "model": "item/ui/bonus"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4003
+      },
+      "model": "item/ui/controls"
     }
   ]
 }

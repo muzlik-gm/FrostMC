@@ -147,11 +147,14 @@ public class TextureRegistry {
      */
     private static void initializeUITextures() {
         UI_TEXTURES.put("ui_back_button", 4000);
-        UI_TEXTURES.put("ui_info_button", 4001);
-        UI_TEXTURES.put("ui_close_button", 4002);
-        UI_TEXTURES.put("ui_locked_icon", 4003);
-        UI_TEXTURES.put("ui_unlocked_icon", 4004);
-        UI_TEXTURES.put("ui_warning_icon", 4005);
+        UI_TEXTURES.put("ui_stats", 4001);
+        UI_TEXTURES.put("ui_bonus", 4002);
+        UI_TEXTURES.put("ui_controls", 4003);
+        UI_TEXTURES.put("ui_info_button", 4004);
+        UI_TEXTURES.put("ui_close_button", 4005);
+        UI_TEXTURES.put("ui_locked_icon", 4006);
+        UI_TEXTURES.put("ui_unlocked_icon", 4007);
+        UI_TEXTURES.put("ui_warning_icon", 4008);
         UI_TEXTURES.put("ui_rank_badge_bronze", 4010);
         UI_TEXTURES.put("ui_rank_badge_silver", 4011);
         UI_TEXTURES.put("ui_rank_badge_gold", 4012);

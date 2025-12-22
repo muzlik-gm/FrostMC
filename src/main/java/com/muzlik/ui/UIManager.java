@@ -293,8 +293,9 @@ public class UIManager {
      * Create stats panel for ability view
      */
     private ItemStack createStatsPanel(Player player, FragmentType type) {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_stats"));
         meta.setDisplayName("§e§l" + toSmallCaps("Stats"));
         
         int rank = rankManager.getRank(player, type);
@@ -321,8 +322,9 @@ public class UIManager {
      * Create level bonus panel for ability view
      */
     private ItemStack createLevelBonusPanel(Player player, FragmentType type) {
-        ItemStack item = new ItemStack(Material.EXPERIENCE_BOTTLE);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_bonus"));
         meta.setDisplayName("§b§l" + toSmallCaps("Level Bonuses"));
         
         double cdReduction = levelManager.getCooldownReduction(player, type) * 100;
@@ -500,9 +502,9 @@ public class UIManager {
      * Create back button
      */
     private ItemStack createBackButton() {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1006); // Custom model for back arrow icon
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_back_button"));
         meta.setDisplayName(Typography.formatTitle("Back"));
         meta.setLore(Arrays.asList(Typography.COLOR_TEXT + "Return to Fragment overview"));
         item.setItemMeta(meta);
@@ -513,9 +515,9 @@ public class UIManager {
      * Create controls button
      */
     private ItemStack createControlsButton() {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1001); // Custom model for controls icon
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_controls"));
         meta.setDisplayName("§e§l⚙ " + toSmallCaps("Controls"));
         meta.setLore(Arrays.asList(
                 "",
