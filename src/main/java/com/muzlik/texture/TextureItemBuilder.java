@@ -192,16 +192,39 @@ public class TextureItemBuilder {
     public static ItemStack createFragmentItem(com.muzlik.fragment.FragmentType type) {
         int customModelData = TextureRegistry.getFragmentTexture(type);
         
-        return new TextureItemBuilder(customModelData)
+        TextureItemBuilder builder = new TextureItemBuilder(customModelData)
                 .name("§5§l" + type.getDisplayName() + " Fragment Activator")
                 .addLore("§7A powerful elemental fragment")
                 .addLore("§7containing " + type.getDisplayName().toLowerCase() + " energy")
                 .addEmptyLine()
                 .addLore("§e➤ Right-click to activate this fragment!")
-                .addEmptyLine()
+                .addEmptyLine();
+        
+        // Add passive effects based on fragment type
+        builder.addLore("§6§lPassive Effects:");
+        switch (type) {
+            case FIRE:
+                builder.addLore("§7• Fire Resistance");
+                break;
+            case WATER:
+                builder.addLore("§7• Water Breathing");
+                break;
+            case AIR:
+                builder.addLore("§7• Slow Falling (while sneaking)");
+                break;
+            case VOID:
+                builder.addLore("§7• Void Protection (teleport to spawn)");
+                break;
+            default:
+                builder.addLore("§7• None");
+                break;
+        }
+        
+        builder.addEmptyLine()
                 .addLore("§8Fragment Type: §5" + type.name())
                 .addLore("§5§lFRAGMENT_ACTIVATOR")
-                .hideFlags()
-                .build();
+                .hideFlags();
+        
+        return builder.build();
     }
 }

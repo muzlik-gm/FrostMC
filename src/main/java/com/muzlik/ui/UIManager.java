@@ -238,6 +238,9 @@ public class UIManager {
         // Stats panel (slot 2)
         inv.setItem(2, createStatsPanel(player, type));
         
+        // Passive effects panel (slot 3)
+        inv.setItem(3, createPassiveEffectsPanel(type));
+        
         // Level bonus panel (slot 6)
         inv.setItem(6, createLevelBonusPanel(player, type));
         
@@ -335,6 +338,49 @@ public class UIManager {
                 "§8ʟᴇᴠᴇʟ ᴜᴘ ᴛᴏ ɪɴᴄʀᴇᴀsᴇ!"
         ));
         
+        item.setItemMeta(meta);
+        return item;
+    }
+    
+    /**
+     * Create passive effects panel showing fragment-specific passive abilities
+     */
+    private ItemStack createPassiveEffectsPanel(FragmentType type) {
+        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§6§l" + toSmallCaps("Passive Effects"));
+        
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add("");
+        lore.add("§7ᴀʟᴡᴀʏs ᴀᴄᴛɪᴠᴇ ᴡʜɪʟᴇ ᴛʜɪs");
+        lore.add("§7ꜰʀᴀɢᴍᴇɴᴛ ɪs ᴇQᴜɪᴘᴘᴇᴅ:");
+        lore.add("");
+        
+        switch (type) {
+            case FIRE:
+                lore.add("§c🔥 ꜰɪʀᴇ ʀᴇsɪsᴛᴀɴᴄᴇ");
+                lore.add("§7ɪᴍᴍᴜɴᴇ ᴛᴏ ꜰɪʀᴇ ᴅᴀᴍᴀɢᴇ");
+                break;
+            case WATER:
+                lore.add("§b💧 ᴡᴀᴛᴇʀ ʙʀᴇᴀᴛʜɪɴɢ");
+                lore.add("§7ʙʀᴇᴀᴛʜᴇ ᴜɴᴅᴇʀᴡᴀᴛᴇʀ");
+                break;
+            case AIR:
+                lore.add("§f🪶 sʟᴏᴡ ꜰᴀʟʟɪɴɢ");
+                lore.add("§7ᴀᴄᴛɪᴠᴀᴛᴇ ʙʏ sɴᴇᴀᴋɪɴɢ");
+                break;
+            case VOID:
+                lore.add("§5🌀 ᴠᴏɪᴅ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ");
+                lore.add("§7ᴛᴇʟᴇᴘᴏʀᴛ ᴛᴏ sᴘᴀᴡɴ ɪɴ ᴠᴏɪᴅ");
+                break;
+            default:
+                lore.add("§7ɴᴏɴᴇ");
+                break;
+        }
+        
+        lore.add("");
+        
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }

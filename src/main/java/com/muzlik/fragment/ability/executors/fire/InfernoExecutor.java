@@ -68,7 +68,7 @@ public class InfernoExecutor implements AbilityExecutor {
         targetLoc.getWorld().playSound(targetLoc, Sound.BLOCK_FIRE_AMBIENT, 1.5f, 0.8f);
         
         // Rain down meteors over 3 seconds
-        int meteorCount = 8 + (rank * 2); // 8-14 meteors
+        int meteorCount = 3; // Fixed 3 meteors
         
         new BukkitRunnable() {
             int meteorsSpawned = 0;

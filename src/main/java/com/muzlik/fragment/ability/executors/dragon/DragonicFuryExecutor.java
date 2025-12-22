@@ -16,8 +16,8 @@ import java.util.UUID;
 /**
  * Dragonic Fury - Dragon Fragment Rank 9 Ability (Slot 3)
  * 
- * Shoots 3 explosive fireballs in your aim direction with slight angle variations
- * Each fireball explodes on impact, dealing damage and knockback to nearby entities
+ * Rains down 8+ explosive meteors from the sky in the target area
+ * Each meteor explodes on impact, dealing massive damage and knockback
  */
 public class DragonicFuryExecutor implements AbilityExecutor {
     
@@ -39,71 +39,85 @@ public class DragonicFuryExecutor implements AbilityExecutor {
     @Override
     public void execute(AbilityContext context) {
         Player player = context.getPlayer();
-        Location loc = player.getLocation();
+        Location targetLoc = player.getTargetBlock(null, 50).getLocation().add(0, 1, 0);
         int rank = context.getRank();
-        double baseDamage = 18.0; // Increased from 10.0
+        double baseDamage = 18.0;
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
-        double explosionRadius = 6.0; // Increased from 4.0
+        double explosionRadius = 6.0;
+        double baseRadius = 10.0;
+        double radius = context.getScalingEngine().scaleRange(baseRadius, rank);
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // Get player's aim direction
-        Vector playerDirection = player.getLocation().getDirection().normalize();
+        // Warning VFX at target location
+        targetLoc.getWorld().spawnParticle(Particle.FLAME, targetLoc, 50, radius * 0.5, 0.5, radius * 0.5, 0.05);
+        targetLoc.getWorld().spawnParticle(Particle.DRAGON_BREATH, targetLoc, 30, radius * 0.3, 0.3, radius * 0.3, 0.03);
+        targetLoc.getWorld().spawnParticle(Particle.SMOKE_LARGE, targetLoc, 20, radius * 0.4, 1.0, radius * 0.4, 0.02);
         
-        // Launch 3 fireballs with slight angle variations
-        double[] angleOffsets = {-10.0, 0.0, 10.0}; // Left, center, right
+        // Warning sound
+        targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_ENDER_DRAGON_GROWL, 2.5f, 0.5f);
+        targetLoc.getWorld().playSound(targetLoc, Sound.ENTITY_WITHER_SPAWN, 1.5f, 0.8f);
         
-        for (int i = 0; i < 3; i++) {
-            // Calculate direction with angle offset
-            double spreadAngle = angleOffsets[i];
-            double radians = Math.toRadians(spreadAngle);
+        // Rain down meteors
+        int meteorCount = 8 + (rank * 2); // 8-14 meteors
+        
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int meteorsSpawned = 0;
             
-            // Rotate player's direction by spread angle (horizontal rotation)
-            Vector direction = playerDirection.clone();
-            double cos = Math.cos(radians);
-            double sin = Math.sin(radians);
-            double x = direction.getX() * cos - direction.getZ() * sin;
-            double z = direction.getX() * sin + direction.getZ() * cos;
-            direction.setX(x).setZ(z).normalize();
-            
-            // Spawn fireball slightly in front of player
-            Location spawnLoc = loc.clone().add(0, 1.5, 0).add(playerDirection.clone().multiply(2.0));
-            Fireball fireball = player.getWorld().spawn(spawnLoc, Fireball.class);
-            fireball.setDirection(direction.multiply(1.5)); // Set velocity
-            fireball.setYield(3.5f); // Explosion power - will be overridden by our custom explosion
-            fireball.setIsIncendiary(false); // We handle fire in custom explosion
-            fireball.setShooter(player);
-            
-            // Store fireball data for explosion handling
-            ACTIVE_FIREBALLS.put(fireball.getUniqueId(), new FireballData(player, damage, explosionRadius));
-            
-            // Trail particles
-            final Fireball fb = fireball;
-            new org.bukkit.scheduler.BukkitRunnable() {
-                int ticks = 0;
-                @Override
-                public void run() {
-                    if (!fb.isValid() || ticks++ > 200) { // 10 seconds max
-                        ACTIVE_FIREBALLS.remove(fb.getUniqueId());
-                        cancel();
-                        return;
-                    }
-                    // Minimal trail particles
-                    fb.getWorld().spawnParticle(Particle.FLAME, fb.getLocation(), 2, 0.05, 0.05, 0.05, 0);
-                    fb.getWorld().spawnParticle(Particle.SMOKE_NORMAL, fb.getLocation(), 1, 0.05, 0.05, 0.05, 0);
+            @Override
+            public void run() {
+                if (meteorsSpawned >= meteorCount) {
+                    cancel();
+                    return;
                 }
-            }.runTaskTimer(plugin, 0L, 2L);
-        }
+                
+                // Random location within radius
+                double angle = Math.random() * Math.PI * 2;
+                double distance = Math.random() * radius;
+                double offsetX = Math.cos(angle) * distance;
+                double offsetZ = Math.sin(angle) * distance;
+                
+                Location meteorTarget = targetLoc.clone().add(offsetX, 0, offsetZ);
+                Location meteorSpawn = meteorTarget.clone().add(0, 35, 0); // Spawn 35 blocks up
+                
+                // Spawn fireball falling down
+                Fireball meteor = meteorSpawn.getWorld().spawn(meteorSpawn, Fireball.class);
+                meteor.setDirection(new Vector(0, -1, 0));
+                meteor.setYield(3.5f); // Explosion power
+                meteor.setIsIncendiary(false);
+                meteor.setShooter(player);
+                
+                // Store meteor data
+                ACTIVE_FIREBALLS.put(meteor.getUniqueId(), new FireballData(player, damage, explosionRadius));
+                
+                // Trail particles
+                new org.bukkit.scheduler.BukkitRunnable() {
+                    int ticks = 0;
+                    @Override
+                    public void run() {
+                        if (!meteor.isValid() || ticks++ > 70) {
+                            ACTIVE_FIREBALLS.remove(meteor.getUniqueId());
+                            cancel();
+                            return;
+                        }
+                        
+                        Location loc = meteor.getLocation();
+                        loc.getWorld().spawnParticle(Particle.FLAME, loc, 8, 0.3, 0.3, 0.3, 0.02);
+                        loc.getWorld().spawnParticle(Particle.DRAGON_BREATH, loc, 4, 0.2, 0.2, 0.2, 0.01);
+                        loc.getWorld().spawnParticle(Particle.SMOKE_LARGE, loc, 3, 0.2, 0.2, 0.2, 0.01);
+                        loc.getWorld().spawnParticle(Particle.LAVA, loc, 2, 0.1, 0.1, 0.1, 0);
+                        
+                        if (ticks % 8 == 0) {
+                            loc.getWorld().playSound(loc, Sound.ENTITY_BLAZE_SHOOT, 0.6f, 0.5f);
+                        }
+                    }
+                }.runTaskTimer(plugin, 0L, 2L);
+                
+                meteorsSpawned++;
+            }
+        }.runTaskTimer(plugin, 10L, 5L); // Start after 0.5s, spawn every 0.25s
         
-        // Cast VFX at player location
-        loc.getWorld().spawnParticle(Particle.FLAME, loc.clone().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
-        loc.getWorld().spawnParticle(Particle.LAVA, loc.clone().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0);
-        
-        // Sound
-        loc.getWorld().playSound(loc, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.8f);
-        loc.getWorld().playSound(loc, Sound.ENTITY_GHAST_SHOOT, 1.5f, 0.6f);
-        
-        player.sendMessage("§5⚡ Dragonic Fury unleashed!");
+        player.sendMessage("§5☄ Dragonic Fury - Meteor Storm incoming!");
     }
     
     /**

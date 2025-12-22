@@ -187,7 +187,7 @@ public class RitualManager {
     /**
      * Validate ritual location
      * - Must be in Overworld
-     * - Must be above ground (no blocks above for 150 blocks)
+     * - Must be above ground (has sky access)
      */
     private boolean isValidRitualLocation(Player player, Location location) {
         // Check if in Overworld
@@ -197,23 +197,17 @@ public class RitualManager {
             return false;
         }
         
-        // Check if above ground (no blocks above for 150 blocks)
-        Location checkLoc = location.clone();
-        int blocksChecked = 0;
-        int maxHeight = Math.min(location.getBlockY() + 150, location.getWorld().getMaxHeight());
+        // Check if location has sky access (not underground/in cave)
+        org.bukkit.block.Block highestBlock = location.getWorld().getHighestBlockAt(location);
+        int surfaceY = highestBlock.getY();
+        int playerY = location.getBlockY();
         
-        for (int y = location.getBlockY() + 1; y < maxHeight; y++) {
-            checkLoc.setY(y);
-            org.bukkit.block.Block block = checkLoc.getBlock();
-            
-            // Check if block is solid (not air, not transparent)
-            if (block.getType().isSolid() && !block.getType().isAir()) {
-                player.sendMessage("§c✗ Rituals must be performed above ground!");
-                player.sendMessage("§7There are blocks above you. Find an open area under the sky.");
-                player.sendMessage("§8(Blocked at Y=" + y + " by " + block.getType().name() + ")");
-                return false;
-            }
-            blocksChecked++;
+        // Player must be at or near the surface (within 5 blocks below surface)
+        if (playerY < surfaceY - 5) {
+            player.sendMessage("§c✗ Rituals must be performed above ground!");
+            player.sendMessage("§7You are underground. Find an open area under the sky.");
+            player.sendMessage("§8(Surface is at Y=" + surfaceY + ", you are at Y=" + playerY + ")");
+            return false;
         }
         
         return true;
