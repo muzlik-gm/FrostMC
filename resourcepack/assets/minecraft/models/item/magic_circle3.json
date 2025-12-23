@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "item/generated",
   "textures": {
-    "layer0": "minecraft:item/magic_circle3"
+    "layer0": "item/magic_circle3"
   }
 }

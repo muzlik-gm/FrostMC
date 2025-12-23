@@ -241,6 +241,24 @@ fragments:
     base_rank: 6                   # High starting power
     xp_curve: EXPONENTIAL          # Gets harder to level up
     death_xp_penalty: 0.18         # Lose 18% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # TIME FRAGMENT - Temporal manipulation (LEGENDARY)
+  # Abilities: Time Slow, Rewind, Temporal Shift, Chrono Burst, Time Stop
+  # ─────────────────────────────────────────────────────────────
+  time:
+    base_rank: 7                   # Very high starting power
+    xp_curve: EXPONENTIAL          # Gets harder to level up
+    death_xp_penalty: 0.22         # Lose 22% XP on death
+  
+  # ─────────────────────────────────────────────────────────────
+  # LUCK FRAGMENT - Probability manipulation (LEGENDARY)
+  # Abilities: Fortune Strike, Lucky Dodge, Critical Chance, Loot Boost, Fate's Favor
+  # ─────────────────────────────────────────────────────────────
+  luck:
+    base_rank: 6                   # High starting power
+    xp_curve: LOGARITHMIC          # Gets easier to level up (luck helps!)
+    death_xp_penalty: 0.10         # Lose 10% XP on death (lucky!)
 
 # ═══════════════════════════════════════════════════════════════
 # ABILITY SETTINGS

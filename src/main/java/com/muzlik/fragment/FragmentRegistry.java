@@ -82,12 +82,12 @@ public class FragmentRegistry {
             
         // Advanced Abilities (Unlock via Rank-Up) - Slots 3, 4
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("fire_rebirth", FragmentType.FIRE)
-            .displayName("Rebirth")
+            .displayName("Phoenix Rebirth")
             .description("§7[PASSIVE] Upon death, revive with 50% HP in flames, damaging nearby enemies. §8Cooldown: 1 hour")
             .slot(com.muzlik.fragment.ability.AbilitySlot.ADVANCED)
             .manaCost(80)
             .cooldown(3600000) // 1 hour
-            .rankRequirement(4)
+            .rankRequirement(5)  // Requires Rank 5 to unlock
             .executor(new com.muzlik.fragment.ability.executors.fire.RebirthExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.PASSIVE)
             .build());
@@ -208,10 +208,10 @@ public class FragmentRegistry {
             
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("air_flight", FragmentType.AIR)
             .displayName("Flight")
-            .description("§7Fly freely for §f10 minutes§7, +100% speed. §8Hold sneak+left click 10s to cancel (no cooldown)")
+            .description("§7Fly freely for §f10 seconds§7, +100% speed. §8Hold sneak+left click 10s to cancel (no cooldown)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.MASTERY)
             .manaCost(90)
-            .cooldown(75000)
+            .cooldown(37500)
             .rankRequirement(5)
             .executor(new com.muzlik.fragment.ability.executors.air.FlightExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
@@ -431,10 +431,10 @@ public class FragmentRegistry {
             
         builder.addAbility(new com.muzlik.fragment.ability.AbilityDefinition.Builder("dragon_wings", FragmentType.DRAGON)
             .displayName("Wings")
-            .description("§7Fly freely for §530 minutes§7, +80% speed, immune to fall damage. §8Hold sneak+left click 10s to cancel (no cooldown)")
+            .description("§7Fly freely for §530 seconds§7, +80% speed, immune to fall damage. §8Hold sneak+left click 10s to cancel (no cooldown)")
             .slot(com.muzlik.fragment.ability.AbilitySlot.SECONDARY)
             .manaCost(50)
-            .cooldown(18000) // Increased from 12s to 18s
+            .cooldown(9000) // Halved from 18s to 9s
             .executor(new com.muzlik.fragment.ability.executors.dragon.WingsExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());

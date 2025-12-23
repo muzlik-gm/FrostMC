@@ -138,15 +138,8 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
                 grantFragment(player, args[1]);
                 break;
-            case "activate":
-            case "select":
-                if (args.length < 2) {
-                    // Open GUI if no fragment specified
-                    uiManager.openFragmentActivateGUI(player);
-                    return true;
-                }
-                activateFragment(player, args[1]);
-                break;
+            // REMOVED: activate command - players must use Fragment Changer ritual
+            // This prevents bypassing the inventory requirement
             case "controls":
             case "control":
                 handleControls(player, args);
@@ -886,15 +879,15 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment level §8- Character level");
         player.sendMessage("  §f/fragment abilities §8- List abilities");
         player.sendMessage("  §f/fragment withdraw §8- Deactivate & get item");
-        player.sendMessage("  §f/fragment activate <type> §8- Switch");
         player.sendMessage("  §f/fragment controls §8- Change controls");
         player.sendMessage("  §f/fragment toggle §8- Enable/disable abilities");
         player.sendMessage("");
+        player.sendMessage("  §8Use Fragment Changer ritual to switch fragments");
+        player.sendMessage("");
         if (player.hasPermission("fragment.admin")) {
             player.sendMessage("  §8Admin: §7/fragment give/grant/set/reset/forceactivate/reload");
-            player.sendMessage("  §8Give Items: §7fire, water, air, earth, dark, light, void, mob, dragon, storm");
-            player.sendMessage("  §8Give Fragments: §7fire_fragment, water_fragment, air_fragment, etc.");
-            player.sendMessage("  §8Other Items: §7changer, manaflask");
+            player.sendMessage("  §8Fragments: §7fire, water, air, dark, light, void, dragon, storm, time, luck");
+            player.sendMessage("  §8Items: §7changer, manaflask");
         }
         player.sendMessage("");
     }
@@ -1029,38 +1022,9 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private void activateFragment(Player player, String typeName) {
-        try {
-            FragmentType type = FragmentType.valueOf(typeName.toUpperCase());
-            
-            // Check if player owns this Fragment
-            if (!fragmentManager.hasFragment(player, type)) {
-                player.sendMessage("§cœ— You don't own this Fragment");
-                player.sendMessage("§7Complete a Fragment Creation ritual to obtain it");
-                return;
-            }
-            
-            // Check if player already has ANY fragment active
-            FragmentType currentActive = fragmentManager.getActiveFragment(player);
-            if (currentActive != null) {
-                if (currentActive == type) {
-                    player.sendMessage("§e⚠ This Fragment is already active");
-                } else {
-                    player.sendMessage("§c✗ You already have the " + currentActive.getDisplayName() + " Fragment active!");
-                    player.sendMessage("§7Use §e/fragment withdraw §7to deactivate it first.");
-                }
-                return;
-            }
-            
-            // Activate the Fragment
-            fragmentManager.setActiveFragment(player, type);
-            fragmentManager.recordFragmentSwitch(player);
-            
-        } catch (IllegalArgumentException e) {
-            player.sendMessage("§cInvalid Fragment type: " + typeName);
-            player.sendMessage("§7Available: FIRE, WATER, AIR, EARTH, DARK, LIGHT, VOID, MOB, DRAGON, STORM");
-        }
-    }
+    // REMOVED: activateFragment method
+    // Players must use Fragment Changer ritual to switch fragments
+    // This ensures they have the required item in inventory
 
     private ItemStack createFragmentCreationItem(FragmentType type) {
         // Use texture system for Fragment creation items
@@ -1127,7 +1091,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             
         } catch (IllegalArgumentException e) {
             admin.sendMessage("§cInvalid Fragment type: " + typeName);
-            admin.sendMessage("§7Available: FIRE, WATER, AIR, EARTH, DARK, LIGHT, VOID, MOB, DRAGON, STORM");
+            admin.sendMessage("§7Available: FIRE, WATER, AIR, DARK, LIGHT, VOID, DRAGON, STORM, TIME, LUCK");
         }
     }
 
@@ -1136,8 +1100,8 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            // Player commands
-            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "mana", "activate", "controls", "toggle", "withdraw"));
+            // Player commands (removed "activate" - use ritual instead)
+            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "mana", "controls", "toggle", "withdraw"));
             
             // Admin commands (only show to admins)
             if (sender.hasPermission("fragment.admin")) {
@@ -1149,21 +1113,19 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 for (Player p : plugin.getServer().getOnlinePlayers()) {
                     completions.add(p.getName());
                 }
-            } else if (args[0].equalsIgnoreCase("activate")) {
-                // Player command - show fragments (HIDE ADMIN)
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM", "TIME", "LUCK"));
             } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("grant")) {
-                // Admin command - show fragments (HIDE ADMIN)
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM", "TIME", "LUCK"));
+                // Admin command - show only existing fragments (removed EARTH, MOB)
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "DARK", "LIGHT", "VOID", "DRAGON", "STORM", "TIME", "LUCK"));
             } else if (args[0].equalsIgnoreCase("controls") || args[0].equalsIgnoreCase("control")) {
                 completions.addAll(Arrays.asList("sneak_click", "double_sneak", "swap_hands", "click_only", "next", "prev"));
             }
         } else if (args.length == 3) {
             if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("give")) {
-                completions.addAll(Arrays.asList("fire", "water", "air", "earth", "dark", "light", "void", "mob", "dragon", "storm", "time", "luck", "changer", "manaflask"));
+                // Removed earth, mob from give command (only existing fragments)
+                completions.addAll(Arrays.asList("fire", "water", "air", "dark", "light", "void", "dragon", "storm", "time", "luck", "changer", "manaflask"));
             } else if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
-                // HIDE ADMIN FROM TAB COMPLETION (but still allow manual typing)
-                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "EARTH", "DARK", "LIGHT", "VOID", "MOB", "DRAGON", "STORM", "TIME", "LUCK"));
+                // Only show existing fragments (removed EARTH, MOB)
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "DARK", "LIGHT", "VOID", "DRAGON", "STORM", "TIME", "LUCK"));
             }
         } else if (args.length == 4) {
             if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {

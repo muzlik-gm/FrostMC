@@ -78,17 +78,6 @@ public class UIManager {
     }
     
     /**
-     * Open fragment activation GUI
-     */
-    public void openFragmentActivateGUI(Player player) {
-        if (fragmentActivateGUI != null) {
-            fragmentActivateGUI.openGUI(player);
-        } else {
-            player.sendMessage("§cFragment activation GUI not initialized");
-        }
-    }
-    
-    /**
      * Open fragment give GUI (admin)
      */
     public void openFragmentGiveGUI(Player player) {
@@ -173,10 +162,6 @@ public class UIManager {
         }
         
         // Bottom row buttons (slots 45-53)
-        // Slot 47: Activate Fragment button
-        ItemStack activateButton = createActivateFragmentButton();
-        inv.setItem(47, activateButton);
-        
         // Slot 48: Controls button
         ItemStack controlsButton = createControlsButton();
         inv.setItem(48, controlsButton);
@@ -371,9 +356,25 @@ public class UIManager {
                 lore.add("§f🪶 sʟᴏᴡ ꜰᴀʟʟɪɴɢ");
                 lore.add("§7ᴀᴄᴛɪᴠᴀᴛᴇ ʙʏ sɴᴇᴀᴋɪɴɢ");
                 break;
+            case DARK:
+                lore.add("§8👁 ɪɴᴠɪsɪʙɪʟɪᴛʏ");
+                lore.add("§7ᴡʜɪʟᴇ sᴛᴀɴᴅɪɴɢ sᴛɪʟʟ (3s)");
+                break;
+            case LIGHT:
+                lore.add("§e❤ ʜᴇᴀʟᴛʜ ʀᴇɢᴇɴᴇʀᴀᴛɪᴏɴ");
+                lore.add("§7ᴏᴜᴛ ᴏꜰ ᴄᴏᴍʙᴀᴛ (10s)");
+                break;
             case VOID:
                 lore.add("§5🌀 ᴠᴏɪᴅ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ");
                 lore.add("§7ᴛᴇʟᴇᴘᴏʀᴛ ᴛᴏ sᴘᴀᴡɴ ɪɴ ᴠᴏɪᴅ");
+                break;
+            case STORM:
+                lore.add("§3⚡ sᴘᴇᴇᴅ ʙᴏᴏsᴛ");
+                lore.add("§7ᴅᴜʀɪɴɢ ʀᴀɪɴ/sᴛᴏʀᴍs");
+                break;
+            case LUCK:
+                lore.add("§a🍀 ʟᴜᴄᴋ ᴠɪ");
+                lore.add("§7ɪɴᴄʀᴇᴀsᴇᴅ ʟᴏᴏᴛ & ꜰᴏʀᴛᴜɴᴇ");
                 break;
             default:
                 lore.add("§7ɴᴏɴᴇ");
@@ -482,18 +483,29 @@ public class UIManager {
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(1005); // Custom model for info icon
         meta.setDisplayName(Typography.formatTitle("Fragment Guide"));
-        meta.setLore(Arrays.asList(
-                "",
-                Typography.formatLabel("Left-Click ") + Typography.SYMBOL_ARROW + Typography.formatValue(" View Abilities"),
-                Typography.formatLabel("Right-Click ") + Typography.SYMBOL_ARROW + Typography.formatValue(" Activate"),
-                "",
-                Typography.COLOR_TEXT + "§m                    ",
-                "",
-                Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " Activated " + Typography.COLOR_TEXT_DARK + "- Currently using",
-                Typography.COLOR_HIGHLIGHT + Typography.SYMBOL_DOT + " Owned " + Typography.COLOR_TEXT_DARK + "- Can switch to",
-                Typography.COLOR_ACCENT + Typography.SYMBOL_LIGHTNING + " Charged " + Typography.COLOR_TEXT_DARK + "- Ready to activate",
-                Typography.COLOR_TEXT_DARK + Typography.SYMBOL_CROSS + " Locked " + Typography.COLOR_TEXT_DARK + "- Need ritual"
-        ));
+        
+        // Dynamic lore based on configuration
+        boolean fragmentChangerRequired = configManager.isFragmentChangerRequired();
+        
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add("");
+        lore.add(Typography.formatLabel("Left-Click ") + Typography.SYMBOL_ARROW + Typography.formatValue(" View Abilities"));
+        lore.add(Typography.formatLabel("Right-Click ") + Typography.SYMBOL_ARROW + Typography.formatValue(" Activate"));
+        lore.add("");
+        lore.add(Typography.COLOR_TEXT + "§m                    ");
+        lore.add("");
+        lore.add(Typography.COLOR_SUCCESS + Typography.SYMBOL_CHECK + " Activated " + Typography.COLOR_TEXT_DARK + "- Currently using");
+        
+        if (fragmentChangerRequired) {
+            lore.add(Typography.COLOR_HIGHLIGHT + Typography.SYMBOL_DOT + " Owned " + Typography.COLOR_TEXT_DARK + "- Right-click with Fragment Changer");
+            lore.add(Typography.COLOR_ACCENT + Typography.SYMBOL_LIGHTNING + " Charged " + Typography.COLOR_TEXT_DARK + "- Right-click with Fragment Changer");
+        } else {
+            lore.add(Typography.COLOR_HIGHLIGHT + Typography.SYMBOL_DOT + " Owned " + Typography.COLOR_TEXT_DARK + "- Right-click to switch");
+            lore.add(Typography.COLOR_ACCENT + Typography.SYMBOL_LIGHTNING + " Charged " + Typography.COLOR_TEXT_DARK + "- Auto-activated from ritual");
+        }
+        lore.add(Typography.COLOR_TEXT_DARK + Typography.SYMBOL_CROSS + " Locked " + Typography.COLOR_TEXT_DARK + "- Need ritual");
+        
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }
@@ -523,25 +535,6 @@ public class UIManager {
                 "",
                 Typography.COLOR_TEXT + "Change control scheme",
                 Typography.COLOR_TEXT + "and ability settings",
-                "",
-                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO OPEN"
-        ));
-        item.setItemMeta(meta);
-        return item;
-    }
-    
-    /**
-     * Create activate fragment button
-     */
-    private ItemStack createActivateFragmentButton() {
-        ItemStack item = new ItemStack(Material.PAPER);
-        ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1002); // Custom model for switch fragment icon
-        meta.setDisplayName("§b§l⚡ " + toSmallCaps("Switch Fragment"));
-        meta.setLore(Arrays.asList(
-                "",
-                Typography.COLOR_TEXT + "Activate a different",
-                Typography.COLOR_TEXT + "fragment from your collection",
                 "",
                 Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO OPEN"
         ));

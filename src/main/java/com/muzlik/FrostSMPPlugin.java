@@ -360,6 +360,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Register /controls command
         com.muzlik.command.ControlsCommand controlsCommand = new com.muzlik.command.ControlsCommand(uiManager);
         getCommand("controls").setExecutor(controlsCommand);
+        
+        // Register /testtexture command (debug)
+        com.muzlik.command.TestTextureCommand testTextureCommand = new com.muzlik.command.TestTextureCommand();
+        getCommand("testtexture").setExecutor(testTextureCommand);
 
         getLogger().info("✓ Fragment System initialized successfully!");
         getLogger().info("✓ Fragment ActionBar HUD initialized!");

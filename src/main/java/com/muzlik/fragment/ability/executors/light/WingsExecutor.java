@@ -127,9 +127,30 @@ public class WingsExecutor implements AbilityExecutor {
     private void createWingVFX(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
         Location playerLoc = player.getLocation().add(0, 1, 0);
         
-        // Create wing particles behind player
-        Location leftWing = playerLoc.clone().add(-1.5, 0.5, -0.5);
-        Location rightWing = playerLoc.clone().add(1.5, 0.5, -0.5);
+        // Get player's direction (yaw in radians)
+        float yaw = playerLoc.getYaw();
+        double yawRadians = Math.toRadians(yaw + 90);
+        
+        // Calculate direction vectors
+        double dirX = -Math.sin(yawRadians);
+        double dirZ = Math.cos(yawRadians);
+        double perpX = -dirZ;
+        double perpZ = dirX;
+        
+        // Wing positions relative to player's direction
+        double wingDistance = 1.5;
+        double wingBackOffset = 0.5;
+        double wingHeight = 0.5;
+        
+        // Left wing (to the left and behind)
+        double leftX = perpX * wingDistance - dirX * wingBackOffset;
+        double leftZ = perpZ * wingDistance - dirZ * wingBackOffset;
+        Location leftWing = playerLoc.clone().add(leftX, wingHeight, leftZ);
+        
+        // Right wing (to the right and behind)
+        double rightX = -perpX * wingDistance - dirX * wingBackOffset;
+        double rightZ = -perpZ * wingDistance - dirZ * wingBackOffset;
+        Location rightWing = playerLoc.clone().add(rightX, wingHeight, rightZ);
         
         int wingCount = 8 + (rank * 2);
         int auraCount = 5 + rank;

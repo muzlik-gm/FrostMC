@@ -212,8 +212,20 @@ public class TextureItemBuilder {
             case AIR:
                 builder.addLore("§7• Slow Falling (while sneaking)");
                 break;
+            case DARK:
+                builder.addLore("§7• Invisibility (while standing still)");
+                break;
+            case LIGHT:
+                builder.addLore("§7• Health Regeneration (out of combat)");
+                break;
             case VOID:
                 builder.addLore("§7• Void Protection (teleport to spawn)");
+                break;
+            case STORM:
+                builder.addLore("§7• Speed Boost (during rain/storms)");
+                break;
+            case LUCK:
+                builder.addLore("§7• Luck VI Effect");
                 break;
             default:
                 builder.addLore("§7• None");

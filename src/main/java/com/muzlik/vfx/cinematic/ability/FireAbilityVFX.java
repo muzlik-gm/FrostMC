@@ -300,16 +300,26 @@ public class FireAbilityVFX {
                 // Phoenix body
                 Location phoenixLoc = location.clone().add(0, height, 0);
                 
-                // Wings
+                // Wings (direction-aware)
+                float yaw = phoenixLoc.getYaw();
+                double yawRadians = Math.toRadians(yaw + 90);
+                
+                double dirX = -Math.sin(yawRadians);
+                double dirZ = Math.cos(yawRadians);
+                double perpX = -dirZ;
+                double perpZ = dirX;
+                
                 double wingSpan = 1.5 + (rank * 0.2);
                 double wingAngle = Math.sin(ticks * 0.2) * 0.3;
+                double wingBackOffset = 0.5;
                 
                 for (int i = -1; i <= 1; i += 2) {
                     for (double w = 0; w < wingSpan; w += 0.2) {
-                        double wingX = i * w * Math.cos(wingAngle);
+                        double wingX = i * perpX * w * Math.cos(wingAngle) - dirX * wingBackOffset;
+                        double wingZ = i * perpZ * w * Math.cos(wingAngle) - dirZ * wingBackOffset;
                         double wingY = -w * 0.3;
                         
-                        Location wingLoc = phoenixLoc.clone().add(wingX, wingY, 0);
+                        Location wingLoc = phoenixLoc.clone().add(wingX, wingY, wingZ);
                         vfxEngine.spawnParticle(wingLoc, Particle.FLAME, 2, 0.05, 0.05, 0.05, 0.02, player);
                         
                         if (rank >= 5) {

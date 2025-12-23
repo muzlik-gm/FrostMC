@@ -489,7 +489,9 @@ public class RitualManager {
 
     /**
      * Complete Fragment Creation ritual
-     * Drops the fragment on the ground - does NOT give to inventory or activate
+     * Behavior depends on fragment_changer_required config:
+     * - If TRUE: Drops item on ground for player to pick up and activate
+     * - If FALSE: Auto-grants and activates the fragment immediately
      */
     private void completeFragmentCreation(UUID ownerId, RitualInstance ritual) {
         // Determine Fragment type from catalyst item
@@ -505,27 +507,48 @@ public class RitualManager {
                 }
             }
             
-            // Drop the fragment from the floating display to the ground
-            // The display manager handles this - it drops the floating item
-            displayManager.completeAndDropFragment(ownerId);
+            // Check if Fragment Changer is required
+            boolean fragmentChangerRequired = configManager.isFragmentChangerRequired();
+            
+            if (fragmentChangerRequired) {
+                // Drop the fragment from the floating display to the ground
+                // The display manager handles this - it drops the floating item
+                displayManager.completeAndDropFragment(ownerId);
 
-            if (owner != null) {
-                owner.sendMessage("§a✓ Fragment Creation complete!");
-                owner.sendMessage("");
-                owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment has materialized!");
-                owner.sendMessage("§7Pick it up and right-click to activate");
-                owner.sendMessage("§c§l⚠ This fragment can only be created once!");
+                if (owner != null) {
+                    owner.sendMessage("§a✓ Fragment Creation complete!");
+                    owner.sendMessage("");
+                    owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment has materialized!");
+                    owner.sendMessage("§7Pick it up and right-click to activate");
+                    owner.sendMessage("§c§l⚠ This fragment can only be created once!");
+                }
+            } else {
+                // Auto-grant and activate the fragment
+                displayManager.removeDisplay(ownerId); // Remove the floating display
+                
+                if (owner != null) {
+                    fragmentManager.grantFragment(owner, fragmentType);
+                    fragmentManager.setActiveFragment(owner, fragmentType);
+                    
+                    owner.sendMessage("§a✓ Fragment Creation complete!");
+                    owner.sendMessage("");
+                    owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment activated!");
+                    owner.sendMessage("§7Your fragment has been automatically activated");
+                    owner.sendMessage("§c§l⚠ This fragment can only be created once!");
+                }
             }
             
             // Broadcast completion
-            Location loc = ritual.getLocation();
-            String ownerName = owner != null ? owner.getName() : "Unknown";
-            Bukkit.broadcastMessage(String.format(
-                "§a§l✓ RITUAL COMPLETE! §r§7%s has created a §b%s Fragment §7at §f%d, %d, %d",
-                ownerName,
-                fragmentType.getDisplayName(),
-                loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()
-            ));
+            if (owner != null) {
+                Location loc = ritual.getLocation();
+                String ownerName = owner.getName();
+                Bukkit.broadcastMessage(String.format(
+                    "§a§l✓ RITUAL COMPLETE! §r§7%s has created a §b%s Fragment §7at §f%d, %d, %d",
+                    ownerName,
+                    fragmentType.getDisplayName(),
+                    loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()
+                ));
+            }
         } else {
             if (owner != null) owner.sendMessage("§c✗ Failed to determine Fragment type");
             displayManager.removeDisplay(ownerId);
@@ -534,16 +557,14 @@ public class RitualManager {
 
     /**
      * Complete Fragment Changer ritual
+     * Resets cooldown to allow immediate fragment switching
      */
     private void completeFragmentChanger(Player player, RitualInstance ritual) {
         player.sendMessage("§a✓ Fragment Changer ritual complete!");
-        player.sendMessage("§7You can now switch Fragments without cooldown!");
-        player.sendMessage("§7Use §e/fragment list §7or §e/fragment activate <type> §7to switch");
+        player.sendMessage("§7You can now switch to owned Fragments!");
+        player.sendMessage("§7Right-click owned fragments in §e/fragment list §7to switch");
         
-        // Reset the Fragment switch cooldown by recording a switch from long ago
-        fragmentManager.recordFragmentSwitch(player);
-        // Actually, we want to allow immediate switching, so let's set it to 0
-        // by recording a switch time far in the past
+        // Reset the Fragment switch cooldown
         com.muzlik.fragment.PlayerFragmentData data = fragmentManager.getPlayerData(player);
         if (data != null) {
             data.setLastFragmentSwitch(0); // Reset to allow immediate switch

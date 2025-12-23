@@ -33,8 +33,8 @@ public class WingsExecutor implements AbilityExecutor {
         int rank = context.getRank();
         
         // Duration scales with rank (in ticks)
-        int baseDuration = 36000; // 30 minutes
-        int duration = baseDuration + (rank * 3600); // +3 minutes per rank
+        int baseDuration = 600; // 30 seconds
+        int duration = baseDuration + (rank * 60); // +3 seconds per rank
         
         // Store original flight state
         boolean originalFlight = player.getAllowFlight();

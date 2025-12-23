@@ -23,7 +23,7 @@ public class FlightExecutor implements AbilityExecutor {
     public void execute(AbilityContext context) {
         Player player = context.getPlayer();
         int rank = context.getRank();
-        double baseDuration = 600.0; // 10 minutes
+        double baseDuration = 10.0; // 10 seconds
         int durationTicks = (int) (context.getScalingEngine().scaleDuration(baseDuration, rank) * 20);
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
@@ -73,11 +73,11 @@ public class FlightExecutor implements AbilityExecutor {
                 }
                 
                 // Time warnings
-                int remainingMinutes = (durationTicks - ticks) / 1200; // 1200 ticks = 1 minute
-                if (remainingMinutes == 2 && ticks % 1200 == 0) {
-                    player.sendMessage("§f💨 §e2 minutes of flight remaining");
-                } else if (remainingMinutes == 1 && ticks % 1200 == 0) {
-                    player.sendMessage("§f💨 §c1 minute of flight remaining");
+                int remainingSeconds = (durationTicks - ticks) / 20; // 20 ticks = 1 second
+                if (remainingSeconds == 5 && ticks % 20 == 0) {
+                    player.sendMessage("§f💨 §e5 seconds of flight remaining");
+                } else if (remainingSeconds == 3 && ticks % 20 == 0) {
+                    player.sendMessage("§f💨 §c3 seconds of flight remaining");
                 }
                 
                 ticks++;
@@ -88,6 +88,6 @@ public class FlightExecutor implements AbilityExecutor {
         player.getWorld().playSound(player.getLocation(), Sound.ITEM_ELYTRA_FLYING, 2.0f, 1.2f);
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.5f, 0.8f);
         
-        player.sendMessage("§f💨 §aFlight activated! You can fly for 10 minutes");
+        player.sendMessage("§f💨 §aFlight activated! You can fly for 10 seconds");
     }
 }

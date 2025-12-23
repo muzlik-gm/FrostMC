@@ -25,6 +25,11 @@ commands:
     usage: /controls
     permission: frostmc.fragment
     permission-message: You don't have permission to use this command
+  testtexture:
+    description: Test custom model data textures (debug)
+    usage: /testtexture <texture_name>
+    permission: frostmc.admin
+    permission-message: You don't have permission to use this command
 
 permissions:
   frostmc.power:

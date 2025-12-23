@@ -70,17 +70,14 @@ public class FragmentGUIListener implements Listener {
     /**
      * Handle clicks in Fragment Overview GUI
      * LEFT-CLICK: View abilities (for ANY fragment, even locked)
-     * RIGHT-CLICK: Activate fragment (requires charged/owned)
+     * RIGHT-CLICK: Activate fragment (requires charged/owned AND Fragment Changer)
      */
     private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType) {
-        // Check for Switch Fragment button
+        // Remove the Switch Fragment button functionality - force ritual usage
         if (displayName.contains("sᴡɪᴛᴄʜ") || displayName.contains("Switch Fragment")) {
             player.closeInventory();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                () -> uiManager.openFragmentActivateGUI(player),
-                2L
-            );
+            player.sendMessage(com.muzlik.util.Typography.formatError("Use Fragment Changer ritual to switch fragments"));
+            player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft a Fragment Changer and perform the ritual"));
             return;
         }
         
@@ -157,10 +154,40 @@ public class FragmentGUIListener implements Listener {
                 return;
             }
             
+            // Get config manager to check settings
+            com.muzlik.config.ConfigManager configManager = ((com.muzlik.FrostSMPPlugin) org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP")).getConfigManager();
+            boolean fragmentChangerRequired = configManager.isFragmentChangerRequired();
+            
             if (isCharged) {
-                // Check if player has a Fragment Changer
-                if (hasFragmentChanger(player)) {
-                    // Activate the charged fragment
+                // Charged fragments: Need Fragment Changer if required
+                if (fragmentChangerRequired) {
+                    if (hasFragmentChanger(player)) {
+                        // Activate the charged fragment
+                        boolean success = fragmentManager.activateChargedFragment(player, clickedType);
+                        if (success) {
+                            player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.5f, 1.2f);
+                            player.sendMessage(
+                                com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                                com.muzlik.util.Typography.COLOR_SECONDARY + clickedType.getDisplayName() + " " +
+                                com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.toSmallCaps("activated")
+                            );
+                            uiManager.spawnFragmentSwitchParticles(player, clickedType);
+                            
+                            // Refresh the GUI
+                            player.closeInventory();
+                            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                                () -> uiManager.openFragmentOverview(player),
+                                3L
+                            );
+                        }
+                    } else {
+                        uiManager.playLockedAbilitySound(player);
+                        player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer in your inventory"));
+                        player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft one or complete the ritual"));
+                    }
+                } else {
+                    // Fragment Changer not required - free activation
                     boolean success = fragmentManager.activateChargedFragment(player, clickedType);
                     if (success) {
                         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.5f, 1.2f);
@@ -179,15 +206,34 @@ public class FragmentGUIListener implements Listener {
                             3L
                         );
                     }
-                } else {
-                    uiManager.playLockedAbilitySound(player);
-                    player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer"));
-                    player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft one to activate charged fragments"));
                 }
                 
             } else if (isOwned) {
-                // Can switch to owned fragments with changer
-                if (hasFragmentChanger(player)) {
+                // Owned fragments: Can switch if Fragment Changer not required OR if player has it
+                if (fragmentChangerRequired) {
+                    if (hasFragmentChanger(player)) {
+                        fragmentManager.setActiveFragment(player, clickedType);
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
+                        player.sendMessage(
+                            com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
+                            com.muzlik.util.Typography.COLOR_SECONDARY + clickedType.getDisplayName()
+                        );
+                        uiManager.spawnFragmentSwitchParticles(player, clickedType);
+                        
+                        // Refresh the GUI
+                        player.closeInventory();
+                        org.bukkit.Bukkit.getScheduler().runTaskLater(
+                            org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                            () -> uiManager.openFragmentOverview(player),
+                            3L
+                        );
+                    } else {
+                        uiManager.playLockedAbilitySound(player);
+                        player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer in your inventory"));
+                        player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft one or complete the ritual"));
+                    }
+                } else {
+                    // Fragment Changer not required - free switching
                     fragmentManager.setActiveFragment(player, clickedType);
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.0f);
                     player.sendMessage(
@@ -203,9 +249,6 @@ public class FragmentGUIListener implements Listener {
                         () -> uiManager.openFragmentOverview(player),
                         3L
                     );
-                } else {
-                    uiManager.playLockedAbilitySound(player);
-                    player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer"));
                 }
                 
             } else {
