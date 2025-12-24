@@ -24,12 +24,12 @@ public class DraconicWingsExecutor implements AbilityExecutor {
         
         com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) player.getServer().getPluginManager().getPlugin("FrostSMP");
         
-        // Start flight via FlightManager (30 minutes for Dragon)
+        // Start flight via FlightManager (30 seconds for Dragon)
         plugin.getFlightManager().startFlight(player, FragmentType.DRAGON, rank);
         
-        // Add speed buff and fall damage immunity for full duration
-        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, 1800 * 20, 3));
-        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW_FALLING, 1800 * 20, 0));
+        // Add speed buff for flight duration only (30 seconds)
+        player.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SPEED, 600, 3));
+        // REMOVED: SLOW_FALLING effect - fall damage immunity is handled by FlightManager only while flying
         
         // Reduced VFX for activation
         VFXLayerBuilder vfxBuilder = new VFXLayerBuilder(plugin, player.getLocation(), rank, player)

@@ -76,8 +76,8 @@ public class WingsExecutor implements AbilityExecutor {
                     player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PHANTOM_FLAP, 0.4f, 0.8f);
                 }
                 
-                // Immunity to fall damage (reset fall distance)
-                if (player.getFallDistance() > 0) {
+                // Immunity to fall damage ONLY while flying (reset fall distance)
+                if (player.isFlying() && player.getFallDistance() > 0) {
                     player.setFallDistance(0);
                 }
                 
@@ -111,34 +111,28 @@ public class WingsExecutor implements AbilityExecutor {
     private void createWingVFX(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
         Location playerLoc = player.getLocation().add(0, 1, 0);
         
-        // Get player's direction (yaw in radians)
-        // In Minecraft: yaw 0 = south, 90 = west, 180 = north, 270 = east
-        float yaw = playerLoc.getYaw();
-        double yawRadians = Math.toRadians(yaw + 90); // Add 90 to align with direction vector
+        // Get player's direction vector
+        org.bukkit.util.Vector direction = playerLoc.getDirection().normalize();
         
         // Calculate wing positions relative to player's direction
-        // Wings are positioned behind and to the sides
-        double wingDistance = 2.0; // Distance to the side
-        double wingBackOffset = 1.0; // Behind the player
-        double wingHeight = 0.5; // Height offset
+        // Wings are positioned behind and slightly to the sides
+        double wingSpread = 0.8; // Distance to the side (reduced from 2.0)
+        double wingBackOffset = 1.2; // Behind the player
+        double wingHeight = 0.3; // Height offset
         
-        // Direction the player is facing
-        double dirX = -Math.sin(yawRadians);
-        double dirZ = Math.cos(yawRadians);
+        // Get perpendicular vector for left/right positioning
+        org.bukkit.util.Vector perpendicular = new org.bukkit.util.Vector(-direction.getZ(), 0, direction.getX()).normalize();
         
-        // Perpendicular direction (for left/right)
-        double perpX = -dirZ;
-        double perpZ = dirX;
+        // Position wings behind and to the sides
+        org.bukkit.util.Vector backVector = direction.clone().multiply(-wingBackOffset);
         
-        // Left wing (to the left and behind)
-        double leftX = perpX * wingDistance - dirX * wingBackOffset;
-        double leftZ = perpZ * wingDistance - dirZ * wingBackOffset;
-        Location leftWing = playerLoc.clone().add(leftX, wingHeight, leftZ);
+        // Left wing (behind + left)
+        org.bukkit.util.Vector leftOffset = backVector.clone().add(perpendicular.clone().multiply(wingSpread));
+        Location leftWing = playerLoc.clone().add(leftOffset).add(0, wingHeight, 0);
         
-        // Right wing (to the right and behind)
-        double rightX = -perpX * wingDistance - dirX * wingBackOffset;
-        double rightZ = -perpZ * wingDistance - dirZ * wingBackOffset;
-        Location rightWing = playerLoc.clone().add(rightX, wingHeight, rightZ);
+        // Right wing (behind + right)
+        org.bukkit.util.Vector rightOffset = backVector.clone().add(perpendicular.clone().multiply(-wingSpread));
+        Location rightWing = playerLoc.clone().add(rightOffset).add(0, wingHeight, 0);
         
         int wingCount = 6 + rank;
         int trailCount = 4 + rank;
@@ -160,9 +154,8 @@ public class WingsExecutor implements AbilityExecutor {
         
         // Trail behind player when moving fast (also direction-aware)
         if (player.getVelocity().length() > 0.3) {
-            double trailX = -dirX * wingBackOffset;
-            double trailZ = -dirZ * wingBackOffset;
-            Location trailLoc = playerLoc.clone().add(trailX, 0, trailZ);
+            org.bukkit.util.Vector trailOffset = direction.clone().multiply(-wingBackOffset);
+            Location trailLoc = playerLoc.clone().add(trailOffset);
             
             VFXLayerBuilder trailVfx = new VFXLayerBuilder(plugin, trailLoc, rank, player)
                 .withPerformanceManager(plugin.getVFXPerformanceManager())

@@ -127,30 +127,28 @@ public class WingsExecutor implements AbilityExecutor {
     private void createWingVFX(com.muzlik.FrostSMPPlugin plugin, Player player, int rank) {
         Location playerLoc = player.getLocation().add(0, 1, 0);
         
-        // Get player's direction (yaw in radians)
-        float yaw = playerLoc.getYaw();
-        double yawRadians = Math.toRadians(yaw + 90);
+        // Get player's direction vector
+        org.bukkit.util.Vector direction = playerLoc.getDirection().normalize();
         
-        // Calculate direction vectors
-        double dirX = -Math.sin(yawRadians);
-        double dirZ = Math.cos(yawRadians);
-        double perpX = -dirZ;
-        double perpZ = dirX;
+        // Calculate wing positions relative to player's direction
+        // Wings are positioned behind and slightly to the sides
+        double wingSpread = 0.8; // Distance to the side
+        double wingBackOffset = 1.0; // Behind the player
+        double wingHeight = 0.3; // Height offset
         
-        // Wing positions relative to player's direction
-        double wingDistance = 1.5;
-        double wingBackOffset = 0.5;
-        double wingHeight = 0.5;
+        // Get perpendicular vector for left/right positioning
+        org.bukkit.util.Vector perpendicular = new org.bukkit.util.Vector(-direction.getZ(), 0, direction.getX()).normalize();
         
-        // Left wing (to the left and behind)
-        double leftX = perpX * wingDistance - dirX * wingBackOffset;
-        double leftZ = perpZ * wingDistance - dirZ * wingBackOffset;
-        Location leftWing = playerLoc.clone().add(leftX, wingHeight, leftZ);
+        // Position wings behind and to the sides
+        org.bukkit.util.Vector backVector = direction.clone().multiply(-wingBackOffset);
         
-        // Right wing (to the right and behind)
-        double rightX = -perpX * wingDistance - dirX * wingBackOffset;
-        double rightZ = -perpZ * wingDistance - dirZ * wingBackOffset;
-        Location rightWing = playerLoc.clone().add(rightX, wingHeight, rightZ);
+        // Left wing (behind + left)
+        org.bukkit.util.Vector leftOffset = backVector.clone().add(perpendicular.clone().multiply(wingSpread));
+        Location leftWing = playerLoc.clone().add(leftOffset).add(0, wingHeight, 0);
+        
+        // Right wing (behind + right)
+        org.bukkit.util.Vector rightOffset = backVector.clone().add(perpendicular.clone().multiply(-wingSpread));
+        Location rightWing = playerLoc.clone().add(rightOffset).add(0, wingHeight, 0);
         
         int wingCount = 8 + (rank * 2);
         int auraCount = 5 + rank;

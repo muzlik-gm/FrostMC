@@ -131,9 +131,9 @@ public class FragmentActionBarHUD {
         // ═══ FRAGMENT ICON ═══
         // Display fragment texture using Unicode private use area character
         // The resource pack maps this to the fragment texture
+        // IMPORTANT: Icon must be WHITE so texture colors show correctly
         String fragmentIcon = getFragmentIcon(fragmentType);
-        TextColor fragmentColor = getFragmentColor(fragmentType);
-        message = message.append(Component.text(fragmentIcon + " ", fragmentColor));
+        message = message.append(Component.text(fragmentIcon + " ", NamedTextColor.WHITE));
         
         // ═══ CHARACTER LEVEL SECTION ═══
         // Format: ✦ LVL: X/MAX
@@ -163,6 +163,7 @@ public class FragmentActionBarHUD {
         
         // ═══ FRAGMENT NAME SECTION ═══
         String fragmentName = toSmallCaps(fragmentType.getDisplayName());
+        TextColor fragmentColor = getFragmentColor(fragmentType);
         message = message.append(Component.text(fragmentName + " ", fragmentColor));
         
         // ═══ MANA DISPLAY ═══

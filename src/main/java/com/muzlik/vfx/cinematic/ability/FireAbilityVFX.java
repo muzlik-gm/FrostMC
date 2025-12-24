@@ -301,25 +301,22 @@ public class FireAbilityVFX {
                 Location phoenixLoc = location.clone().add(0, height, 0);
                 
                 // Wings (direction-aware)
-                float yaw = phoenixLoc.getYaw();
-                double yawRadians = Math.toRadians(yaw + 90);
-                
-                double dirX = -Math.sin(yawRadians);
-                double dirZ = Math.cos(yawRadians);
-                double perpX = -dirZ;
-                double perpZ = dirX;
+                org.bukkit.util.Vector direction = phoenixLoc.getDirection().normalize();
+                org.bukkit.util.Vector perpendicular = new org.bukkit.util.Vector(-direction.getZ(), 0, direction.getX()).normalize();
                 
                 double wingSpan = 1.5 + (rank * 0.2);
                 double wingAngle = Math.sin(ticks * 0.2) * 0.3;
-                double wingBackOffset = 0.5;
+                double wingBackOffset = 0.8;
+                
+                org.bukkit.util.Vector backVector = direction.clone().multiply(-wingBackOffset);
                 
                 for (int i = -1; i <= 1; i += 2) {
                     for (double w = 0; w < wingSpan; w += 0.2) {
-                        double wingX = i * perpX * w * Math.cos(wingAngle) - dirX * wingBackOffset;
-                        double wingZ = i * perpZ * w * Math.cos(wingAngle) - dirZ * wingBackOffset;
+                        org.bukkit.util.Vector wingOffset = backVector.clone()
+                            .add(perpendicular.clone().multiply(i * w * Math.cos(wingAngle)));
                         double wingY = -w * 0.3;
                         
-                        Location wingLoc = phoenixLoc.clone().add(wingX, wingY, wingZ);
+                        Location wingLoc = phoenixLoc.clone().add(wingOffset).add(0, wingY, 0);
                         vfxEngine.spawnParticle(wingLoc, Particle.FLAME, 2, 0.05, 0.05, 0.05, 0.02, player);
                         
                         if (rank >= 5) {
