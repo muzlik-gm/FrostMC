@@ -39,10 +39,19 @@ public class AbilitySlotManager {
             return true;
         }
 
+        // Task 3.4: Fix map chain null safety - check each level for null
         UUID playerId = player.getUniqueId();
-        return unlockedSlots.containsKey(playerId) &&
-               unlockedSlots.get(playerId).containsKey(fragmentType) &&
-               unlockedSlots.get(playerId).get(fragmentType).contains(slotIndex);
+        Map<FragmentType, Set<Integer>> playerSlots = unlockedSlots.get(playerId);
+        if (playerSlots == null) {
+            return false;
+        }
+        
+        Set<Integer> fragmentSlots = playerSlots.get(fragmentType);
+        if (fragmentSlots == null) {
+            return false;
+        }
+        
+        return fragmentSlots.contains(slotIndex);
     }
 
     /**
@@ -72,6 +81,8 @@ public class AbilitySlotManager {
         boolean added = unlockedSlots.get(playerId).get(fragmentType).add(slotIndex);
         
         if (added) {
+            // Play unlock feedback (Task 10.2)
+            AbilitySlotFeedback.playUnlockFeedback(player, fragmentType, slotIndex);
             savePlayerData(player);
         }
         
@@ -203,17 +214,67 @@ public class AbilitySlotManager {
      * @param player The player
      */
     public void loadPlayerData(Player player) {
-        // TODO: Implement data loading from DataPersistence
-        // For now, initialize empty data
-        unlockedSlots.putIfAbsent(player.getUniqueId(), new ConcurrentHashMap<>());
+        UUID playerId = player.getUniqueId();
+        
+        try {
+            DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerData(playerId);
+            
+            // Initialize player's map if not exists
+            unlockedSlots.putIfAbsent(playerId, new ConcurrentHashMap<>());
+            
+            // Load unlocked ability slots
+            if (data.unlockedAbilitySlots != null) {
+                for (Map.Entry<String, Set<Integer>> entry : data.unlockedAbilitySlots.entrySet()) {
+                    try {
+                        FragmentType type = FragmentType.valueOf(entry.getKey());
+                        Set<Integer> slots = entry.getValue();
+                        
+                        // Initialize fragment's set if not exists
+                        unlockedSlots.get(playerId).putIfAbsent(type, ConcurrentHashMap.newKeySet());
+                        
+                        // Add all unlocked slots
+                        unlockedSlots.get(playerId).get(type).addAll(slots);
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().warning("Invalid fragment type in ability slots: " + entry.getKey());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to load ability slot data for player " + playerId + ": " + e.getMessage());
+            // Initialize empty data
+            unlockedSlots.putIfAbsent(playerId, new ConcurrentHashMap<>());
+        }
     }
 
     /**
-     * Save player data to persistence
+     * Save player data to persistence (public for quit event)
      * @param player The player
      */
-    private void savePlayerData(Player player) {
-        // TODO: Implement data saving to DataPersistence
+    public void savePlayerData(Player player) {
+        UUID playerId = player.getUniqueId();
+        
+        try {
+            // Load existing data
+            DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerData(playerId);
+            
+            // Convert in-memory slot states to JSON format
+            Map<String, Set<Integer>> slotsToSave = new HashMap<>();
+            Map<FragmentType, Set<Integer>> playerSlots = unlockedSlots.get(playerId);
+            
+            if (playerSlots != null) {
+                for (Map.Entry<FragmentType, Set<Integer>> entry : playerSlots.entrySet()) {
+                    slotsToSave.put(entry.getKey().name(), new HashSet<>(entry.getValue()));
+                }
+            }
+            
+            // Update data container
+            data.unlockedAbilitySlots = slotsToSave;
+            
+            // Save to disk
+            dataPersistence.savePlayerData(playerId, data);
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to save ability slot data for player " + playerId + ": " + e.getMessage());
+        }
     }
 
     /**

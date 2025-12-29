@@ -122,12 +122,7 @@ public class TsunamiWaveExecutor implements AbilityExecutor {
                         // Slow effect
                         target.addPotionEffect(PotionEffectHelper.createHiddenEffect(PotionEffectType.SLOW, 80, 2));
                         
-                        // Minor damage
-                        target.setLastDamageCause(new org.bukkit.event.entity.EntityDamageEvent(
-                            target, 
-                            org.bukkit.event.entity.EntityDamageEvent.DamageCause.DROWNING, 
-                            2.0
-                        ));
+                        // Minor damage (drowning cause)
                         target.damage(2.0, player);
                         
                         // Impact VFX on hit

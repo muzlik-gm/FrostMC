@@ -4,10 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import com.muzlik.power.PowerManager;
-import com.muzlik.listener.PlayerPowerListener;
-import com.muzlik.command.PowerCommand;
-import com.muzlik.powers.FirePower;
+import com.muzlik.cooldown.CooldownManager;
 
 // Fragment System imports
 import com.muzlik.fragment.FragmentManager;
@@ -39,11 +36,8 @@ import com.muzlik.character.CharacterLevelManager;
  */
 public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
-    // Legacy systems
-    private PowerManager powerManager;
-    private PlayerPowerListener playerPowerListener;
-    private com.muzlik.ui.PowerGUI powerGUI;
-    private com.muzlik.ui.PowerHUD powerHUD;
+    // Cooldown Manager (replaces legacy PowerManager)
+    private CooldownManager cooldownManager;
     
     // Fragment HUD
     private com.muzlik.ui.FragmentActionBarHUD fragmentHUD;
@@ -80,6 +74,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
     // Flight System
     private com.muzlik.fragment.ability.FlightManager flightManager;
+    
+    // Ability Slot System
+    private com.muzlik.fragment.ability.AbilitySlotManager abilitySlotManager;
     
     // Character Level System (affects max mana)
     private CharacterLevelManager characterLevelManager;
@@ -182,6 +179,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Initialize flight system
         flightManager = new com.muzlik.fragment.ability.FlightManager(this);
         
+        // Initialize Ability Slot system (Task 2)
+        abilitySlotManager = new com.muzlik.fragment.ability.AbilitySlotManager(this, dataPersistence);
+        
         // Initialize Luck Fragment passive system
         luckPassiveManager = new com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager(this, fragmentManager);
         luckPassiveManager.start();
@@ -191,13 +191,13 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         fxLibrary.setDebugMode(configManager.isFXDebugMode());
         fxLibrary.setParticleDensityMultiplier(configManager.getParticleDensity());
         
-        // Initialize legacy power manager FIRST (needed for CooldownManager)
-        powerManager = new PowerManager(this);
-        powerManager.registerPower(new FirePower());
+        // Initialize CooldownManager (replaces legacy PowerManager)
+        cooldownManager = new CooldownManager();
         
         // Initialize ritual system
         ritualManager = new RitualManager(this, fragmentManager, fxLibrary, configManager);
         ritualManager.setProximityDistance(configManager.getFragmentCreationProximity());
+        ritualManager.setAbilitySlotManager(abilitySlotManager);
         
         // Initialize damage API
         damageAPI = new DamageAPI(this);
@@ -206,9 +206,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         recipeManager = new RecipeManager(this);
         recipeManager.registerRecipes();
         
-        // Initialize UI manager (with CooldownManager from PowerManager)
+        // Initialize UI manager (with CooldownManager)
         uiManager = new UIManager(this, fragmentManager, manaManager, levelManager, rankManager,
-                powerManager.getCooldownManager(), configManager);
+                cooldownManager, configManager);
         
         // Initialize GUI systems (after preferencesManager is available)
         uiManager.initializeGUIs(preferencesManager);
@@ -219,33 +219,17 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Register all 10 Fragments
         fragmentRegistry = new FragmentRegistry(this, fragmentManager, fxLibrary);
         fragmentRegistry.registerAllFragments();
-        
-        // Register placeholder powers for all fragments (prevents "non-existent power" warnings)
-        registerPlaceholderPowers();
 
-        // Initialize legacy GUI
-        powerGUI = new com.muzlik.ui.PowerGUI(powerManager);
-        getServer().getPluginManager().registerEvents(powerGUI, this);
-
-        // Initialize legacy HUD
-        powerHUD = new com.muzlik.ui.PowerHUD(this, powerManager);
-        powerHUD.start();
-        
         // Initialize Fragment HUD (with CharacterLevelManager)
-        fragmentHUD = new com.muzlik.ui.FragmentActionBarHUD(this, fragmentManager, manaManager, powerManager.getCooldownManager());
+        fragmentHUD = new com.muzlik.ui.FragmentActionBarHUD(this, fragmentManager, manaManager, cooldownManager);
         fragmentHUD.setCharacterLevelManager(characterLevelManager);
         fragmentHUD.start();
 
         // Register listeners
-        playerPowerListener = new PlayerPowerListener(powerManager);
-        getServer().getPluginManager().registerEvents(
-                playerPowerListener,
-                this
-        );
         
         // Create and register FragmentAbilityListener with LevelManager and PreferencesManager
         com.muzlik.listener.FragmentAbilityListener fragmentAbilityListener = 
-            new com.muzlik.listener.FragmentAbilityListener(this, fragmentManager, manaManager, powerManager.getCooldownManager(), preferencesManager);
+            new com.muzlik.listener.FragmentAbilityListener(this, fragmentManager, manaManager, cooldownManager, preferencesManager);
         fragmentAbilityListener.setLevelManager(levelManager);
         getServer().getPluginManager().registerEvents(
                 fragmentAbilityListener,
@@ -269,6 +253,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         );
         getServer().getPluginManager().registerEvents(
                 new com.muzlik.ui.FragmentGUIListener(fragmentManager, uiManager),
+                this
+        );
+        getServer().getPluginManager().registerEvents(
+                new com.muzlik.listener.RecipeGUIListener(),
                 this
         );
         // Instantiate and register PlayerDataListener
@@ -295,7 +283,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
                 this
         );
         getServer().getPluginManager().registerEvents(
-                new com.muzlik.listener.PassiveAbilityListener(this, fragmentManager, rankManager, manaManager, powerManager.getCooldownManager()),
+                new com.muzlik.listener.PassiveAbilityListener(this, fragmentManager, rankManager, manaManager, cooldownManager),
                 this
         );
         getServer().getPluginManager().registerEvents(
@@ -345,14 +333,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
 
         // Register commands
-        PowerCommand powerCommand = new PowerCommand(powerManager);
-        powerCommand.setPowerGUI(powerGUI);
-        getCommand("power").setExecutor(powerCommand);
-        getCommand("power").setTabCompleter(powerCommand);
-        
         com.muzlik.command.FragmentCommand fragmentCommand = new com.muzlik.command.FragmentCommand(
             this, fragmentManager, recipeManager, uiManager, manaManager, levelManager, rankManager,
-            powerManager.getCooldownManager()
+            cooldownManager
         );
         getCommand("fragment").setExecutor(fragmentCommand);
         getCommand("fragment").setTabCompleter(fragmentCommand);
@@ -389,24 +372,6 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         System.out.println("");
     }
     
-    /**
-     * Register placeholder powers for all fragments to prevent warnings
-     */
-    private void registerPlaceholderPowers() {
-        // These are placeholder powers that do nothing but prevent "non-existent power" warnings
-        // The actual abilities are handled by the Fragment system
-        String[] fragmentPowers = {
-            "water_power", "air_power", "earth_power", "dark_power", 
-            "light_power", "void_power", "mob_power", "dragon_power", "storm_power"
-        };
-        
-        for (String powerName : fragmentPowers) {
-            powerManager.registerPower(new com.muzlik.powers.PlaceholderPower(powerName));
-        }
-        
-        getLogger().info("Registered placeholder powers for all fragments");
-    }
-
     @Override
     public void onDisable() {
         String RED = "\u001B[31m";
@@ -506,21 +471,12 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
             cooldownAPI.shutdown();
         }
         
-        // Shutdown legacy systems
-        if (powerHUD != null) {
-            powerHUD.stop();
-        }
-        if (powerManager != null) {
-            powerManager.shutdown();
+        // Shutdown CooldownManager
+        if (cooldownManager != null) {
+            cooldownManager.clearAll();
         }
         
         getLogger().info("All systems shutdown complete");
-    }
-    
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        // Load player's saved power (legacy)
-        powerManager.loadPlayerPower(event.getPlayer());
     }
     
     /**
@@ -539,8 +495,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     }
 
     // Getters for managers
-    public PowerManager getPowerManager() { return powerManager; }
-    public PlayerPowerListener getPlayerPowerListener() { return playerPowerListener; }
+    public CooldownManager getCooldownManager() { return cooldownManager; }
     public FragmentManager getFragmentManager() { return fragmentManager; }
     public ManaManager getManaManager() { return manaManager; }
     public LevelManager getLevelManager() { return levelManager; }
@@ -568,6 +523,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public CharacterLevelManager getCharacterLevelManager() { return characterLevelManager; }
     public com.muzlik.player.PlayerPreferencesManager getPreferencesManager() { return preferencesManager; }
     public com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager getLuckPassiveManager() { return luckPassiveManager; }
+    public com.muzlik.fragment.ability.AbilitySlotManager getAbilitySlotManager() { return abilitySlotManager; }
 }
 
 

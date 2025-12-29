@@ -290,6 +290,13 @@ public class RitualManager {
         long elapsed = System.currentTimeMillis() - ritual.getStartTime();
         int progressPercent = (int) ((elapsed * 100) / ritual.getDuration());
         
+        // Task 12.2: Check for milestone notifications (25%, 50%, 75%, 90%)
+        int previousPercent = ritual.getPreviousProgressPercent();
+        if (shouldPlayVFX) {
+            checkProgressMilestones(owner, ritual, previousPercent, progressPercent);
+            ritual.setPreviousProgressPercent(progressPercent);
+        }
+        
         // Update boss bar (every tick for smooth progress)
         updateRitualBossBar(ritualOwnerId, ritual);
         
@@ -325,6 +332,35 @@ public class RitualManager {
         // Check completion
         if (elapsed >= ritual.getDuration()) {
             completeRitual(ritualOwnerId, ritual);
+        }
+    }
+    
+    /**
+     * Check and send progress milestone notifications (Task 12.2)
+     */
+    private void checkProgressMilestones(Player owner, RitualInstance ritual, int previousPercent, int currentPercent) {
+        int[] milestones = {25, 50, 75, 90};
+        
+        for (int milestone : milestones) {
+            if (previousPercent < milestone && currentPercent >= milestone) {
+                // Send notification to owner
+                if (owner != null && owner.isOnline()) {
+                    String message = switch (milestone) {
+                        case 25 -> "§e⚡ Ritual Progress: §b25% §7- Quarter complete";
+                        case 50 -> "§e⚡ Ritual Progress: §b50% §7- Halfway there!";
+                        case 75 -> "§e⚡ Ritual Progress: §b75% §7- Almost done!";
+                        case 90 -> "§e⚡ Ritual Progress: §b90% §7- Final stage!";
+                        default -> "";
+                    };
+                    owner.sendMessage(message);
+                    
+                    // Play notification sound
+                    owner.playSound(owner.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.5f);
+                }
+                
+                // Warn nearby players
+                warnNearbyPlayers(ritual, "§7Ritual at §b" + currentPercent + "%");
+            }
         }
     }
     
@@ -601,7 +637,8 @@ public class RitualManager {
             return;
         }
 
-        int currentRank = 5; // Default rank for testing, should be retrieved from fragment progress system
+        // Get current rank from RankManager
+        int currentRank = fragmentManager.getRankManager().getRank(player, fragmentType);
 
         // Validate unlock requirements
         if (!abilitySlotManager.canUnlockSlot(fragmentType, currentRank, 3)) {
@@ -643,7 +680,8 @@ public class RitualManager {
             return;
         }
 
-        int currentRank = 7; // Default rank for testing, should be retrieved from fragment progress system
+        // Get current rank from RankManager
+        int currentRank = fragmentManager.getRankManager().getRank(player, fragmentType);
 
         // Validate unlock requirements
         if (!abilitySlotManager.canUnlockSlot(fragmentType, currentRank, 4)) {
@@ -759,15 +797,15 @@ public class RitualManager {
                     UUID ownerId = entry.getKey();
                     RitualInstance ritual = entry.getValue();
                     
-                    // Update ritual - grace period handles player absence
-                    // Pass tickCounter to control VFX frequency (only every 4th call = once per second)
-                    updateRitual(ownerId, ritual, tickCounter % 4 == 0);
+                    // Update ritual - now runs once per second for better performance
+                    // VFX and boss bar update every tick
+                    updateRitual(ownerId, ritual, true);
                 }
             }
         };
         
-        // Run 4 times per second (every 5 ticks) for responsive grace period detection
-        updateTask.runTaskTimer(plugin, 5L, 5L);
+        // Run once per second (every 20 ticks) - OPTIMIZED FOR PERFORMANCE
+        updateTask.runTaskTimer(plugin, 20L, 20L);
     }
 
     /**

@@ -23,11 +23,17 @@ public class DataPersistence {
     private final JavaPlugin plugin;
     private final File dataFolder;
     private final Gson gson;
+    private final AsyncExecutor asyncExecutor;
 
     public DataPersistence(JavaPlugin plugin) {
+        this(plugin, new AsyncExecutor(plugin));
+    }
+    
+    public DataPersistence(JavaPlugin plugin, AsyncExecutor asyncExecutor) {
         this.plugin = plugin;
         this.dataFolder = new File(plugin.getDataFolder(), "playerdata");
         this.gson = new GsonBuilder().setPrettyPrinting().create();
+        this.asyncExecutor = asyncExecutor;
         
         // Create data folder if it doesn't exist
         if (!dataFolder.exists()) {
@@ -36,16 +42,22 @@ public class DataPersistence {
     }
 
     /**
-     * Save player data asynchronously
+     * Save player data asynchronously using AsyncExecutor
      */
     public CompletableFuture<Void> savePlayerDataAsync(UUID playerId, PlayerDataContainer data) {
-        return CompletableFuture.runAsync(() -> {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        
+        asyncExecutor.executeAsync(() -> {
             try {
                 savePlayerData(playerId, data);
+                future.complete(null);
             } catch (IOException e) {
                 plugin.getLogger().severe("Failed to save data for player " + playerId + ": " + e.getMessage());
+                future.completeExceptionally(e);
             }
-        });
+        }, e -> future.completeExceptionally(e));
+        
+        return future;
     }
 
     /**
@@ -70,17 +82,25 @@ public class DataPersistence {
     }
 
     /**
-     * Load player data asynchronously
+     * Load player data asynchronously using AsyncExecutor
      */
     public CompletableFuture<PlayerDataContainer> loadPlayerDataAsync(UUID playerId) {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<PlayerDataContainer> future = new CompletableFuture<>();
+        
+        asyncExecutor.executeAsync(() -> {
             try {
-                return loadPlayerData(playerId);
+                PlayerDataContainer data = loadPlayerData(playerId);
+                future.complete(data);
             } catch (IOException e) {
                 plugin.getLogger().warning("Failed to load data for player " + playerId + ": " + e.getMessage());
-                return createDefaultData(playerId);
+                future.complete(createDefaultData(playerId));
             }
+        }, e -> {
+            plugin.getLogger().warning("Error loading data for player " + playerId + ": " + e.getMessage());
+            future.complete(createDefaultData(playerId));
         });
+        
+        return future;
     }
 
     /**
@@ -151,6 +171,9 @@ public class DataPersistence {
         // Character Level progression (separate from Fragment level)
         public int characterLevel = 1;
         public double characterXp = 0;
+        
+        // Ability Slot Unlocks (Task 2.1)
+        public Map<String, java.util.Set<Integer>> unlockedAbilitySlots;
     }
 
     /**
@@ -164,5 +187,14 @@ public class DataPersistence {
         public int prestigeLevel;
         public double currentMana;
         public Map<String, Long> abilityCooldowns;
+    }
+    
+    /**
+     * Shutdown AsyncExecutor gracefully
+     */
+    public void shutdown() {
+        if (asyncExecutor != null) {
+            asyncExecutor.shutdown();
+        }
     }
 }

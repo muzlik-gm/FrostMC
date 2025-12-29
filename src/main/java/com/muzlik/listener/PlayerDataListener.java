@@ -29,6 +29,7 @@ public class PlayerDataListener implements Listener {
     private final LevelManager levelManager;
     private final RankManager rankManager;
     private CharacterLevelManager characterLevelManager;
+    private com.muzlik.fragment.ability.AbilitySlotManager abilitySlotManager;
 
     public PlayerDataListener(JavaPlugin plugin, DataPersistence dataPersistence,
                              FragmentManager fragmentManager, ManaManager manaManager,
@@ -43,12 +44,33 @@ public class PlayerDataListener implements Listener {
         // Get CharacterLevelManager from main plugin
         if (plugin instanceof FrostSMPPlugin) {
             this.characterLevelManager = ((FrostSMPPlugin) plugin).getCharacterLevelManager();
+            this.abilitySlotManager = ((FrostSMPPlugin) plugin).getAbilitySlotManager();
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         loadPlayerData(event.getPlayer());
+        
+        // Task 11.1: Unlock fragment recipes in recipe book
+        unlockFragmentRecipes(event.getPlayer());
+    }
+    
+    /**
+     * Unlock all fragment recipes in the player's recipe book (Task 11.1)
+     */
+    private void unlockFragmentRecipes(Player player) {
+        // Unlock all 10 fragment creation recipes
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:fire_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:water_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:air_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:dark_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:light_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:void_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:dragon_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:storm_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:time_fragment_creation"));
+        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:luck_fragment_creation"));
     }
 
     /**
@@ -130,6 +152,11 @@ public class PlayerDataListener implements Listener {
                     characterLevelManager.loadCharacterData(player, charLevel, charXP);
                     /* plugin.getLogger().info("Loaded Character Level for " + player.getName() + 
                         ": Level=" + charLevel + ", XP=" + String.format("%.1f", charXP)); */
+                }
+                
+                // Load Ability Slot data (Task 2.4)
+                if (abilitySlotManager != null) {
+                    abilitySlotManager.loadPlayerData(player);
                 }
                 
                 // Load completed rituals (one-time fragment creation tracking)
@@ -226,6 +253,11 @@ public class PlayerDataListener implements Listener {
         // Save asynchronously
         dataPersistence.savePlayerDataAsync(player.getUniqueId(), data);
         
+        // Save Ability Slot data (Task 2.4)
+        if (abilitySlotManager != null) {
+            abilitySlotManager.savePlayerData(player);
+        }
+        
         /* plugin.getLogger().info("Saved " + ownedFragments.size() + " fragments for " + player.getName() + 
             " (Active: " + (activeFragment != null ? activeFragment.name() : "none") + ")"); */
         
@@ -234,6 +266,9 @@ public class PlayerDataListener implements Listener {
         fragmentManager.removePlayer(player);
         if (characterLevelManager != null) {
             characterLevelManager.removePlayer(player);
+        }
+        if (abilitySlotManager != null) {
+            abilitySlotManager.removePlayer(player);
         }
     }
 }

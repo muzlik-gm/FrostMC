@@ -36,13 +36,26 @@ public class SummonProtectionListener implements Listener {
             return;
         }
         
-        // Get the owner UUID
-        String ownerUUIDString = entity.getMetadata(SUMMON_OWNER_KEY).get(0).asString();
-        UUID ownerUUID = UUID.fromString(ownerUUIDString);
+        // Task 3.3: Fix metadata null safety - check size and null before accessing
+        java.util.List<org.bukkit.metadata.MetadataValue> metadata = entity.getMetadata(SUMMON_OWNER_KEY);
+        if (metadata.isEmpty() || metadata.get(0) == null) {
+            return;
+        }
         
-        // If targeting the owner, cancel it
-        if (target.getUniqueId().equals(ownerUUID)) {
-            event.setCancelled(true);
+        try {
+            // Get the owner UUID
+            String ownerUUIDString = metadata.get(0).asString();
+            if (ownerUUIDString == null) {
+                return;
+            }
+            UUID ownerUUID = UUID.fromString(ownerUUIDString);
+            
+            // If targeting the owner, cancel it
+            if (target.getUniqueId().equals(ownerUUID)) {
+                event.setCancelled(true);
+            }
+        } catch (IllegalArgumentException e) {
+            // Invalid UUID format, ignore
         }
     }
     
@@ -64,13 +77,26 @@ public class SummonProtectionListener implements Listener {
             return;
         }
         
-        // Get the owner UUID
-        String ownerUUIDString = damager.getMetadata(SUMMON_OWNER_KEY).get(0).asString();
-        UUID ownerUUID = UUID.fromString(ownerUUIDString);
+        // Task 3.3: Fix metadata null safety - check size and null before accessing
+        java.util.List<org.bukkit.metadata.MetadataValue> metadata = damager.getMetadata(SUMMON_OWNER_KEY);
+        if (metadata.isEmpty() || metadata.get(0) == null) {
+            return;
+        }
         
-        // If damaging the owner, cancel it
-        if (victim.getUniqueId().equals(ownerUUID)) {
-            event.setCancelled(true);
+        try {
+            // Get the owner UUID
+            String ownerUUIDString = metadata.get(0).asString();
+            if (ownerUUIDString == null) {
+                return;
+            }
+            UUID ownerUUID = UUID.fromString(ownerUUIDString);
+            
+            // If damaging the owner, cancel it
+            if (victim.getUniqueId().equals(ownerUUID)) {
+                event.setCancelled(true);
+            }
+        } catch (IllegalArgumentException e) {
+            // Invalid UUID format, ignore
         }
     }
 }

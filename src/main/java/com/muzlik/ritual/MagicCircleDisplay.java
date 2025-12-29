@@ -171,7 +171,8 @@ public class MagicCircleDisplay {
             
             @Override
             public void run() {
-                if (displays.isEmpty() || displays.get(0).isDead()) {
+                // Task 3.1: Fix null safety - check isEmpty() and null before accessing
+                if (displays.isEmpty() || displays.get(0) == null || displays.get(0).isDead()) {
                     cancel();
                     return;
                 }
@@ -245,6 +246,7 @@ public class MagicCircleDisplay {
      * Check if displays are still active
      */
     public boolean isActive() {
-        return !displays.isEmpty() && !displays.get(0).isDead();
+        // Task 3.1: Fix null safety - check isEmpty() and null before accessing
+        return !displays.isEmpty() && displays.get(0) != null && !displays.get(0).isDead();
     }
 }

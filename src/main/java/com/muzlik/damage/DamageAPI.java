@@ -182,8 +182,7 @@ public class DamageAPI {
         // Trigger visual damage effect
         damageable.playEffect(org.bukkit.EntityEffect.HURT);
 
-        // Ensure the last damage cause is attributed to the player
-        EntityDamageEvent lastDamageEvent = new EntityDamageByEntityEvent(source, target, EntityDamageEvent.DamageCause.CUSTOM, damage);
-        target.setLastDamageCause(lastDamageEvent);
+        // Set damage source metadata for attribution
+        setDamageSource(target, source);
     }
 }

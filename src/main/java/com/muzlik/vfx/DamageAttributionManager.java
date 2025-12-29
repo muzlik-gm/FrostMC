@@ -330,12 +330,20 @@ public class DamageAttributionManager implements Listener {
         
         // Check metadata
         if (damager.hasMetadata(FRAGMENT_OWNER_KEY)) {
-            String ownerIdStr = damager.getMetadata(FRAGMENT_OWNER_KEY).get(0).asString();
-            try {
-                UUID ownerId = UUID.fromString(ownerIdStr);
-                return plugin.getServer().getPlayer(ownerId);
-            } catch (IllegalArgumentException e) {
-                plugin.getLogger().warning("Invalid owner UUID in metadata: " + ownerIdStr);
+            // Task 3.2: Fix metadata null safety - check size and null before accessing
+            java.util.List<org.bukkit.metadata.MetadataValue> metadata = damager.getMetadata(FRAGMENT_OWNER_KEY);
+            if (!metadata.isEmpty() && metadata.get(0) != null) {
+                try {
+                    String ownerIdStr = metadata.get(0).asString();
+                    if (ownerIdStr != null) {
+                        UUID ownerId = UUID.fromString(ownerIdStr);
+                        return plugin.getServer().getPlayer(ownerId);
+                    }
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Invalid owner UUID in metadata: " + e.getMessage());
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Error reading metadata: " + e.getMessage());
+                }
             }
         }
         

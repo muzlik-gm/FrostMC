@@ -19,6 +19,9 @@ public class RitualInstance {
     private final FragmentType fragmentType;
     private RitualStage stage;
     
+    // Task 12.1: Progress milestone tracking
+    private int previousProgressPercent = 0;
+    
     // Grace period tracking
     private boolean inGracePeriod = false;
     private long gracePeriodStartTime = 0;
@@ -78,6 +81,20 @@ public class RitualInstance {
     public int getProgressPercent() {
         long elapsed = System.currentTimeMillis() - startTime;
         return (int) Math.min(100, (elapsed * 100) / duration);
+    }
+    
+    /**
+     * Get previous progress percentage (Task 12.1)
+     */
+    public int getPreviousProgressPercent() {
+        return previousProgressPercent;
+    }
+    
+    /**
+     * Set previous progress percentage (Task 12.1)
+     */
+    public void setPreviousProgressPercent(int percent) {
+        this.previousProgressPercent = percent;
     }
 
     /**

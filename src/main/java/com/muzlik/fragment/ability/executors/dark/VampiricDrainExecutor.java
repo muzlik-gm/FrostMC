@@ -30,12 +30,7 @@ public class VampiricDrainExecutor implements AbilityExecutor {
         if (rayTrace != null && rayTrace.getHitEntity() instanceof LivingEntity) {
             LivingEntity livingTarget = (LivingEntity) rayTrace.getHitEntity();
             
-            // Deal damage with MAGIC cause to prevent recursion
-            livingTarget.setLastDamageCause(new org.bukkit.event.entity.EntityDamageEvent(
-                livingTarget, 
-                org.bukkit.event.entity.EntityDamageEvent.DamageCause.MAGIC, 
-                damage
-            ));
+            // Deal magic damage
             livingTarget.damage(damage, player);
             
             // Heal player

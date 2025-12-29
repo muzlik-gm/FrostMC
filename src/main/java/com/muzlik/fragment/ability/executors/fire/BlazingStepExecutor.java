@@ -99,11 +99,7 @@ public class BlazingStepExecutor implements AbilityExecutor {
                 for (org.bukkit.entity.Entity entity : trailLoc.getWorld().getNearbyEntities(trailLoc, trailRadius, trailRadius, trailRadius)) {
                     if (entity instanceof LivingEntity && entity != player) {
                         LivingEntity target = (LivingEntity) entity;
-                        target.setLastDamageCause(new org.bukkit.event.entity.EntityDamageEvent(
-                            target, 
-                            org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE, 
-                            2.0
-                        ));
+                        // Fire damage
                         target.damage(2.0, player);
                         target.setFireTicks(40);
                     }

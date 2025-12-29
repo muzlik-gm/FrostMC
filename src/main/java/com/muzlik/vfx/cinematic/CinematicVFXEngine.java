@@ -1,6 +1,7 @@
 package com.muzlik.vfx.cinematic;
 
 import com.muzlik.vfx.ActiveEffectRegistry;
+import com.muzlik.vfx.ParticleBatcher;
 import com.muzlik.vfx.cinematic.animation.AnimationController;
 import com.muzlik.vfx.cinematic.miniblock.MiniBlockManager;
 import com.muzlik.vfx.cinematic.ritual.RitualVFX;
@@ -29,7 +30,8 @@ public class CinematicVFXEngine {
     private final AnimationController animationController;
     private final MiniBlockManager miniBlockManager;
     private final TPSMonitor tpsMonitor;
-    private final ParticleBatcher particleBatcher;
+    private final com.muzlik.vfx.cinematic.ParticleBatcher densityBatcher; // For density management
+    private final ParticleBatcher batchingBatcher; // For batching/grouping particles
     private final ExplosionEffect explosionEffect;
     private final ActiveEffectRegistry effectRegistry;
     private final RitualVFX ritualVFX;
@@ -43,7 +45,8 @@ public class CinematicVFXEngine {
         this.animationController = new AnimationController();
         this.miniBlockManager = new MiniBlockManager(plugin);
         this.tpsMonitor = new TPSMonitor();
-        this.particleBatcher = new ParticleBatcher();
+        this.densityBatcher = new com.muzlik.vfx.cinematic.ParticleBatcher();
+        this.batchingBatcher = new ParticleBatcher((com.muzlik.FrostSMPPlugin) plugin);
         this.explosionEffect = new ExplosionEffect();
         this.effectRegistry = effectRegistry;
         this.ritualVFX = new RitualVFX((com.muzlik.FrostSMPPlugin) plugin, this);
@@ -60,8 +63,8 @@ public class CinematicVFXEngine {
         // Update mini blocks
         miniBlockManager.tick();
         
-        // Reset particle batcher counts
-        particleBatcher.resetAllCounts();
+        // Reset particle density batcher counts
+        densityBatcher.resetAllCounts();
     }
     
     /**
@@ -97,8 +100,8 @@ public class CinematicVFXEngine {
         return tpsMonitor;
     }
     
-    public ParticleBatcher getParticleBatcher() {
-        return particleBatcher;
+    public com.muzlik.vfx.cinematic.ParticleBatcher getParticleBatcher() {
+        return densityBatcher;
     }
     
     public Plugin getPlugin() {
@@ -193,22 +196,31 @@ public class CinematicVFXEngine {
     }
     
     /**
-     * Spawn particles with density management
+     * Spawn particles with density management and batching
      */
     public void spawnParticle(Location location, Particle particle, int count, 
                              double offsetX, double offsetY, double offsetZ, 
                              double speed, Player viewer) {
-        // Check particle batcher limits
-        if (viewer != null && !particleBatcher.canSpawnParticles(viewer, count)) {
+        // Check particle density limits
+        if (viewer != null && !densityBatcher.canSpawnParticles(viewer, count)) {
             return;
         }
         
-        // Spawn particles
+        // Queue particles for batched spawning (improves performance)
+        batchingBatcher.queueParticle(location, particle, count, offsetX, offsetY, offsetZ, speed, null, viewer);
+        
+        // Update density tracker
         if (viewer != null) {
-            viewer.spawnParticle(particle, location, count, offsetX, offsetY, offsetZ, speed);
-            particleBatcher.addParticles(viewer, count);
-        } else {
-            location.getWorld().spawnParticle(particle, location, count, offsetX, offsetY, offsetZ, speed);
+            densityBatcher.addParticles(viewer, count);
+        }
+    }
+    
+    /**
+     * Shutdown and cleanup
+     */
+    public void shutdown() {
+        if (batchingBatcher != null) {
+            batchingBatcher.shutdown();
         }
     }
 }

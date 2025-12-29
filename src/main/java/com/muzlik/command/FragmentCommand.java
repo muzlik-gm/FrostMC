@@ -172,6 +172,9 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "level":
                 showCharacterLevel(player);
                 break;
+            case "recipes":
+                com.muzlik.ui.RecipeDiscoveryGUI.openMainGUI(player);
+                break;
             default:
                 sendHelp(player);
                 break;
@@ -878,6 +881,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §f/fragment info §8- Fragment stats");
         player.sendMessage("  §f/fragment level §8- Character level");
         player.sendMessage("  §f/fragment abilities §8- List abilities");
+        player.sendMessage("  §f/fragment recipes §8- View recipes");
         player.sendMessage("  §f/fragment withdraw §8- Deactivate & get item");
         player.sendMessage("  §f/fragment controls §8- Change controls");
         player.sendMessage("  §f/fragment toggle §8- Enable/disable abilities");
@@ -1101,7 +1105,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             // Player commands (removed "activate" - use ritual instead)
-            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "mana", "controls", "toggle", "withdraw"));
+            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "recipes", "mana", "controls", "toggle", "withdraw"));
             
             // Admin commands (only show to admins)
             if (sender.hasPermission("fragment.admin")) {

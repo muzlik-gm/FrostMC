@@ -28,27 +28,40 @@ public class RecipeManager {
      * Register all recipes
      */
     public void registerRecipes() {
-        registerFragmentCreationRecipes();
-        registerFragmentChangerRecipe();
-        registerRitualCatalystRecipe();
-        registerManaFlaskRecipe();
+        plugin.getLogger().info("Starting recipe registration...");
+        try {
+            registerFragmentCreationRecipes();
+            registerFragmentChangerRecipe();
+            registerRitualCatalystRecipe();
+            registerManaFlaskRecipe();
+            plugin.getLogger().info("Successfully registered all recipes");
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to register recipes: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
      * Register Fragment Creation recipes for all 10 types
      */
     private void registerFragmentCreationRecipes() {
+        plugin.getLogger().info("Registering Fragment Creation recipes...");
+        
         // FIRE Fragment
         registerFragmentCreation(FragmentType.FIRE, Material.NETHERRACK, Material.FIRE_CHARGE, Material.DIAMOND);
+        plugin.getLogger().info("Registered Fire Fragment creation recipe");
         
         // WATER Fragment
         registerFragmentCreation(FragmentType.WATER, Material.PRISMARINE, Material.WATER_BUCKET, Material.DIAMOND);
+        plugin.getLogger().info("Registered Water Fragment creation recipe");
         
         // AIR Fragment
         registerFragmentCreation(FragmentType.AIR, Material.FEATHER, Material.PHANTOM_MEMBRANE, Material.DIAMOND);
+        plugin.getLogger().info("Registered Air Fragment creation recipe");
         
         // DARK Fragment
         registerFragmentCreation(FragmentType.DARK, Material.OBSIDIAN, Material.WITHER_SKELETON_SKULL, Material.DIAMOND);
+        plugin.getLogger().info("Registered Dark Fragment creation recipe");
         
         // LIGHT Fragment - Custom pattern: Beacon center, Glowstone corners, Netherite Ingots on sides
         registerLightFragmentCreation();
@@ -61,6 +74,15 @@ public class RecipeManager {
         
         // STORM Fragment
         registerFragmentCreation(FragmentType.STORM, Material.LIGHTNING_ROD, Material.TRIDENT, Material.DIAMOND);
+        plugin.getLogger().info("Registered Storm Fragment creation recipe");
+        
+        // TIME Fragment - Custom pattern: Clock center, Amethyst Shard corners, Diamond on sides
+        registerTimeFragmentCreation();
+        
+        // LUCK Fragment - Custom pattern: Rabbit's Foot center, Gold Ingot corners, Diamond on sides
+        registerLuckFragmentCreation();
+        
+        plugin.getLogger().info("All 10 Fragment Creation recipes registered successfully");
     }
 
     /**
@@ -79,9 +101,11 @@ public class RecipeManager {
         recipe.setIngredient('G', Material.GLOWSTONE);
         recipe.setIngredient('N', Material.NETHERITE_INGOT);
         recipe.setIngredient('B', Material.BEACON);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC); // Task 11.2
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_light", key);
+        plugin.getLogger().info("Registered Light Fragment creation recipe");
     }
 
     /**
@@ -100,9 +124,11 @@ public class RecipeManager {
         recipe.setIngredient('D', Material.DRAGON_HEAD);
         recipe.setIngredient('N', Material.NETHERITE_INGOT);
         recipe.setIngredient('E', Material.DRAGON_EGG);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_dragon", key);
+        plugin.getLogger().info("Registered Dragon Fragment creation recipe");
     }
 
 
@@ -123,9 +149,57 @@ public class RecipeManager {
         recipe.setIngredient('E', Material.ECHO_SHARD);
         recipe.setIngredient('S', Material.NETHERITE_INGOT);
         recipe.setIngredient('N', Material.SCULK_CATALYST);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_void", key);
+        plugin.getLogger().info("Registered Void Fragment creation recipe");
+    }
+
+    /**
+     * Register Time Fragment Creation recipe with custom pattern
+     * Pattern: Clock center, Amethyst Shard corners, Diamond on sides
+     * C D C
+     * D K D
+     * C D C
+     */
+    private void registerTimeFragmentCreation() {
+        ItemStack result = createFragmentCreationItem(FragmentType.TIME);
+        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_time");
+        
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        recipe.shape("CDC", "DKD", "CDC");
+        recipe.setIngredient('C', Material.AMETHYST_SHARD);
+        recipe.setIngredient('D', Material.DIAMOND);
+        recipe.setIngredient('K', Material.CLOCK);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        
+        plugin.getServer().addRecipe(recipe);
+        recipeKeys.put("fragment_creation_time", key);
+        plugin.getLogger().info("Registered Time Fragment creation recipe");
+    }
+
+    /**
+     * Register Luck Fragment Creation recipe with custom pattern
+     * Pattern: Rabbit's Foot center, Gold Ingot corners, Diamond on sides
+     * G D G
+     * D R D
+     * G D G
+     */
+    private void registerLuckFragmentCreation() {
+        ItemStack result = createFragmentCreationItem(FragmentType.LUCK);
+        NamespacedKey key = new NamespacedKey(plugin, "fragment_creation_luck");
+        
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        recipe.shape("GDG", "DRD", "GDG");
+        recipe.setIngredient('G', Material.GOLD_INGOT);
+        recipe.setIngredient('D', Material.DIAMOND);
+        recipe.setIngredient('R', Material.RABBIT_FOOT);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        
+        plugin.getServer().addRecipe(recipe);
+        recipeKeys.put("fragment_creation_luck", key);
+        plugin.getLogger().info("Registered Luck Fragment creation recipe");
     }
     
     /**
@@ -140,6 +214,7 @@ public class RecipeManager {
         recipe.setIngredient('O', outer);
         recipe.setIngredient('I', inner);
         recipe.setIngredient('C', center);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_" + type.name(), key);
@@ -157,6 +232,7 @@ public class RecipeManager {
         recipe.setIngredient('E', Material.ENDER_PEARL);
         recipe.setIngredient('S', Material.NETHER_STAR);
         recipe.setIngredient('D', Material.DIAMOND_BLOCK);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_changer", key);
@@ -189,6 +265,7 @@ public class RecipeManager {
         recipe.shape(" L ", "LBL", " L ");
         recipe.setIngredient('L', Material.LAPIS_LAZULI);
         recipe.setIngredient('B', Material.GLASS_BOTTLE);
+        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("mana_flask", key);
