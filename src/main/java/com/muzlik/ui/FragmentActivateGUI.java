@@ -7,6 +7,7 @@ import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.fragment.rank.RankManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -250,6 +251,7 @@ public class FragmentActivateGUI implements Listener {
                 // Check if already active
                 if (type.equals(fragmentManager.getActiveFragment(player))) {
                     player.sendMessage("§e⚡ This fragment is already active");
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.8f, 1.2f);
                     return;
                 }
                 
