@@ -7,6 +7,8 @@ import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.fragment.rank.RankManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -270,7 +272,7 @@ public class FragmentActivateGUI implements Listener {
                     long seconds = (cooldown % 60000) / 1000;
                     player.sendMessage("§c✗ Fragment switch cooldown: " + minutes + "m " + seconds + "s");
                     player.sendMessage("§7Complete a Fragment Changer ritual to switch immediately");
-                    player.closeInventory();
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, SoundCategory.MASTER, 1f, 1f);
                     return;
                 }
                 
