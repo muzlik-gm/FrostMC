@@ -461,17 +461,24 @@ public class UIManager {
         ItemMeta meta = pane.getItemMeta();
         meta.setDisplayName(" ");
         pane.setItemMeta(meta);
-        
+
+        int size = inv.getSize();
+        int rows = size / 9;
+
         // Top and bottom rows
         for (int i = 0; i < 9; i++) {
-            inv.setItem(i, pane);
-            inv.setItem(45 + i, pane);
+            inv.setItem(i, pane); // Top row
+            if (rows > 1) {
+                inv.setItem(size - 9 + i, pane); // Bottom row
+            }
         }
-        
-        // Side columns
-        for (int i = 1; i < 5; i++) {
-            inv.setItem(i * 9, pane);
-            inv.setItem(i * 9 + 8, pane);
+
+        // Side columns for inventories with more than 2 rows
+        if (rows > 2) {
+            for (int i = 1; i < rows - 1; i++) {
+                inv.setItem(i * 9, pane);
+                inv.setItem(i * 9 + 8, pane);
+            }
         }
     }
     
@@ -609,12 +616,14 @@ public class UIManager {
      * Open Mana Status GUI
      */
     public void openManaStatus(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 9, Component.text("Mana Status", NamedTextColor.AQUA));
-        
+        Inventory inv = Bukkit.createInventory(null, 27, Component.text(Typography.formatTitle("Mana Status")));
+
+        fillBorder(inv);
+
         double currentMana = manaManager.getMana(player);
         double maxMana = manaManager.getMaxMana(player);
         double regenRate = manaManager.getManaRegenRate(player);
-        
+
         ItemStack manaItem = new ItemStack(Material.LAPIS_LAZULI);
         ItemMeta meta = manaItem.getItemMeta();
         meta.setDisplayName("§b§lMana Status");
@@ -626,9 +635,9 @@ public class UIManager {
             "§7Percentage: §b" + String.format("%.0f", (currentMana / maxMana) * 100) + "%"
         ));
         manaItem.setItemMeta(meta);
-        
-        inv.setItem(4, manaItem);
-        
+
+        inv.setItem(13, manaItem);
+
         player.openInventory(inv);
     }
 
