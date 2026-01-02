@@ -59,7 +59,7 @@ public class FragmentGUIListener implements Listener {
         
         // Handle Fragment Overview clicks
         if (isFragmentOverview) {
-            handleFragmentOverviewClick(player, displayName, clickType);
+            handleFragmentOverviewClick(event, player, displayName, clickType);
         }
         // Handle Ability Detail View clicks
         else if (isAbilityDetails) {
@@ -72,7 +72,7 @@ public class FragmentGUIListener implements Listener {
      * LEFT-CLICK: View abilities (for ANY fragment, even locked)
      * RIGHT-CLICK: Activate fragment (requires charged/owned AND Fragment Changer)
      */
-    private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType) {
+    private void handleFragmentOverviewClick(InventoryClickEvent event, Player player, String displayName, ClickType clickType) {
         // Remove the Switch Fragment button functionality - force ritual usage
         if (displayName.contains("sᴡɪᴛᴄʜ") || displayName.contains("Switch Fragment")) {
             player.closeInventory();
@@ -94,12 +94,10 @@ public class FragmentGUIListener implements Listener {
         
         // Check for Mana Status button
         if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
-            player.closeInventory();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                () -> uiManager.openManaStatus(player),
-                2L
-            );
+            // UX Improvement: Refresh stats in-place instead of opening a new GUI
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.8f, 1.2f);
+            ItemStack newManaButton = uiManager.createManaStatusButton(player);
+            event.getInventory().setItem(50, newManaButton);
             return;
         }
         

@@ -124,9 +124,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "abilities":
                 showAbilitiesList(player);
                 break;
-            case "mana":
-                uiManager.openManaStatus(player);
-                break;
             case "grant":
                 if (!player.hasPermission("fragment.admin")) {
                     player.sendMessage("§cYou don't have permission to use this command");
