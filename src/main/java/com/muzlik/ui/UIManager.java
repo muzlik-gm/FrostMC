@@ -125,8 +125,8 @@ public class UIManager {
      * Open Enhanced Fragment Overview GUI with visual effects
      */
     public void openFragmentOverview(Player player) {
-        // Play LEVEL_UP sound on GUI open (Requirement 4.5)
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.2f);
+        // Play a standard UI click sound on GUI open for better UX
+        player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.7f, 1.0f);
         
         Inventory inv = Bukkit.createInventory(null, 54, Component.text(Typography.formatTitle("fragments")));
         
