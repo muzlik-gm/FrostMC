@@ -265,12 +265,9 @@ public class FragmentActivateGUI implements Listener {
 
                 // Check cooldown
                 if (configManager.isFragmentChangerRequired() && !fragmentManager.canSwitchFragment(player)) {
-                    long cooldown = fragmentManager.getFragmentSwitchCooldown(player);
-                    long minutes = cooldown / 60000;
-                    long seconds = (cooldown % 60000) / 1000;
-                    player.sendMessage("§c✗ Fragment switch cooldown: " + minutes + "m " + seconds + "s");
-                    player.sendMessage("§7Complete a Fragment Changer ritual to switch immediately");
-                    player.closeInventory();
+                    // Play a failure sound, but keep GUI open for better UX
+                    // The cooldown is already visible in the item's lore
+                    player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                     return;
                 }
                 
