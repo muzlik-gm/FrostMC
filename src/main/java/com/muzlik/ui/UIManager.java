@@ -561,7 +561,7 @@ public class UIManager {
                 Typography.COLOR_TEXT + "Maximum: §b" + String.format("%.0f", maxMana),
                 Typography.COLOR_TEXT + "Regen: §b" + String.format("%.1f", regenRate) + "/s",
                 "",
-                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO VIEW"
+                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO REFRESH"
         ));
         item.setItemMeta(meta);
         return item;
@@ -603,33 +603,6 @@ public class UIManager {
             case LUCK -> Particle.VILLAGER_HAPPY; // Green particles for luck
             case ADMIN -> Particle.SMOKE_LARGE; // Admin fragment particle
         };
-    }
-
-    /**
-     * Open Mana Status GUI
-     */
-    public void openManaStatus(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 9, Component.text("Mana Status", NamedTextColor.AQUA));
-        
-        double currentMana = manaManager.getMana(player);
-        double maxMana = manaManager.getMaxMana(player);
-        double regenRate = manaManager.getManaRegenRate(player);
-        
-        ItemStack manaItem = new ItemStack(Material.LAPIS_LAZULI);
-        ItemMeta meta = manaItem.getItemMeta();
-        meta.setDisplayName("§b§lMana Status");
-        meta.setLore(Arrays.asList(
-            "§7Current: §b" + String.format("%.0f", currentMana),
-            "§7Maximum: §b" + String.format("%.0f", maxMana),
-            "§7Regen Rate: §b" + String.format("%.1f", regenRate) + " §7per second",
-            "",
-            "§7Percentage: §b" + String.format("%.0f", (currentMana / maxMana) * 100) + "%"
-        ));
-        manaItem.setItemMeta(meta);
-        
-        inv.setItem(4, manaItem);
-        
-        player.openInventory(inv);
     }
 
     /**

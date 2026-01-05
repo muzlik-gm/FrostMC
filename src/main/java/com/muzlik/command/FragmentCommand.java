@@ -124,9 +124,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "abilities":
                 showAbilitiesList(player);
                 break;
-            case "mana":
-                uiManager.openManaStatus(player);
-                break;
             case "grant":
                 if (!player.hasPermission("fragment.admin")) {
                     player.sendMessage("§cYou don't have permission to use this command");
@@ -1105,7 +1102,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             // Player commands (removed "activate" - use ritual instead)
-            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "recipes", "mana", "controls", "toggle", "withdraw"));
+            completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "recipes", "controls", "toggle", "withdraw"));
             
             // Admin commands (only show to admins)
             if (sender.hasPermission("fragment.admin")) {
