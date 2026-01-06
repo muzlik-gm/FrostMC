@@ -59,7 +59,7 @@ public class FragmentGUIListener implements Listener {
         
         // Handle Fragment Overview clicks
         if (isFragmentOverview) {
-            handleFragmentOverviewClick(player, displayName, clickType);
+            handleFragmentOverviewClick(player, displayName, clickType, event);
         }
         // Handle Ability Detail View clicks
         else if (isAbilityDetails) {
@@ -72,7 +72,7 @@ public class FragmentGUIListener implements Listener {
      * LEFT-CLICK: View abilities (for ANY fragment, even locked)
      * RIGHT-CLICK: Activate fragment (requires charged/owned AND Fragment Changer)
      */
-    private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType) {
+    private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType, InventoryClickEvent event) {
         // Remove the Switch Fragment button functionality - force ritual usage
         if (displayName.contains("sᴡɪᴛᴄʜ") || displayName.contains("Switch Fragment")) {
             player.closeInventory();
@@ -94,12 +94,18 @@ public class FragmentGUIListener implements Listener {
         
         // Check for Mana Status button
         if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
-            player.closeInventory();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                () -> uiManager.openManaStatus(player),
-                2L
-            );
+            // In-place refresh UX improvement
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+
+            // Get the ManaManager instance from the main plugin class
+            com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP");
+            com.muzlik.mana.ManaManager manaManager = plugin.getManaManager();
+
+            // Create a new version of the button with updated lore
+            ItemStack updatedManaButton = createUpdatedManaStatusButton(player, manaManager);
+
+            // Replace the item in the inventory
+            event.getInventory().setItem(event.getSlot(), updatedManaButton);
             return;
         }
         
@@ -331,5 +337,50 @@ public class FragmentGUIListener implements Listener {
         if (displayName.contains("✓") || displayName.contains("§a")) {
             player.sendMessage(com.muzlik.util.Typography.formatTitle("Use via hotbar (Sneak + Click)"));
         }
+    }
+
+    /**
+     * Creates an updated mana status button with the latest player mana stats.
+     * This is used for the in-place refresh UX improvement.
+     */
+    private ItemStack createUpdatedManaStatusButton(Player player, com.muzlik.mana.ManaManager manaManager) {
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(1003); // Custom model for mana status icon
+        meta.setDisplayName("§b§l⚡ " + toSmallCaps("Mana Status"));
+
+        double currentMana = manaManager.getMana(player);
+        double maxMana = manaManager.getMaxMana(player);
+        double regenRate = manaManager.getManaRegenRate(player);
+
+        meta.setLore(java.util.Arrays.asList(
+                "",
+                com.muzlik.util.Typography.COLOR_TEXT + "Current: §b" + String.format("%.0f", currentMana),
+                com.muzlik.util.Typography.COLOR_TEXT + "Maximum: §b" + String.format("%.0f", maxMana),
+                com.muzlik.util.Typography.COLOR_TEXT + "Regen: §b" + String.format("%.1f", regenRate) + "/s",
+                "",
+                com.muzlik.util.Typography.COLOR_SUCCESS + "§l✓ REFRESHED"
+        ));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Helper method to convert text to small caps for consistency.
+     */
+    private static String toSmallCaps(String text) {
+        String smallCaps = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
+        String normal = "abcdefghijklmnopqrstuvwxyz";
+        StringBuilder result = new StringBuilder();
+
+        for (char c : text.toLowerCase().toCharArray()) {
+            int index = normal.indexOf(c);
+            if (index >= 0) {
+                result.append(smallCaps.charAt(index));
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }
