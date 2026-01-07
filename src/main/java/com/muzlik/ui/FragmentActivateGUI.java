@@ -251,7 +251,7 @@ public class FragmentActivateGUI implements Listener {
                 // Check if already active
                 if (type.equals(fragmentManager.getActiveFragment(player))) {
                     player.sendMessage("§e⚡ This fragment is already active");
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.2f);
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 0.8f);
                     return;
                 }
 
