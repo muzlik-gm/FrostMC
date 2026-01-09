@@ -5,6 +5,9 @@ import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.level.LevelManager;
 import com.muzlik.fragment.rank.RankManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -29,7 +32,9 @@ public class FragmentActivateGUI implements Listener {
     private final ConfigManager configManager;
     private final Map<UUID, Inventory> openInventories = new HashMap<>();
     
-    private static final String GUI_TITLE = "§8§l⚡ ᴀᴄᴛɪᴠᴀᴛᴇ ꜰʀᴀɢᴍᴇɴᴛ";
+    private static final Component GUI_TITLE = Component.text("⚡ ACTIVATE FRAGMENT")
+            .color(NamedTextColor.DARK_GRAY)
+            .decorate(TextDecoration.BOLD);
     
     public FragmentActivateGUI(FragmentManager fragmentManager, LevelManager levelManager, RankManager rankManager, ConfigManager configManager) {
         this.fragmentManager = fragmentManager;
@@ -223,7 +228,7 @@ public class FragmentActivateGUI implements Listener {
         Player player = (Player) event.getWhoClicked();
         
         // Check if this is our GUI by title
-        if (!event.getView().getTitle().equals(GUI_TITLE)) return;
+        if (!event.getView().title().equals(GUI_TITLE)) return;
         
         // CANCEL IMMEDIATELY - prevents ALL item movement
         event.setCancelled(true);
@@ -291,7 +296,7 @@ public class FragmentActivateGUI implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         
         // Check if this is our GUI
-        if (!event.getView().getTitle().equals(GUI_TITLE)) return;
+        if (!event.getView().title().equals(GUI_TITLE)) return;
         
         // Cancel ALL drag events
         event.setCancelled(true);

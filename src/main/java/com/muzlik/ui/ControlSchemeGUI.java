@@ -2,6 +2,9 @@ package com.muzlik.ui;
 
 import com.muzlik.player.ControlScheme;
 import com.muzlik.player.PlayerPreferencesManager;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,7 +26,9 @@ public class ControlSchemeGUI implements Listener {
     private final PlayerPreferencesManager preferencesManager;
     private final Map<UUID, Inventory> openInventories = new HashMap<>();
     
-    private static final String GUI_TITLE = "§8§l⚙ ᴄᴏɴᴛʀᴏʟ sᴄʜᴇᴍᴇs";
+    private static final Component GUI_TITLE = Component.text("⚙ CONTROL SCHEMES")
+            .color(NamedTextColor.DARK_GRAY)
+            .decorate(TextDecoration.BOLD);
     
     public ControlSchemeGUI(PlayerPreferencesManager preferencesManager) {
         this.preferencesManager = preferencesManager;
@@ -177,7 +182,7 @@ public class ControlSchemeGUI implements Listener {
         Player player = (Player) event.getWhoClicked();
         
         // Check if this is our GUI by title
-        if (!event.getView().getTitle().equals(GUI_TITLE)) return;
+        if (!event.getView().title().equals(GUI_TITLE)) return;
         
         // CANCEL IMMEDIATELY - prevents ALL item movement
         event.setCancelled(true);
@@ -240,7 +245,7 @@ public class ControlSchemeGUI implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         
         // Check if this is our GUI
-        if (!event.getView().getTitle().equals(GUI_TITLE)) return;
+        if (!event.getView().title().equals(GUI_TITLE)) return;
         
         // Cancel ALL drag events
         event.setCancelled(true);

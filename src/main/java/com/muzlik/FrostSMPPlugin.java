@@ -86,6 +86,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
     // Luck Fragment Passive System
     private com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager luckPassiveManager;
+    
+    // Health Monitoring System (Task 17)
+    private com.muzlik.monitoring.HealthMonitor healthMonitor;
 
     @Override
     public void onEnable() {
@@ -331,6 +334,10 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         
         // Register this class as listener for player join
         getServer().getPluginManager().registerEvents(this, this);
+        
+        // Initialize and start health monitoring (Task 17.2)
+        healthMonitor = new com.muzlik.monitoring.HealthMonitor(this);
+        healthMonitor.startMonitoring();
 
         // Register commands
         com.muzlik.command.FragmentCommand fragmentCommand = new com.muzlik.command.FragmentCommand(
@@ -476,6 +483,11 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
             cooldownManager.clearAll();
         }
         
+        // Shutdown health monitoring
+        if (healthMonitor != null) {
+            healthMonitor.shutdown();
+        }
+        
         getLogger().info("All systems shutdown complete");
     }
     
@@ -524,6 +536,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public com.muzlik.player.PlayerPreferencesManager getPreferencesManager() { return preferencesManager; }
     public com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager getLuckPassiveManager() { return luckPassiveManager; }
     public com.muzlik.fragment.ability.AbilitySlotManager getAbilitySlotManager() { return abilitySlotManager; }
+    public com.muzlik.monitoring.HealthMonitor getHealthMonitor() { return healthMonitor; }
 }
 
 

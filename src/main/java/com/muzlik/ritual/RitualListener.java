@@ -115,6 +115,16 @@ public class RitualListener implements Listener {
             FragmentType fragmentType = recipeManager.getFragmentTypeFromItem(item);
             
             if (fragmentType != null) {
+                // Check if ritual was already completed BEFORE attempting to start
+                com.muzlik.fragment.FragmentManager fragmentManager = ((com.muzlik.FrostSMPPlugin) plugin).getFragmentManager();
+                com.muzlik.fragment.PlayerFragmentData fragmentData = fragmentManager.getPlayerData(player);
+                
+                if (fragmentData != null && fragmentData.hasCompletedRitual(fragmentType)) {
+                    player.sendMessage("§c✗ You have already created the " + fragmentType.getDisplayName() + " Fragment!");
+                    player.sendMessage("§7You cannot perform this ritual again.");
+                    return;
+                }
+                
                 boolean started = ritualManager.startRitual(player, RitualType.FRAGMENT_CREATION, item, fragmentType);
                 if (started) {
                     // Remove one item from stack

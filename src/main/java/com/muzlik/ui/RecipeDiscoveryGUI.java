@@ -2,6 +2,9 @@ package com.muzlik.ui;
 
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.texture.TextureRegistry;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -17,8 +20,9 @@ import java.util.List;
  */
 public class RecipeDiscoveryGUI {
 
-    private static final String MAIN_TITLE = "§6§lFragment Recipes";
-    private static final String DETAIL_TITLE = "§6§lRecipe: ";
+    private static final Component MAIN_TITLE = Component.text("Fragment Recipes")
+            .color(NamedTextColor.GOLD)
+            .decorate(TextDecoration.BOLD);
     private static final int MAIN_SIZE = 54; // 6 rows
     private static final int DETAIL_SIZE = 54; // 6 rows
 
@@ -62,7 +66,10 @@ public class RecipeDiscoveryGUI {
      * Open detailed recipe view for a specific fragment
      */
     public static void openDetailGUI(Player player, FragmentType fragmentType) {
-        Inventory inv = Bukkit.createInventory(null, DETAIL_SIZE, DETAIL_TITLE + fragmentType.getDisplayName());
+        Component detailTitle = Component.text("Recipe: " + fragmentType.getDisplayName())
+                .color(NamedTextColor.GOLD)
+                .decorate(TextDecoration.BOLD);
+        Inventory inv = Bukkit.createInventory(null, DETAIL_SIZE, detailTitle);
 
         // Display 3x3 crafting pattern (centered in GUI)
         RecipePattern pattern = getRecipePattern(fragmentType);
@@ -156,7 +163,8 @@ public class RecipeDiscoveryGUI {
      * Create a fragment item
      */
     private static ItemStack createFragmentItem(FragmentType fragmentType) {
-        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        // Use PAPER as base material (same as FragmentActivateGUI) for resource pack textures
+        ItemStack item = new ItemStack(TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(getFragmentColor(fragmentType) + "§l" + fragmentType.getDisplayName() + " Fragment");

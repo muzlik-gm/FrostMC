@@ -253,6 +253,12 @@ public class AbilitySlotManager {
     public void savePlayerData(Player player) {
         UUID playerId = player.getUniqueId();
         
+        // Check if dataPersistence is null (can happen during shutdown)
+        if (dataPersistence == null) {
+            plugin.getLogger().warning("Cannot save ability slot data for player " + playerId + ": DataPersistence is null (likely during shutdown)");
+            return;
+        }
+        
         try {
             // Load existing data
             DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerData(playerId);
@@ -286,7 +292,7 @@ public class AbilitySlotManager {
     }
 
     /**
-     * Get error message for why a slot cannot be unlocked
+     * Get error message for why a slot cannot be unlocked (Task 13.2: Enhanced)
      * @param fragmentType The Fragment type
      * @param currentRank The current Fragment rank
      * @param slotIndex The slot index
@@ -297,16 +303,18 @@ public class AbilitySlotManager {
         
         // Rank 2 Fragments cannot unlock slots 3-4
         if (baseRank == 2 && (slotIndex == 3 || slotIndex == 4)) {
-            return "§cRank 2 Fragments cannot unlock additional ability slots!";
+            return "§c✗ Rank 2 Fragments cannot unlock additional ability slots!";
         }
 
-        // Check rank requirement
+        // Check rank requirement - Task 13.2: Show required vs current rank and how many ranks needed
         int requiredRank = getSlotUnlockThreshold(fragmentType, slotIndex);
         if (currentRank < requiredRank) {
-            return "§cRequires Rank " + requiredRank + " (Current: " + currentRank + ")";
+            int ranksNeeded = requiredRank - currentRank;
+            return "§c✗ Requires Rank §6" + requiredRank + " §7(Current: §6" + currentRank + "§7)\n" +
+                   "§7You need §e" + ranksNeeded + " more rank" + (ranksNeeded > 1 ? "s" : "") + " §7to unlock this slot";
         }
 
-        return "§cSlot cannot be unlocked";
+        return "§c✗ Slot cannot be unlocked";
     }
 
     /**

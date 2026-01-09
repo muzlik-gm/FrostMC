@@ -175,6 +175,13 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             case "recipes":
                 com.muzlik.ui.RecipeDiscoveryGUI.openMainGUI(player);
                 break;
+            case "debug":
+                if (!player.hasPermission("fragment.admin")) {
+                    player.sendMessage("§cYou don't have permission to use this command");
+                    return true;
+                }
+                handleDebug(player, args);
+                break;
             default:
                 sendHelp(player);
                 break;
@@ -870,6 +877,240 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("§7Right-click it to activate again.");
     }
     
+    /**
+     * Handle debug commands (Task 15)
+     */
+    private void handleDebug(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage("§c✗ Usage: /fragment debug <player|slots|rituals|health>");
+            return;
+        }
+        
+        String subCommand = args[1].toLowerCase();
+        
+        switch (subCommand) {
+            case "player":
+                if (args.length < 3) {
+                    debugPlayer(player, player);
+                } else {
+                    Player target = plugin.getServer().getPlayer(args[2]);
+                    if (target == null) {
+                        player.sendMessage("§c✗ Player not found: " + args[2]);
+                        return;
+                    }
+                    debugPlayer(player, target);
+                }
+                break;
+            case "slots":
+                if (args.length < 3) {
+                    debugSlots(player, player);
+                } else {
+                    Player target = plugin.getServer().getPlayer(args[2]);
+                    if (target == null) {
+                        player.sendMessage("§c✗ Player not found: " + args[2]);
+                        return;
+                    }
+                    debugSlots(player, target);
+                }
+                break;
+            case "rituals":
+                debugRituals(player);
+                break;
+            case "health":
+                debugHealth(player);
+                break;
+            default:
+                player.sendMessage("§c✗ Unknown debug command: " + subCommand);
+                player.sendMessage("§7Available: player, slots, rituals, health");
+                break;
+        }
+    }
+    
+    /**
+     * Debug player info (Task 15.1)
+     */
+    private void debugPlayer(Player admin, Player target) {
+        admin.sendMessage("");
+        admin.sendMessage("§8§m                                        ");
+        admin.sendMessage("  §f§lDEBUG: " + target.getName());
+        admin.sendMessage("§8§m                                        ");
+        admin.sendMessage("");
+        
+        // Active Fragment
+        FragmentType activeFragment = fragmentManager.getActiveFragment(target);
+        if (activeFragment != null) {
+            int rank = rankManager.getRank(target, activeFragment);
+            int level = levelManager.getLevel(target, activeFragment);
+            double xp = levelManager.getXP(target, activeFragment);
+            
+            admin.sendMessage("  §7Active Fragment: §b" + activeFragment.getDisplayName());
+            admin.sendMessage("  §7Rank: §6" + rank + " §8| §7Level: §e" + level + " §8| §7XP: §e" + String.format("%.0f", xp));
+        } else {
+            admin.sendMessage("  §7Active Fragment: §cNone");
+        }
+        
+        admin.sendMessage("");
+        
+        // All Fragments
+        admin.sendMessage("  §7All Fragments:");
+        java.util.Collection<FragmentType> ownedFragments = fragmentManager.getPlayerFragments(target);
+        if (ownedFragments.isEmpty()) {
+            admin.sendMessage("    §8No fragments owned");
+        } else {
+            for (FragmentType type : ownedFragments) {
+                int rank = rankManager.getRank(target, type);
+                int level = levelManager.getLevel(target, type);
+                admin.sendMessage("    §b" + type.getDisplayName() + " §8- §7R" + rank + " L" + level);
+            }
+        }
+        
+        admin.sendMessage("");
+        
+        // Mana
+        double currentMana = manaManager.getMana(target);
+        double maxMana = manaManager.getMaxMana(target);
+        admin.sendMessage("  §7Mana: §b" + String.format("%.0f", currentMana) + " §8/ §b" + String.format("%.0f", maxMana));
+        
+        // Character Level
+        if (characterLevelManager != null) {
+            int charLevel = characterLevelManager.getCharacterLevel(target);
+            admin.sendMessage("  §7Character Level: §e" + charLevel);
+        }
+        
+        admin.sendMessage("");
+    }
+    
+    /**
+     * Debug ability slots (Task 15.2)
+     */
+    private void debugSlots(Player admin, Player target) {
+        if (plugin instanceof FrostSMPPlugin) {
+            com.muzlik.fragment.ability.AbilitySlotManager slotManager = 
+                ((FrostSMPPlugin) plugin).getAbilitySlotManager();
+            
+            admin.sendMessage("");
+            admin.sendMessage("§8§m                                        ");
+            admin.sendMessage("  §f§lDEBUG SLOTS: " + target.getName());
+            admin.sendMessage("§8§m                                        ");
+            admin.sendMessage("");
+            
+            java.util.Collection<FragmentType> ownedFragments = fragmentManager.getPlayerFragments(target);
+            if (ownedFragments.isEmpty()) {
+                admin.sendMessage("  §8No fragments owned");
+            } else {
+                for (FragmentType type : ownedFragments) {
+                    java.util.Set<Integer> unlockedSlots = slotManager.getUnlockedSlots(target, type);
+                    admin.sendMessage("  §b" + type.getDisplayName() + ":");
+                    admin.sendMessage("    §7Unlocked Slots: §e" + unlockedSlots.toString());
+                }
+            }
+            
+            admin.sendMessage("");
+        } else {
+            admin.sendMessage("§c✗ Ability slot manager not available");
+        }
+    }
+    
+    /**
+     * Debug active rituals (Task 15.3)
+     */
+    private void debugRituals(Player admin) {
+        if (plugin instanceof FrostSMPPlugin) {
+            com.muzlik.ritual.RitualManager ritualManager = 
+                ((FrostSMPPlugin) plugin).getRitualManager();
+            
+            admin.sendMessage("");
+            admin.sendMessage("§8§m                                        ");
+            admin.sendMessage("  §f§lDEBUG: ACTIVE RITUALS");
+            admin.sendMessage("§8§m                                        ");
+            admin.sendMessage("");
+            
+            int ritualCount = 0;
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                if (ritualManager.hasActiveRitual(player)) {
+                    ritualCount++;
+                    com.muzlik.ritual.RitualInstance ritual = ritualManager.getActiveRitual(player);
+                    
+                    org.bukkit.Location loc = ritual.getLocation();
+                    int progress = ritual.getProgressPercent();
+                    long remainingSeconds = ritual.getRemainingSeconds();
+                    
+                    admin.sendMessage("  §b" + player.getName() + " §8- §7" + ritual.getType().getDisplayName());
+                    admin.sendMessage("    §7Fragment: §b" + (ritual.getFragmentType() != null ? ritual.getFragmentType().getDisplayName() : "None"));
+                    admin.sendMessage("    §7Progress: §e" + progress + "% §8| §7Time: §e" + remainingSeconds + "s");
+                    admin.sendMessage("    §7Location: §f" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
+                    admin.sendMessage("");
+                }
+            }
+            
+            if (ritualCount == 0) {
+                admin.sendMessage("  §8No active rituals");
+                admin.sendMessage("");
+            }
+        } else {
+            admin.sendMessage("§c✗ Ritual manager not available");
+        }
+    }
+    
+    /**
+     * Debug system health (Task 17.3)
+     */
+    private void debugHealth(Player admin) {
+        admin.sendMessage("");
+        admin.sendMessage("§8§m                                        ");
+        admin.sendMessage("  §f§lDEBUG: SYSTEM HEALTH");
+        admin.sendMessage("§8§m                                        ");
+        admin.sendMessage("");
+        
+        if (plugin instanceof FrostSMPPlugin) {
+            com.muzlik.monitoring.HealthMonitor healthMonitor = 
+                ((FrostSMPPlugin) plugin).getHealthMonitor();
+            
+            if (healthMonitor != null) {
+                com.muzlik.monitoring.HealthMonitor.HealthMetrics metrics = healthMonitor.getMetrics();
+                
+                // Display metrics with color coding
+                admin.sendMessage("  §7Active Rituals: " + getMetricColor(metrics.activeRituals, 50) + metrics.activeRituals + " §8/ §750");
+                admin.sendMessage("  §7Active VFX Effects: " + getMetricColor(metrics.activeVFXEffects, 500) + metrics.activeVFXEffects + " §8/ §7500");
+                admin.sendMessage("  §7Queued Tasks: " + getMetricColor(metrics.queuedTasks, 100) + metrics.queuedTasks + " §8/ §7100");
+                admin.sendMessage("  §7Online Players: §e" + plugin.getServer().getOnlinePlayers().size());
+                
+                admin.sendMessage("");
+                
+                // Display warnings if any
+                if (healthMonitor.hasWarnings()) {
+                    admin.sendMessage("  §c§lWARNINGS:");
+                    String warnings = healthMonitor.getWarningMessages();
+                    for (String warning : warnings.split("\n")) {
+                        admin.sendMessage("  " + warning);
+                    }
+                } else {
+                    admin.sendMessage("  §a✓ All systems healthy");
+                }
+            } else {
+                admin.sendMessage("  §c✗ Health monitor not initialized");
+            }
+        } else {
+            admin.sendMessage("  §c✗ Plugin not initialized properly");
+        }
+        
+        admin.sendMessage("");
+    }
+    
+    /**
+     * Get color code for metric based on threshold
+     */
+    private String getMetricColor(int value, int threshold) {
+        double percent = (double) value / threshold;
+        if (percent >= 1.0) {
+            return "§c"; // Red - over threshold
+        } else if (percent >= 0.75) {
+            return "§e"; // Yellow - warning
+        } else {
+            return "§a"; // Green - healthy
+        }
+    }
+    
     private void sendHelp(Player player) {
         player.sendMessage("");
         player.sendMessage("§8§m                                        ");
@@ -889,7 +1130,8 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §8Use Fragment Changer ritual to switch fragments");
         player.sendMessage("");
         if (player.hasPermission("fragment.admin")) {
-            player.sendMessage("  §8Admin: §7/fragment give/grant/set/reset/forceactivate/reload");
+            player.sendMessage("  §8Admin: §7/fragment give/grant/set/reset/forceactivate/reload/debug");
+            player.sendMessage("  §8Debug: §7/fragment debug <player|slots|rituals|health>");
             player.sendMessage("  §8Fragments: §7fire, water, air, dark, light, void, dragon, storm, time, luck");
             player.sendMessage("  §8Items: §7changer, manaflask");
         }

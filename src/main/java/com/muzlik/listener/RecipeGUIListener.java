@@ -2,6 +2,9 @@ package com.muzlik.listener;
 
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.ui.RecipeDiscoveryGUI;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,17 +17,18 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 public class RecipeGUIListener implements Listener {
 
-    private static final String MAIN_TITLE = "§6§lFragment Recipes";
-    private static final String DETAIL_TITLE_PREFIX = "§6§lRecipe: ";
+    private static final Component MAIN_TITLE = Component.text("Fragment Recipes")
+            .color(NamedTextColor.GOLD)
+            .decorate(TextDecoration.BOLD);
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
-        String title = event.getView().getTitle();
+        Component title = event.getView().title();
         
         // Check if it's our GUI
-        if (!title.equals(MAIN_TITLE) && !title.startsWith(DETAIL_TITLE_PREFIX)) {
+        if (!title.equals(MAIN_TITLE) && !isDetailTitle(title)) {
             return;
         }
 
@@ -44,9 +48,18 @@ public class RecipeGUIListener implements Listener {
             handleMainGUIClick(player, displayName);
         }
         // Handle detail GUI clicks
-        else if (title.startsWith(DETAIL_TITLE_PREFIX)) {
+        else if (isDetailTitle(title)) {
             handleDetailGUIClick(player, displayName);
         }
+    }
+    
+    /**
+     * Check if title is a detail GUI title (starts with "Recipe: ")
+     */
+    private boolean isDetailTitle(Component title) {
+        // Check if the title contains "Recipe: " by converting to plain text
+        String plainTitle = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(title);
+        return plainTitle.startsWith("Recipe: ");
     }
 
     /**

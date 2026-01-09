@@ -102,7 +102,9 @@ public class RitualManager {
         // Check failure cooldown
         if (isOnFailureCooldown(player)) {
             long remaining = getFailureCooldownRemaining(player);
-            player.sendMessage("§c✗ Ritual cooldown: " + (remaining / 1000) + " seconds");
+            // Task 13.1: Enhanced cooldown error message with proximity explanation
+            player.sendMessage("§c✗ Ritual cooldown active: " + (remaining / 1000) + " seconds remaining");
+            player.sendMessage("§7You must wait before starting another ritual");
             return false;
         }
         
@@ -128,7 +130,12 @@ public class RitualManager {
             if (heldItem == null || !heldItem.isSimilar(catalyst)) {
                 // Check if catalyst is in inventory at all
                 if (!player.getInventory().containsAtLeast(catalyst, 1)) {
-                    player.sendMessage("§c✗ You need the ritual catalyst in your inventory!");
+                    // Task 13.1: Enhanced ritual error message with specific item name
+                    String itemName = catalyst.getItemMeta() != null && catalyst.getItemMeta().hasDisplayName() 
+                        ? catalyst.getItemMeta().getDisplayName() 
+                        : catalyst.getType().name();
+                    player.sendMessage("§c✗ Missing ritual catalyst: " + itemName);
+                    player.sendMessage("§7You need this item in your inventory to start the ritual");
                     return false;
                 }
             }
@@ -174,9 +181,11 @@ public class RitualManager {
             structureProtection.registerStructure(player.getUniqueId(), structure);
         }
         
+        // Task 13.1: Enhanced ritual start message with proximity requirement
         player.sendMessage("§a✓ Ritual started: §b" + type.getDisplayName());
-        player.sendMessage("§7Stay within " + proximityDistance + " blocks for " + 
-            (type.getDefaultDuration() / 60) + " minutes");
+        player.sendMessage("§7Stay within §e" + proximityDistance + " blocks §7of the ritual location");
+        player.sendMessage("§7Duration: §e" + (type.getDefaultDuration() / 60) + " minutes");
+        player.sendMessage("§8Leaving the area will start a grace period before failure");
         
         // Send Discord notification
         sendDiscordRitualStart(player, ritual);

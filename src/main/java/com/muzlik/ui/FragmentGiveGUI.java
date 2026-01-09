@@ -2,6 +2,10 @@ package com.muzlik.ui;
 
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
+import com.muzlik.texture.TextureRegistry;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -24,10 +28,14 @@ public class FragmentGiveGUI implements Listener {
     
     private final FragmentManager fragmentManager;
     private final Map<UUID, Inventory> openInventories = new HashMap<>();
-    private final Map<UUID, Player> selectedPlayers = new HashMap<>();
+    private final Map<UUID, UUID> selectedPlayers = new HashMap<>(); // Store UUID instead of Player object
     
-    private static final String PLAYER_SELECT_TITLE = "§8§l⚡ sᴇʟᴇᴄᴛ ᴘʟᴀʏᴇʀ";
-    private static final String FRAGMENT_SELECT_TITLE = "§8§l⚡ sᴇʟᴇᴄᴛ ꜰʀᴀɢᴍᴇɴᴛ";
+    private static final Component PLAYER_SELECT_TITLE = Component.text("⚡ SELECT PLAYER")
+            .color(NamedTextColor.DARK_GRAY)
+            .decorate(TextDecoration.BOLD);
+    private static final Component FRAGMENT_SELECT_TITLE = Component.text("⚡ SELECT FRAGMENT")
+            .color(NamedTextColor.DARK_GRAY)
+            .decorate(TextDecoration.BOLD);
     
     public FragmentGiveGUI(FragmentManager fragmentManager) {
         this.fragmentManager = fragmentManager;
@@ -74,16 +82,25 @@ public class FragmentGiveGUI implements Listener {
      * Open fragment selection GUI
      */
     public void openFragmentSelection(Player admin, Player target) {
+        // Verify target is still online before opening GUI
+        if (target == null || !target.isOnline()) {
+            admin.sendMessage("§c✗ Player is no longer online");
+            return;
+        }
+        
         Inventory inv = Bukkit.createInventory(null, 54, FRAGMENT_SELECT_TITLE);
         
-        selectedPlayers.put(admin.getUniqueId(), target);
+        // Store the target player's UUID to avoid stale Player references
+        selectedPlayers.put(admin.getUniqueId(), target.getUniqueId());
         
         // Fill border
         fillBorder(inv);
         
-        // Add all fragment types
+        // Add all fragment types (skip ADMIN fragment)
         int slot = 19;
         for (FragmentType type : FragmentType.values()) {
+            if (type == FragmentType.ADMIN) continue; // Skip admin fragment
+            
             boolean hasFragment = fragmentManager.hasFragment(target, type);
             ItemStack item = createFragmentButton(type, target, hasFragment);
             inv.setItem(slot, item);
@@ -139,13 +156,15 @@ public class FragmentGiveGUI implements Listener {
     }
     
     /**
-     * Create fragment button
+     * Create fragment button using TextureRegistry (new system)
      */
     private ItemStack createFragmentButton(FragmentType type, Player target, boolean hasFragment) {
-        Material material = getFragmentMaterial(type);
-        ItemStack item = new ItemStack(material);
+        // Use TextureRegistry for consistent textures across the plugin
+        ItemStack item = new ItemStack(TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         
+        // Set custom model data from TextureRegistry
+        meta.setCustomModelData(TextureRegistry.getFragmentTexture(type));
         meta.setDisplayName("§f§l" + type.getDisplayName() + " Fragment");
         
         List<String> lore = new ArrayList<>();
@@ -205,22 +224,7 @@ public class FragmentGiveGUI implements Listener {
         return item;
     }
     
-    /**
-     * Get material for fragment type
-     */
-    private Material getFragmentMaterial(FragmentType type) {
-        switch (type) {
-            case FIRE: return Material.FIRE_CHARGE;
-            case WATER: return Material.HEART_OF_THE_SEA;
-            case AIR: return Material.FEATHER;
-            case DARK: return Material.WITHER_SKELETON_SKULL;
-            case LIGHT: return Material.GLOWSTONE;
-            case VOID: return Material.ENDER_PEARL;
-            case DRAGON: return Material.DRAGON_HEAD;
-            case STORM: return Material.LIGHTNING_ROD;
-            default: return Material.BARRIER;
-        }
-    }
+
     
     /**
      * Fill border with glass panes
@@ -253,7 +257,7 @@ public class FragmentGiveGUI implements Listener {
         
         Player admin = (Player) event.getWhoClicked();
         
-        String title = event.getView().getTitle();
+        Component title = event.getView().title();
         
         // Check if this is one of our GUIs
         if (!title.equals(PLAYER_SELECT_TITLE) && !title.equals(FRAGMENT_SELECT_TITLE)) return;
@@ -282,8 +286,9 @@ public class FragmentGiveGUI implements Listener {
         if (item.getType() != Material.PLAYER_HEAD) return;
         
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        if (meta.getOwningPlayer() == null) return;
+        if (meta == null || meta.getOwningPlayer() == null) return;
         
+        // Get fresh player reference from server
         Player target = Bukkit.getPlayer(meta.getOwningPlayer().getUniqueId());
         if (target == null || !target.isOnline()) {
             admin.sendMessage("§c✗ Player is no longer online");
@@ -291,6 +296,8 @@ public class FragmentGiveGUI implements Listener {
             return;
         }
         
+        // Clear any previous selection before opening new GUI
+        selectedPlayers.remove(admin.getUniqueId());
         openFragmentSelection(admin, target);
     }
     
@@ -298,26 +305,42 @@ public class FragmentGiveGUI implements Listener {
      * Handle fragment selection
      */
     private void handleFragmentSelection(Player admin, ItemStack item) {
-        String displayName = item.getItemMeta().getDisplayName();
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasDisplayName()) return;
+        
+        String displayName = meta.getDisplayName();
         
         // Check for back button
         if (displayName.contains("Back")) {
+            selectedPlayers.remove(admin.getUniqueId()); // Clear selection when going back
             openPlayerSelection(admin);
             return;
         }
         
-        // Check for fragment selection
-        Player target = selectedPlayers.get(admin.getUniqueId());
-        if (target == null || !target.isOnline()) {
-            admin.sendMessage("§c✗ Target player is no longer online");
+        // Get stored target UUID
+        UUID targetUUID = selectedPlayers.get(admin.getUniqueId());
+        if (targetUUID == null) {
+            admin.sendMessage("§c✗ No player selected. Please try again.");
             admin.closeInventory();
             return;
         }
         
+        // Get fresh player reference from server to ensure they're still online
+        Player target = Bukkit.getPlayer(targetUUID);
+        if (target == null || !target.isOnline()) {
+            admin.sendMessage("§c✗ Target player is no longer online");
+            selectedPlayers.remove(admin.getUniqueId());
+            admin.closeInventory();
+            return;
+        }
+        
+        // Check for fragment selection
         for (FragmentType type : FragmentType.values()) {
             if (displayName.contains(type.getDisplayName())) {
                 fragmentManager.grantFragment(target, type);
                 admin.sendMessage("§a✓ Gave " + type.getDisplayName() + " Fragment to " + target.getName());
+                target.sendMessage("§a✓ You received the " + type.getDisplayName() + " Fragment!");
+                selectedPlayers.remove(admin.getUniqueId()); // Clear selection after giving
                 admin.closeInventory();
                 return;
             }
@@ -331,7 +354,7 @@ public class FragmentGiveGUI implements Listener {
     public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
         
-        String title = event.getView().getTitle();
+        Component title = event.getView().title();
         
         // Check if this is one of our GUIs
         if (!title.equals(PLAYER_SELECT_TITLE) && !title.equals(FRAGMENT_SELECT_TITLE)) return;
@@ -351,7 +374,7 @@ public class FragmentGiveGUI implements Listener {
             openInventories.remove(uuid);
             
             // Clean up selected player if closing
-            if (!event.getView().getTitle().equals(FRAGMENT_SELECT_TITLE)) {
+            if (!event.getView().title().equals(FRAGMENT_SELECT_TITLE)) {
                 selectedPlayers.remove(uuid);
             }
         }
