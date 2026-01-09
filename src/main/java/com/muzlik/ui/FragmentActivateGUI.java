@@ -10,6 +10,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -255,14 +256,17 @@ public class FragmentActivateGUI implements Listener {
                 // Check if already active
                 if (type.equals(fragmentManager.getActiveFragment(player))) {
                     player.sendMessage("§e⚡ This fragment is already active");
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1.2f);
                     return;
                 }
-                
+
                 if (fragmentManager.isCharged(player, type)) {
                     if (!configManager.isFragmentChangerRequired()) {
                         fragmentManager.activateChargedFragment(player, type);
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.5f);
                     } else {
                         player.sendMessage("§c✗ You need a Fragment Changer to activate this Fragment");
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1.0f, 0.8f);
                     }
                     player.closeInventory();
                     return;
@@ -275,13 +279,15 @@ public class FragmentActivateGUI implements Listener {
                     long seconds = (cooldown % 60000) / 1000;
                     player.sendMessage("§c✗ Fragment switch cooldown: " + minutes + "m " + seconds + "s");
                     player.sendMessage("§7Complete a Fragment Changer ritual to switch immediately");
+                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1.0f, 0.8f);
                     player.closeInventory();
                     return;
                 }
-                
+
                 // Activate fragment
                 fragmentManager.setActiveFragment(player, type);
                 fragmentManager.recordFragmentSwitch(player);
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.5f);
                 player.closeInventory();
                 return;
             }
