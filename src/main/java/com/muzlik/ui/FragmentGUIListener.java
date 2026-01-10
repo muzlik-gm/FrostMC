@@ -167,6 +167,7 @@ public class FragmentGUIListener implements Listener {
             // RIGHT-CLICK: Activate fragment
             if (isActive) {
                 player.sendMessage(com.muzlik.util.Typography.formatError("This fragment is already active"));
+                uiManager.playLockedAbilitySound(player);
                 return;
             }
             
