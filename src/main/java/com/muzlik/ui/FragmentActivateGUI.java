@@ -267,8 +267,8 @@ public class FragmentActivateGUI implements Listener {
                     } else {
                         player.sendMessage("§c✗ You need a Fragment Changer to activate this Fragment");
                         player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1.0f, 0.8f);
+                        openGUI(player); // Refresh GUI
                     }
-                    player.closeInventory();
                     return;
                 }
 
@@ -280,7 +280,7 @@ public class FragmentActivateGUI implements Listener {
                     player.sendMessage("§c✗ Fragment switch cooldown: " + minutes + "m " + seconds + "s");
                     player.sendMessage("§7Complete a Fragment Changer ritual to switch immediately");
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_DIDGERIDOO, 1.0f, 0.8f);
-                    player.closeInventory();
+                    openGUI(player); // Refresh GUI
                     return;
                 }
 
