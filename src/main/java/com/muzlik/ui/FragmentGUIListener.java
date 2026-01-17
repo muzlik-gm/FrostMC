@@ -97,22 +97,20 @@ public class FragmentGUIListener implements Listener {
             // In-place refresh UX improvement: lower pitch and auto-revert
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f);
 
-            // Get the ManaManager instance from the main plugin class
-            com.muzlik.FrostSMPPlugin plugin = (com.muzlik.FrostSMPPlugin) org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP");
-            com.muzlik.mana.ManaManager manaManager = plugin.getManaManager();
-
             // Create a new version of the button with updated lore
-            ItemStack updatedManaButton = createManaStatusButton(player, manaManager, true);
+            ItemStack updatedManaButton = uiManager.createManaStatusButton(player, true);
 
             // Replace the item in the inventory
             event.getInventory().setItem(event.getSlot(), updatedManaButton);
 
             // Schedule a task to revert the button back after 1 second (20 ticks)
             final int slot = event.getSlot();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                () -> {
                 // Check if the inventory is still open to prevent errors
                 if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
-                    ItemStack originalManaButton = createManaStatusButton(player, manaManager, false);
+                    ItemStack originalManaButton = uiManager.createManaStatusButton(player, false);
                     event.getInventory().setItem(slot, originalManaButton);
                 }
             }, 20L);
@@ -350,59 +348,4 @@ public class FragmentGUIListener implements Listener {
         }
     }
 
-    /**
-     * Creates the mana status button with lore that changes based on the refresh state.
-     * This avoids code duplication by handling both the "refreshed" and "click to refresh" states.
-     *
-     * @param player The player viewing the GUI.
-     * @param manaManager The mana manager instance.
-     * @param isRefreshed True to show "✓ REFRESHED", false to show "▶ CLICK TO REFRESH".
-     * @return The configured ItemStack for the mana status button.
-     */
-    private ItemStack createManaStatusButton(Player player, com.muzlik.mana.ManaManager manaManager, boolean isRefreshed) {
-        ItemStack item = new ItemStack(Material.PAPER);
-        ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1003); // Custom model for mana status icon
-        meta.setDisplayName("§b§l⚡ " + toSmallCaps("Mana Status"));
-
-        double currentMana = manaManager.getMana(player);
-        double maxMana = manaManager.getMaxMana(player);
-        double regenRate = manaManager.getManaRegenRate(player);
-
-        java.util.List<String> lore = new java.util.ArrayList<>();
-        lore.add("");
-        lore.add(com.muzlik.util.Typography.COLOR_TEXT + "Current: §b" + String.format("%.0f", currentMana));
-        lore.add(com.muzlik.util.Typography.COLOR_TEXT + "Maximum: §b" + String.format("%.0f", maxMana));
-        lore.add(com.muzlik.util.Typography.COLOR_TEXT + "Regen: §b" + String.format("%.1f", regenRate) + "/s");
-        lore.add("");
-
-        if (isRefreshed) {
-            lore.add(com.muzlik.util.Typography.COLOR_SUCCESS + "§l✓ REFRESHED");
-        } else {
-            lore.add(com.muzlik.util.Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO REFRESH");
-        }
-
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    /**
-     * Helper method to convert text to small caps for consistency.
-     */
-    private static String toSmallCaps(String text) {
-        String smallCaps = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
-        String normal = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder result = new StringBuilder();
-
-        for (char c : text.toLowerCase().toCharArray()) {
-            int index = normal.indexOf(c);
-            if (index >= 0) {
-                result.append(smallCaps.charAt(index));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
 }
