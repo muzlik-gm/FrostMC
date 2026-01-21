@@ -94,8 +94,8 @@ public class FragmentGUIListener implements Listener {
         
         // Check for Mana Status button
         if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
-            // In-place refresh UX improvement: lower pitch and auto-revert
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f);
+            // In-place refresh UX improvement: play a distinct "pling" sound
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.2f);
 
             // Create a new version of the button with updated lore
             ItemStack updatedManaButton = uiManager.createManaStatusButton(player, true);
