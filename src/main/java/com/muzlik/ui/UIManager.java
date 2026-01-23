@@ -172,7 +172,7 @@ public class UIManager {
         
         // Slot 50: Mana Status button (only if mana system enabled)
         if (isManaSystemEnabled()) {
-            ItemStack manaButton = createManaStatusButton(player);
+            ItemStack manaButton = createManaStatusButton(player, false);
             inv.setItem(50, manaButton);
         }
         
@@ -545,24 +545,30 @@ public class UIManager {
     /**
      * Create mana status button
      */
-    private ItemStack createManaStatusButton(Player player) {
+    public ItemStack createManaStatusButton(Player player, boolean isRefreshed) {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(1003); // Custom model for mana status icon
         meta.setDisplayName("§b§l⚡ " + toSmallCaps("Mana Status"));
-        
+
         double currentMana = manaManager.getMana(player);
         double maxMana = manaManager.getMaxMana(player);
         double regenRate = manaManager.getManaRegenRate(player);
-        
-        meta.setLore(Arrays.asList(
-                "",
-                Typography.COLOR_TEXT + "Current: §b" + String.format("%.0f", currentMana),
-                Typography.COLOR_TEXT + "Maximum: §b" + String.format("%.0f", maxMana),
-                Typography.COLOR_TEXT + "Regen: §b" + String.format("%.1f", regenRate) + "/s",
-                "",
-                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO REFRESH"
-        ));
+
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add("");
+        lore.add(com.muzlik.util.Typography.COLOR_TEXT + "Current: §b" + String.format("%.0f", currentMana));
+        lore.add(com.muzlik.util.Typography.COLOR_TEXT + "Maximum: §b" + String.format("%.0f", maxMana));
+        lore.add(com.muzlik.util.Typography.COLOR_TEXT + "Regen: §b" + String.format("%.1f", regenRate) + "/s");
+        lore.add("");
+
+        if (isRefreshed) {
+            lore.add(com.muzlik.util.Typography.COLOR_SUCCESS + "§l✓ REFRESHED");
+        } else {
+            lore.add(com.muzlik.util.Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO REFRESH");
+        }
+
+        meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
     }
