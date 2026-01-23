@@ -130,6 +130,34 @@ public class UIManager {
         
         Inventory inv = Bukkit.createInventory(null, 54, Component.text(Typography.formatTitle("fragments")));
         
+        populateFragmentOverview(inv, player);
+
+        player.openInventory(inv);
+    }
+
+    /**
+     * Refreshes the Fragment Overview GUI without closing and reopening it.
+     */
+    public void refreshFragmentOverview(Player player) {
+        Inventory inv = player.getOpenInventory().getTopInventory();
+
+        // Ensure it's the correct GUI before refreshing
+        String title = player.getOpenInventory().getTitle();
+        if (!title.contains("ꜰʀᴀɢᴍᴇɴᴛs") && !title.contains("Fragment Overview")) {
+            return; // Not our GUI, do nothing
+        }
+
+        inv.clear();
+        populateFragmentOverview(inv, player);
+        player.updateInventory(); // Not strictly necessary but good practice
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.7f, 1.5f);
+    }
+
+    /**
+     * Populates the Fragment Overview GUI with icons and buttons.
+     * This is used for both creating and refreshing the GUI.
+     */
+    private void populateFragmentOverview(Inventory inv, Player player) {
         Collection<FragmentType> ownedFragments = fragmentManager.getPlayerFragments(player);
         FragmentType activeFragment = fragmentManager.getActiveFragment(player);
         
@@ -181,8 +209,6 @@ public class UIManager {
             ItemStack giveButton = createAdminGiveButton();
             inv.setItem(51, giveButton);
         }
-        
-        player.openInventory(inv);
     }
 
     /**
