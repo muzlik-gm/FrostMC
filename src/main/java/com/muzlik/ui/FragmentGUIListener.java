@@ -188,12 +188,7 @@ public class FragmentGUIListener implements Listener {
                             uiManager.spawnFragmentSwitchParticles(player, clickedType);
                             
                             // Refresh the GUI
-                            player.closeInventory();
-                            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                                () -> uiManager.openFragmentOverview(player),
-                                3L
-                            );
+                            uiManager.refreshFragmentOverview(player);
                         }
                     } else {
                         uiManager.playLockedAbilitySound(player);
@@ -213,12 +208,7 @@ public class FragmentGUIListener implements Listener {
                         uiManager.spawnFragmentSwitchParticles(player, clickedType);
                         
                         // Refresh the GUI
-                        player.closeInventory();
-                        org.bukkit.Bukkit.getScheduler().runTaskLater(
-                            org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                            () -> uiManager.openFragmentOverview(player),
-                            3L
-                        );
+                        uiManager.refreshFragmentOverview(player);
                     }
                 }
                 
@@ -235,12 +225,7 @@ public class FragmentGUIListener implements Listener {
                         uiManager.spawnFragmentSwitchParticles(player, clickedType);
                         
                         // Refresh the GUI
-                        player.closeInventory();
-                        org.bukkit.Bukkit.getScheduler().runTaskLater(
-                            org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                            () -> uiManager.openFragmentOverview(player),
-                            3L
-                        );
+                        uiManager.refreshFragmentOverview(player);
                     } else {
                         uiManager.playLockedAbilitySound(player);
                         player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer in your inventory"));
@@ -257,12 +242,7 @@ public class FragmentGUIListener implements Listener {
                     uiManager.spawnFragmentSwitchParticles(player, clickedType);
                     
                     // Refresh the GUI
-                    player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(
-                        org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                        () -> uiManager.openFragmentOverview(player),
-                        3L
-                    );
+                    uiManager.refreshFragmentOverview(player);
                 }
                 
             } else {
