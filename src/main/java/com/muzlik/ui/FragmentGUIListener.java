@@ -75,7 +75,7 @@ public class FragmentGUIListener implements Listener {
     private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType, InventoryClickEvent event) {
         // Remove the Switch Fragment button functionality - force ritual usage
         if (displayName.contains("sᴡɪᴛᴄʜ") || displayName.contains("Switch Fragment")) {
-            player.closeInventory();
+            uiManager.playLockedAbilitySound(player);
             player.sendMessage(com.muzlik.util.Typography.formatError("Use Fragment Changer ritual to switch fragments"));
             player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft a Fragment Changer and perform the ritual"));
             return;
