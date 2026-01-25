@@ -150,16 +150,9 @@ public class FragmentGUIListener implements Listener {
         
         if (clickType == ClickType.LEFT || clickType == ClickType.SHIFT_LEFT) {
             // LEFT-CLICK: View abilities for ANY fragment (even locked ones!)
-            player.closeInventory();
-            // Small delay to prevent inventory glitch
-            final FragmentType finalType = clickedType;
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                () -> uiManager.openAbilityDetails(player, finalType),
-                2L
-            );
+            // Use the new refresh method for a flicker-free transition
+            uiManager.refreshAbilityDetails(player, clickedType);
 
-            
         } else if (clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) {
             // RIGHT-CLICK: Activate fragment
             if (isActive) {
@@ -299,12 +292,8 @@ public class FragmentGUIListener implements Listener {
     private void handleAbilityDetailClick(Player player, String displayName) {
         // Check for back button
         if (displayName.contains("Back") || displayName.contains("ʙᴀᴄᴋ") || displayName.contains("←")) {
-            player.closeInventory();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                () -> uiManager.openFragmentOverview(player),
-                2L
-            );
+            // Use refresh for a smooth transition back to the overview
+            uiManager.refreshFragmentOverview(player);
             return;
         }
         

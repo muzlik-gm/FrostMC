@@ -218,25 +218,60 @@ public class UIManager {
     public void openAbilityDetails(Player player, FragmentType type) {
         // Play CLICK sound on Fragment selection
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
-        
+
         FragmentDefinition fragment = fragmentManager.getFragment(type);
         if (fragment == null) {
             player.sendMessage(Typography.formatError("Fragment not found"));
             return;
         }
-        
+
         // Create inventory with uppercase title using Typography
         String title = type.getDisplayName().toUpperCase() + " ABILITIES";
-        Inventory inv = Bukkit.createInventory(null, 54, 
+        Inventory inv = Bukkit.createInventory(null, 54,
                 Component.text(Typography.formatMenuTitle(title)));
-        
+
+        populateAbilityDetails(inv, player, type);
+
+        player.openInventory(inv);
+    }
+
+    /**
+     * Refreshes the Ability Detail View GUI in-place.
+     */
+    public void refreshAbilityDetails(Player player, FragmentType type) {
+        Inventory inv = player.getOpenInventory().getTopInventory();
+
+        // Basic check to see if we're in a compatible GUI
+        if (inv.getSize() != 54) { // All our GUIs are 54 slots
+            openAbilityDetails(player, type); // Fallback to old method
+            return;
+        }
+
+        inv.clear();
+        populateAbilityDetails(inv, player, type);
+        player.updateInventory();
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.7f, 1.5f);
+    }
+
+    /**
+     * Populates the Ability Detail View GUI.
+     * This is used for both creating and refreshing the GUI.
+     */
+    private void populateAbilityDetails(Inventory inv, Player player, FragmentType type) {
+        FragmentDefinition fragment = fragmentManager.getFragment(type);
+        if (fragment == null) {
+            // This should not happen if called from a valid context, but as a safeguard:
+            player.sendMessage(Typography.formatError("Could not load fragment details."));
+            return;
+        }
+
         // Fill border with decorative glass
         fillBorder(inv);
-        
+
         // ═══════════════════════════════════════════════════════════
         // TOP AREA: Fragment icon + Stats panels
         // ═══════════════════════════════════════════════════════════
-        
+
         // Fragment icon (slot 4 - top center)
         ItemStack fragmentIcon = new FragmentIconBuilder(type, player, levelManager, rankManager, manaManager)
                 .fragmentManager(fragmentManager)
@@ -245,27 +280,27 @@ public class UIManager {
                 .charged(fragmentManager.isCharged(player, type))
                 .build();
         inv.setItem(4, fragmentIcon);
-        
+
         // Stats panel (slot 2)
         inv.setItem(2, createStatsPanel(player, type));
-        
+
         // Passive effects panel (slot 3)
         inv.setItem(3, createPassiveEffectsPanel(type));
-        
+
         // Level bonus panel (slot 6)
         inv.setItem(6, createLevelBonusPanel(player, type));
-        
+
         // ═══════════════════════════════════════════════════════════
         // MIDDLE AREA: Abilities in a clear row
         // ═══════════════════════════════════════════════════════════
-        
+
         // Get abilities
         java.util.List<AbilityDefinition> abilities = fragment.getAbilities();
-        
+
         // Use middle row (row 3) centered - slots 19-25
         // For 5 abilities: 19, 20, 21, 22, 23 or spread: 19, 21, 22, 23, 25
         int numAbilities = Math.min(abilities.size(), 5);
-        
+
         // Calculate starting slot for centered layout
         int[] abilitySlots;
         if (numAbilities <= 3) {
@@ -278,26 +313,24 @@ public class UIManager {
             // 5 abilities: 19, 20, 22, 24, 25
             abilitySlots = new int[]{19, 20, 22, 24, 25};
         }
-        
+
         int slotIndex = 0;
         for (AbilityDefinition ability : abilities) {
             if (slotIndex >= abilitySlots.length) break;
-            
-            ItemStack abilityIcon = new AbilityIconBuilder(ability, player, type, 
+
+            ItemStack abilityIcon = new AbilityIconBuilder(ability, player, type,
                     rankManager, levelManager, manaManager, cooldownManager)
                     .build();
-            
+
             inv.setItem(abilitySlots[slotIndex++], abilityIcon);
         }
-        
+
         // ═══════════════════════════════════════════════════════════
         // BOTTOM: Back button
         // ═══════════════════════════════════════════════════════════
-        
+
         ItemStack backButton = createBackButton();
         inv.setItem(49, backButton); // Bottom center
-        
-        player.openInventory(inv);
     }
     
     /**
