@@ -165,6 +165,26 @@ public class FragmentGUIListener implements Listener {
             if (isActive) {
                 player.sendMessage(com.muzlik.util.Typography.formatError("This fragment is already active"));
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f); // Neutral feedback
+
+                // UX Improvement: Add temporary visual feedback in-place
+                ItemStack originalItem = event.getCurrentItem();
+                if (originalItem != null) {
+                    ItemMeta meta = originalItem.getItemMeta();
+                    final String originalName = meta.getDisplayName();
+
+                    meta.setDisplayName("§a§l✓ " + com.muzlik.util.Typography.toSmallCaps("Already Active"));
+                    originalItem.setItemMeta(meta);
+
+                    // Schedule a task to revert the item name
+                    final int slot = event.getSlot();
+                    org.bukkit.Bukkit.getScheduler().runTaskLater(
+                        org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+                        if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
+                            meta.setDisplayName(originalName);
+                            originalItem.setItemMeta(meta);
+                        }
+                    }, 20L);
+                }
                 return;
             }
             
