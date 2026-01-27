@@ -2,6 +2,7 @@ package com.muzlik.ui;
 
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -11,22 +12,25 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Handles Fragment GUI interactions with enhanced visual effects.
- * 
+ *
  * Fragment Overview GUI:
  * - LEFT-CLICK: Open ability details for the fragment
  * - RIGHT-CLICK: Activate the fragment (if charged/owned)
- * 
+ *
  * Ability Details GUI:
  * - BACK button: Return to fragment overview
  */
 public class FragmentGUIListener implements Listener {
+    private final JavaPlugin plugin;
     private final FragmentManager fragmentManager;
     private final UIManager uiManager;
 
-    public FragmentGUIListener(FragmentManager fragmentManager, UIManager uiManager) {
+    public FragmentGUIListener(JavaPlugin plugin, FragmentManager fragmentManager, UIManager uiManager) {
+        this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.uiManager = uiManager;
     }
@@ -84,8 +88,8 @@ public class FragmentGUIListener implements Listener {
         // Check for controls button
         if (displayName.contains("ᴄᴏɴᴛʀᴏʟ") || displayName.contains("Control")) {
             player.closeInventory();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+            Bukkit.getScheduler().runTaskLater(
+                plugin,
                 () -> uiManager.openControlSchemeGUI(player),
                 2L
             );
@@ -105,8 +109,8 @@ public class FragmentGUIListener implements Listener {
 
             // Schedule a task to revert the button back after 1 second (20 ticks)
             final int slot = event.getSlot();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+            Bukkit.getScheduler().runTaskLater(
+                plugin, () -> {
                 // Check if the inventory is still open to prevent errors
                 if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
                     ItemStack originalManaButton = uiManager.createManaStatusButton(player, false);
@@ -120,8 +124,8 @@ public class FragmentGUIListener implements Listener {
         if (displayName.contains("ɢɪᴠᴇ") || displayName.contains("Give Fragment")) {
             if (player.hasPermission("fragment.admin")) {
                 player.closeInventory();
-                org.bukkit.Bukkit.getScheduler().runTaskLater(
-                    org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                Bukkit.getScheduler().runTaskLater(
+                    plugin,
                     () -> uiManager.openFragmentGiveGUI(player),
                     2L
                 );
@@ -153,18 +157,45 @@ public class FragmentGUIListener implements Listener {
             player.closeInventory();
             // Small delay to prevent inventory glitch
             final FragmentType finalType = clickedType;
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+            Bukkit.getScheduler().runTaskLater(
+                plugin,
                 () -> uiManager.openAbilityDetails(player, finalType),
                 2L
             );
-
             
         } else if (clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) {
             // RIGHT-CLICK: Activate fragment
             if (isActive) {
-                player.sendMessage(com.muzlik.util.Typography.formatError("This fragment is already active"));
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f); // Neutral feedback
+
+                ItemStack clickedItem = event.getCurrentItem();
+                if (clickedItem == null) return; // Should not happen, but good practice
+
+                ItemMeta activeMeta = clickedItem.getItemMeta();
+                final String originalName = activeMeta.getDisplayName();
+
+                // Temporary feedback: change name to "Already Active"
+                activeMeta.setDisplayName("§a§l✓ " + com.muzlik.util.Typography.toSmallCaps("Already Active"));
+                clickedItem.setItemMeta(activeMeta);
+
+                // The chat message is no longer needed, visual feedback is better.
+
+                // Schedule a task to revert the name back after 1 second
+                final int slot = event.getSlot();
+                Bukkit.getScheduler().runTaskLater(
+                    plugin, () -> {
+                    // Check if the inventory is still open to prevent errors
+                    if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
+                        ItemStack item = event.getInventory().getItem(slot);
+                        // Check if the item is still the one we changed to prevent race conditions
+                        if (item != null && item.hasItemMeta() && item.getItemMeta().getDisplayName().contains("Active")) {
+                            ItemMeta revertMeta = item.getItemMeta();
+                            revertMeta.setDisplayName(originalName);
+                            item.setItemMeta(revertMeta);
+                        }
+                    }
+                }, 20L);
+
                 return;
             }
             
@@ -300,8 +331,8 @@ public class FragmentGUIListener implements Listener {
         // Check for back button
         if (displayName.contains("Back") || displayName.contains("ʙᴀᴄᴋ") || displayName.contains("←")) {
             player.closeInventory();
-            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+            Bukkit.getScheduler().runTaskLater(
+                plugin,
                 () -> uiManager.openFragmentOverview(player),
                 2L
             );
