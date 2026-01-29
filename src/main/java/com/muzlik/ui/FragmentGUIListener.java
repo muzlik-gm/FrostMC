@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Handles Fragment GUI interactions with enhanced visual effects.
@@ -23,10 +24,12 @@ import org.bukkit.inventory.meta.ItemMeta;
  * - BACK button: Return to fragment overview
  */
 public class FragmentGUIListener implements Listener {
+    private final JavaPlugin plugin;
     private final FragmentManager fragmentManager;
     private final UIManager uiManager;
 
-    public FragmentGUIListener(FragmentManager fragmentManager, UIManager uiManager) {
+    public FragmentGUIListener(JavaPlugin plugin, FragmentManager fragmentManager, UIManager uiManager) {
+        this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.uiManager = uiManager;
     }
@@ -85,7 +88,7 @@ public class FragmentGUIListener implements Listener {
         if (displayName.contains("ᴄᴏɴᴛʀᴏʟ") || displayName.contains("Control")) {
             player.closeInventory();
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                plugin,
                 () -> uiManager.openControlSchemeGUI(player),
                 2L
             );
@@ -106,7 +109,7 @@ public class FragmentGUIListener implements Listener {
             // Schedule a task to revert the button back after 1 second (20 ticks)
             final int slot = event.getSlot();
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+                plugin, () -> {
                 // Check if the inventory is still open to prevent errors
                 if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
                     ItemStack originalManaButton = uiManager.createManaStatusButton(player, false);
@@ -121,7 +124,7 @@ public class FragmentGUIListener implements Listener {
             if (player.hasPermission("fragment.admin")) {
                 player.closeInventory();
                 org.bukkit.Bukkit.getScheduler().runTaskLater(
-                    org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                    plugin,
                     () -> uiManager.openFragmentGiveGUI(player),
                     2L
                 );
@@ -154,7 +157,7 @@ public class FragmentGUIListener implements Listener {
             // Small delay to prevent inventory glitch
             final FragmentType finalType = clickedType;
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                plugin,
                 () -> uiManager.openAbilityDetails(player, finalType),
                 2L
             );
@@ -165,6 +168,26 @@ public class FragmentGUIListener implements Listener {
             if (isActive) {
                 player.sendMessage(com.muzlik.util.Typography.formatError("This fragment is already active"));
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f); // Neutral feedback
+
+                // 🎨 Palette: Add temporary visual feedback for already-active fragment
+                final ItemStack originalItem = event.getCurrentItem();
+                if (originalItem == null) return;
+
+                ItemStack tempItem = originalItem.clone();
+                ItemMeta tempMeta = tempItem.getItemMeta();
+                tempMeta.setDisplayName("§a✓ " + com.muzlik.util.Typography.toSmallCaps("Already Active"));
+                tempItem.setItemMeta(tempMeta);
+
+                event.getInventory().setItem(event.getSlot(), tempItem);
+
+                final int slot = event.getSlot();
+                org.bukkit.Bukkit.getScheduler().runTaskLater(
+                    plugin, () -> {
+                    // Check if the inventory is still open to prevent errors
+                    if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
+                        event.getInventory().setItem(slot, originalItem);
+                    }
+                }, 20L);
                 return;
             }
             
@@ -301,7 +324,7 @@ public class FragmentGUIListener implements Listener {
         if (displayName.contains("Back") || displayName.contains("ʙᴀᴄᴋ") || displayName.contains("←")) {
             player.closeInventory();
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                plugin,
                 () -> uiManager.openFragmentOverview(player),
                 2L
             );
