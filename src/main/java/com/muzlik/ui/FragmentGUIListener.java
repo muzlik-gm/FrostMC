@@ -163,8 +163,28 @@ public class FragmentGUIListener implements Listener {
         } else if (clickType == ClickType.RIGHT || clickType == ClickType.SHIFT_RIGHT) {
             // RIGHT-CLICK: Activate fragment
             if (isActive) {
-                player.sendMessage(com.muzlik.util.Typography.formatError("This fragment is already active"));
+                // In-place feedback UX improvement
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f); // Neutral feedback
+
+                final ItemStack originalItem = event.getCurrentItem().clone();
+                ItemStack tempItem = event.getCurrentItem().clone();
+                ItemMeta tempMeta = tempItem.getItemMeta();
+
+                if (tempMeta != null) {
+                    tempMeta.setDisplayName("§a§l✓ " + com.muzlik.util.Typography.toSmallCaps("Already Active"));
+                    tempItem.setItemMeta(tempMeta);
+                    event.getInventory().setItem(event.getSlot(), tempItem);
+                }
+
+                // Schedule a task to revert the item back after 1 second
+                final int slot = event.getSlot();
+                org.bukkit.Bukkit.getScheduler().runTaskLater(
+                    org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+                    // Check if the inventory is still open
+                    if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
+                        event.getInventory().setItem(slot, originalItem);
+                    }
+                }, 20L);
                 return;
             }
             
