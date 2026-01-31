@@ -23,10 +23,12 @@ import org.bukkit.inventory.meta.ItemMeta;
  * - BACK button: Return to fragment overview
  */
 public class FragmentGUIListener implements Listener {
+    private final org.bukkit.plugin.java.JavaPlugin plugin;
     private final FragmentManager fragmentManager;
     private final UIManager uiManager;
 
-    public FragmentGUIListener(FragmentManager fragmentManager, UIManager uiManager) {
+    public FragmentGUIListener(org.bukkit.plugin.java.JavaPlugin plugin, FragmentManager fragmentManager, UIManager uiManager) {
+        this.plugin = plugin;
         this.fragmentManager = fragmentManager;
         this.uiManager = uiManager;
     }
@@ -63,7 +65,7 @@ public class FragmentGUIListener implements Listener {
         }
         // Handle Ability Detail View clicks
         else if (isAbilityDetails) {
-            handleAbilityDetailClick(player, displayName);
+            handleAbilityDetailClick(player, displayName, event);
         }
     }
     
@@ -83,11 +85,10 @@ public class FragmentGUIListener implements Listener {
         
         // Check for controls button
         if (displayName.contains("ᴄᴏɴᴛʀᴏʟ") || displayName.contains("Control")) {
-            player.closeInventory();
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                plugin,
                 () -> uiManager.openControlSchemeGUI(player),
-                2L
+                1L
             );
             return;
         }
@@ -106,7 +107,7 @@ public class FragmentGUIListener implements Listener {
             // Schedule a task to revert the button back after 1 second (20 ticks)
             final int slot = event.getSlot();
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+                plugin, () -> {
                 // Check if the inventory is still open to prevent errors
                 if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
                     ItemStack originalManaButton = uiManager.createManaStatusButton(player, false);
@@ -119,11 +120,10 @@ public class FragmentGUIListener implements Listener {
         // Check for Admin Give button
         if (displayName.contains("ɢɪᴠᴇ") || displayName.contains("Give Fragment")) {
             if (player.hasPermission("fragment.admin")) {
-                player.closeInventory();
                 org.bukkit.Bukkit.getScheduler().runTaskLater(
-                    org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                    plugin,
                     () -> uiManager.openFragmentGiveGUI(player),
-                    2L
+                    1L
                 );
             } else {
                 player.sendMessage("§cYou don't have permission to use this");
@@ -150,13 +150,12 @@ public class FragmentGUIListener implements Listener {
         
         if (clickType == ClickType.LEFT || clickType == ClickType.SHIFT_LEFT) {
             // LEFT-CLICK: View abilities for ANY fragment (even locked ones!)
-            player.closeInventory();
             // Small delay to prevent inventory glitch
             final FragmentType finalType = clickedType;
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                plugin,
                 () -> uiManager.openAbilityDetails(player, finalType),
-                2L
+                1L
             );
 
             
@@ -169,7 +168,7 @@ public class FragmentGUIListener implements Listener {
             }
             
             // Get config manager to check settings
-            com.muzlik.config.ConfigManager configManager = ((com.muzlik.FrostSMPPlugin) org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP")).getConfigManager();
+            com.muzlik.config.ConfigManager configManager = ((com.muzlik.FrostSMPPlugin) plugin).getConfigManager();
             boolean fragmentChangerRequired = configManager.isFragmentChangerRequired();
             
             if (isCharged) {
@@ -294,16 +293,28 @@ public class FragmentGUIListener implements Listener {
     }
     
     /**
+     * Find FragmentType from inventory title
+     */
+    private FragmentType findFragmentTypeFromTitle(String title) {
+        String upperTitle = title.toUpperCase();
+        for (FragmentType type : FragmentType.values()) {
+            if (upperTitle.contains(type.getDisplayName().toUpperCase())) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Handle clicks in Ability Detail View GUI
      */
-    private void handleAbilityDetailClick(Player player, String displayName) {
+    private void handleAbilityDetailClick(Player player, String displayName, InventoryClickEvent event) {
         // Check for back button
         if (displayName.contains("Back") || displayName.contains("ʙᴀᴄᴋ") || displayName.contains("←")) {
-            player.closeInventory();
             org.bukkit.Bukkit.getScheduler().runTaskLater(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
+                plugin,
                 () -> uiManager.openFragmentOverview(player),
-                2L
+                1L
             );
             return;
         }
@@ -324,6 +335,18 @@ public class FragmentGUIListener implements Listener {
         // Unlocked ability clicked - show usage hint
         if (displayName.contains("✓") || displayName.contains("§a")) {
             player.sendMessage(com.muzlik.util.Typography.formatTitle("Use via hotbar (Sneak + Click)"));
+        }
+
+        // Palette: In-place refresh for Stats panel or Abilities
+        if (displayName.contains("Stats") || displayName.contains("sᴛᴀᴛs") ||
+            displayName.contains(com.muzlik.util.Typography.SYMBOL_CHECK) ||
+            displayName.contains(com.muzlik.util.Typography.SYMBOL_COOLDOWN)) {
+
+            FragmentType type = findFragmentTypeFromTitle(event.getView().getTitle());
+            if (type != null) {
+                org.bukkit.Bukkit.getScheduler().runTask(plugin, () -> uiManager.openAbilityDetails(player, type));
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
+            }
         }
     }
 

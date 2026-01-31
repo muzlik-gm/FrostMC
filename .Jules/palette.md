@@ -1,0 +1,3 @@
+## 2026-01-31 - Smooth GUI Transitions and In-Place Refresh
+**Learning:** In Bukkit development, calling `player.closeInventory()` explicitly before opening a new inventory causes a visual flicker and a disruptive "inventory close" sound. Omitting the close call allows for a smooth in-place swap. Additionally, re-opening the same inventory with updated data is an effective way to implement an "in-place refresh" without complex inventory manipulation.
+**Action:** Always prefer smooth inventory swaps by omitting `closeInventory()` for navigation, and use 1-tick delayed re-opens for refreshing dynamic GUI content.

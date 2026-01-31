@@ -322,7 +322,8 @@ public class UIManager {
                 "§7ʟᴇᴠᴇʟ §f" + level + "§8/§f" + maxLevel,
                 "",
                 "§7xᴘ §f" + String.format("%.0f", xp) + "§8/§f" + String.format("%.0f", xpReq),
-                ""
+                "",
+                Typography.COLOR_HIGHLIGHT + "§l▶ CLICK TO REFRESH"
         ));
         
         item.setItemMeta(meta);
