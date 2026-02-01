@@ -1,0 +1,3 @@
+## 2026-02-01 - Flicker-Free Navigation and Interactive Feedback
+**Learning:** In Bukkit/Spigot GUI development, explicit `player.closeInventory()` calls followed by opening a new GUI causes a significant visual flicker and a double sound effect. Omitting the close call and using a 1-tick delay for the new GUI ensures a seamless swap. Additionally, immediate visual feedback on items (like temporary name changes) requires `inventory.setItem()` to guarantee synchronization with the client.
+**Action:** Always prefer seamless swaps without explicit closure for navigation between GUIs. Use `inventory.setItem()` for in-place visual confirmation effects.
