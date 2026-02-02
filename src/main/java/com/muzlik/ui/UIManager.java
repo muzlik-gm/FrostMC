@@ -297,6 +297,11 @@ public class UIManager {
         ItemStack backButton = createBackButton();
         inv.setItem(49, backButton); // Bottom center
         
+        // Slot 50: Mana Status button (only if mana system enabled)
+        if (isManaSystemEnabled()) {
+            inv.setItem(50, createManaStatusButton(player, false));
+        }
+
         player.openInventory(inv);
     }
     

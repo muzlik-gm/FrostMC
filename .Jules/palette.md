@@ -1,0 +1,3 @@
+## 2026-02-02 - UI Consistency & Snappy Transitions
+**Learning:** For buttons that appear in multiple GUIs (e.g., Mana Status, Close), centralizing interaction logic in a shared section of the `onInventoryClick` handler in listeners before dispatching to specific GUI methods ensures UX consistency and reduces maintenance overhead. Additionally, omitting `player.closeInventory()` and using a `1L` delay for inventory transitions creates a "flicker-free" experience that makes the plugin feel more professional.
+**Action:** Always check for shared UI elements when implementing new features and refactor to centralized handlers if they exist. Use 1-tick delayed transitions without explicit close calls for all inventory-to-inventory navigation.
