@@ -209,6 +209,9 @@ public class UIManager {
             ItemStack giveButton = createAdminGiveButton();
             inv.setItem(51, giveButton);
         }
+
+        // Slot 53: Close button
+        inv.setItem(53, createCloseButton());
     }
 
     /**
@@ -296,6 +299,9 @@ public class UIManager {
         
         ItemStack backButton = createBackButton();
         inv.setItem(49, backButton); // Bottom center
+
+        // Slot 53: Close button
+        inv.setItem(53, createCloseButton());
         
         player.openInventory(inv);
     }
@@ -325,6 +331,19 @@ public class UIManager {
                 ""
         ));
         
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Create close button
+     */
+    private ItemStack createCloseButton() {
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_close_button"));
+        meta.setDisplayName(Typography.formatError("Close"));
+        meta.setLore(Arrays.asList(Typography.COLOR_TEXT + "Exit the menu"));
         item.setItemMeta(meta);
         return item;
     }
