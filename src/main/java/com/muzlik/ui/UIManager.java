@@ -300,6 +300,11 @@ public class UIManager {
         ItemStack backButton = createBackButton();
         inv.setItem(49, backButton); // Bottom center
 
+        // Slot 50: Mana Status button (only if mana system enabled)
+        if (isManaSystemEnabled()) {
+            inv.setItem(50, createManaStatusButton(player, false));
+        }
+
         // Slot 53: Close button
         inv.setItem(53, createCloseButton());
         
@@ -524,9 +529,9 @@ public class UIManager {
      * Create info button
      */
     private ItemStack createInfoButton() {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1005); // Custom model for info icon
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_info_button"));
         meta.setDisplayName(Typography.formatTitle("Fragment Guide"));
         
         // Dynamic lore based on configuration
@@ -591,9 +596,9 @@ public class UIManager {
      * Create mana status button
      */
     public ItemStack createManaStatusButton(Player player, boolean isRefreshed) {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1003); // Custom model for mana status icon
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_mana_status"));
         meta.setDisplayName("§b§l⚡ " + toSmallCaps("Mana Status"));
 
         double currentMana = manaManager.getMana(player);
@@ -622,9 +627,9 @@ public class UIManager {
      * Create admin give button
      */
     private ItemStack createAdminGiveButton() {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setCustomModelData(1004); // Custom model for admin give icon
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_give"));
         meta.setDisplayName("§d§l⚡ " + toSmallCaps("Give Fragment"));
         meta.setLore(Arrays.asList(
                 "",

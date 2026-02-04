@@ -63,7 +63,7 @@ public class FragmentGUIListener implements Listener {
         }
         // Handle Ability Detail View clicks
         else if (isAbilityDetails) {
-            handleAbilityDetailClick(player, displayName);
+            handleAbilityDetailClick(player, displayName, event);
         }
     }
     
@@ -302,7 +302,22 @@ public class FragmentGUIListener implements Listener {
     /**
      * Handle clicks in Ability Detail View GUI
      */
-    private void handleAbilityDetailClick(Player player, String displayName) {
+    private void handleAbilityDetailClick(Player player, String displayName, InventoryClickEvent event) {
+        // Check for Mana Status button
+        if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.2f);
+            ItemStack updated = uiManager.createManaStatusButton(player, true);
+            event.getInventory().setItem(event.getSlot(), updated);
+
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+                if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
+                    event.getInventory().setItem(event.getSlot(), uiManager.createManaStatusButton(player, false));
+                }
+            }, 20L);
+            return;
+        }
+
         // Check for back button
         if (displayName.contains("Back") || displayName.contains("ʙᴀᴄᴋ") || displayName.contains("←")) {
             // Omit closeInventory for flicker-free transition
