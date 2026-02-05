@@ -1,5 +1,7 @@
 package com.muzlik.util;
 
+import com.muzlik.texture.FragmentSymbols;
+
 /**
  * Utility class for consistent typography and text formatting across the plugin.
  * Enforces the "Small Caps" style for titles and specific color schemes.
@@ -124,5 +126,14 @@ public class Typography {
      */
     public static String formatValue(String value) {
         return COLOR_HIGHLIGHT + value;
+    }
+
+    /**
+     * Format a progress bar with brackets and percentage
+     */
+    public static String formatProgressBar(double current, double max, int length) {
+        String bar = FragmentSymbols.buildProgressBar(current, max, length);
+        double percentage = max > 0 ? (current / max) * 100 : 0;
+        return COLOR_TEXT_DARK + "[" + bar + COLOR_TEXT_DARK + "] " + COLOR_SECONDARY + String.format("%.0f", percentage) + "%";
     }
 }

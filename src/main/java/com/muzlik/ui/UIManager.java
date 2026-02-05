@@ -102,24 +102,6 @@ public class UIManager {
         return true; // Default to enabled if can't check
     }
     
-    /**
-     * Convert text to small caps unicode
-     */
-    private static String toSmallCaps(String text) {
-        String smallCaps = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ";
-        String normal = "abcdefghijklmnopqrstuvwxyz";
-        StringBuilder result = new StringBuilder();
-        
-        for (char c : text.toLowerCase().toCharArray()) {
-            int index = normal.indexOf(c);
-            if (index >= 0) {
-                result.append(smallCaps.charAt(index));
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
-    }
     
     /**
      * Open Enhanced Fragment Overview GUI with visual effects
@@ -318,7 +300,7 @@ public class UIManager {
         ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_stats"));
-        meta.setDisplayName("§e§l" + toSmallCaps("Stats"));
+        meta.setDisplayName(Typography.COLOR_SECONDARY + "§l" + Typography.toSmallCaps("Stats"));
         
         int rank = rankManager.getRank(player, type);
         int maxRank = rankManager.getMaxRank(type);
@@ -329,10 +311,11 @@ public class UIManager {
         
         meta.setLore(Arrays.asList(
                 "",
-                "§7ʀᴀɴᴋ §f" + rank + "§8/§f" + maxRank,
-                "§7ʟᴇᴠᴇʟ §f" + level + "§8/§f" + maxLevel,
+                Typography.formatLabel("Rank: ") + Typography.formatValue(rank + "/" + maxRank),
+                Typography.formatLabel("Level: ") + Typography.formatValue(level + "/" + maxLevel),
                 "",
-                "§7xᴘ §f" + String.format("%.0f", xp) + "§8/§f" + String.format("%.0f", xpReq),
+                Typography.formatProgressBar(xp, xpReq, 10),
+                Typography.formatLabel("XP: ") + Typography.formatValue(String.format("%.0f/%.0f", xp, xpReq)),
                 ""
         ));
         
@@ -360,7 +343,7 @@ public class UIManager {
         ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_bonus"));
-        meta.setDisplayName("§b§l" + toSmallCaps("Level Bonuses"));
+        meta.setDisplayName(Typography.COLOR_PRIMARY + "§l" + Typography.toSmallCaps("Level Bonuses"));
         
         double cdReduction = levelManager.getCooldownReduction(player, type) * 100;
         double manaReduction = levelManager.getManaCostReduction(player, type) * 100;
@@ -368,11 +351,11 @@ public class UIManager {
         
         meta.setLore(Arrays.asList(
                 "",
-                "§7⏱ ᴄᴏᴏʟᴅᴏᴡɴ §a-" + String.format("%.0f", cdReduction) + "%",
-                "§7⚡ ᴍᴀɴᴀ ᴄᴏsᴛ §a-" + String.format("%.0f", manaReduction) + "%",
-                "§7⚔ ᴅᴀᴍᴀɢᴇ §a+" + String.format("%.0f", dmgBonus) + "%",
+                Typography.COLOR_TEXT + Typography.SYMBOL_COOLDOWN + " " + Typography.toSmallCaps("Cooldown") + " " + Typography.COLOR_SUCCESS + "-" + String.format("%.0f", cdReduction) + "%",
+                Typography.COLOR_TEXT + Typography.SYMBOL_LIGHTNING + " " + Typography.toSmallCaps("Mana Cost") + " " + Typography.COLOR_SUCCESS + "-" + String.format("%.0f", manaReduction) + "%",
+                Typography.COLOR_TEXT + Typography.SYMBOL_SWORD + " " + Typography.toSmallCaps("Damage") + " " + Typography.COLOR_SUCCESS + "+" + String.format("%.0f", dmgBonus) + "%",
                 "",
-                "§8ʟᴇᴠᴇʟ ᴜᴘ ᴛᴏ ɪɴᴄʀᴇᴀsᴇ!"
+                Typography.COLOR_TEXT_DARK + Typography.toSmallCaps("Level up to increase!")
         ));
         
         item.setItemMeta(meta);
@@ -385,7 +368,7 @@ public class UIManager {
     private ItemStack createPassiveEffectsPanel(FragmentType type) {
         ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§6§l" + toSmallCaps("Passive Effects"));
+        meta.setDisplayName(Typography.COLOR_ACCENT + "§l" + Typography.toSmallCaps("Passive Effects"));
         
         java.util.List<String> lore = new java.util.ArrayList<>();
         lore.add("");
@@ -580,7 +563,7 @@ public class UIManager {
         ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_controls"));
-        meta.setDisplayName("§e§l⚙ " + toSmallCaps("Controls"));
+        meta.setDisplayName(Typography.COLOR_SECONDARY + "§l⚙ " + Typography.toSmallCaps("Controls"));
         meta.setLore(Arrays.asList(
                 "",
                 Typography.COLOR_TEXT + "Change control scheme",
@@ -599,7 +582,7 @@ public class UIManager {
         ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_mana_status"));
-        meta.setDisplayName("§b§l⚡ " + toSmallCaps("Mana Status"));
+        meta.setDisplayName(Typography.COLOR_PRIMARY + "§l⚡ " + Typography.toSmallCaps("Mana Status"));
 
         double currentMana = manaManager.getMana(player);
         double maxMana = manaManager.getMaxMana(player);
@@ -630,7 +613,7 @@ public class UIManager {
         ItemStack item = new ItemStack(com.muzlik.texture.TextureRegistry.getBaseMaterial());
         ItemMeta meta = item.getItemMeta();
         meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_give"));
-        meta.setDisplayName("§d§l⚡ " + toSmallCaps("Give Fragment"));
+        meta.setDisplayName("§d§l⚡ " + Typography.toSmallCaps("Give Fragment"));
         meta.setLore(Arrays.asList(
                 "",
                 Typography.COLOR_TEXT + "§dAdmin: §7Give fragments",

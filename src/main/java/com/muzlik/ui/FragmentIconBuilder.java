@@ -177,7 +177,8 @@ public class FragmentIconBuilder {
             double xpRequired = levelManager.getXPForNextLevel(player, fragmentType);
 
             lore.add(Typography.formatLabel("Rank: ") + Typography.formatValue(rank + "/" + maxRank));
-            lore.add(Typography.formatLabel("Level: ") + Typography.formatValue(level + "/" + maxLevel) + Typography.COLOR_TEXT_DARK + " (" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
+            lore.add(Typography.formatLabel("Level: ") + Typography.formatValue(level + "/" + maxLevel));
+            lore.add(Typography.formatProgressBar(xp, xpRequired, 10) + Typography.COLOR_TEXT_DARK + " (" + String.format("%.0f", xp) + "/" + String.format("%.0f", xpRequired) + ")");
 
             // Mana display - only if mana system is enabled
             if (manaManager.isManaSystemEnabled()) {
@@ -249,15 +250,6 @@ public class FragmentIconBuilder {
         }
         
         return color + symbol;
-    }
-
-    /**
-     * Build progress bar for XP/Level display
-     */
-    private String buildProgressBar(double current, double max, int barLength) {
-        String bar = com.muzlik.texture.FragmentSymbols.buildProgressBar(current, max, barLength);
-        double percentage = max > 0 ? (current / max) * 100 : 0;
-        return "§7[" + bar + "§7] §e" + String.format("%.0f", percentage) + "%";
     }
 
     /**
