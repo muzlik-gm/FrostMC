@@ -86,6 +86,12 @@ public class FragmentManager {
             player.sendMessage("§c✗ Fragment not found");
             return;
         }
+
+        // SECURITY: Prevent non-admins from being granted the Admin fragment
+        if (type == FragmentType.ADMIN && !player.hasPermission("fragment.admin") && !player.isOp()) {
+            player.sendMessage("§c✗ You do not have permission to use the Admin fragment");
+            return;
+        }
         
         PlayerFragmentData data = getOrCreatePlayerData(player);
         boolean isFirstFragment = data.getOwnedFragments().isEmpty();
