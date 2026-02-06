@@ -768,6 +768,9 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
+        // SECURITY: Remove fragment from owned list before giving the item
+        data.removeFragment(activeFragment);
+
         // Deactivate the fragment
         fragmentManager.setActiveFragment(player, null);
         
