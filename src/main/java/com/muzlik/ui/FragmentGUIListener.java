@@ -63,7 +63,7 @@ public class FragmentGUIListener implements Listener {
         }
         // Handle Ability Detail View clicks
         else if (isAbilityDetails) {
-            handleAbilityDetailClick(player, displayName);
+            handleAbilityDetailClick(player, displayName, event);
         }
     }
     
@@ -75,7 +75,7 @@ public class FragmentGUIListener implements Listener {
     private void handleFragmentOverviewClick(Player player, String displayName, ClickType clickType, InventoryClickEvent event) {
         // Remove the Switch Fragment button functionality - force ritual usage
         if (displayName.contains("sᴡɪᴛᴄʜ") || displayName.contains("Switch Fragment")) {
-            player.closeInventory();
+            uiManager.playLockedAbilitySound(player);
             player.sendMessage(com.muzlik.util.Typography.formatError("Use Fragment Changer ritual to switch fragments"));
             player.sendMessage(com.muzlik.util.Typography.formatTitle("Craft a Fragment Changer and perform the ritual"));
             return;
@@ -83,19 +83,19 @@ public class FragmentGUIListener implements Listener {
         
         // Check for controls button
         if (displayName.contains("ᴄᴏɴᴛʀᴏʟ") || displayName.contains("Control")) {
-            player.closeInventory();
+            // Omit closeInventory for flicker-free transition
             org.bukkit.Bukkit.getScheduler().runTaskLater(
                 org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
                 () -> uiManager.openControlSchemeGUI(player),
-                2L
+                1L
             );
             return;
         }
         
         // Check for Mana Status button
         if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
-            // In-place refresh UX improvement: lower pitch and auto-revert
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 0.9f);
+            // In-place refresh UX improvement: play a distinct "pling" sound
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.2f);
 
             // Create a new version of the button with updated lore
             ItemStack updatedManaButton = uiManager.createManaStatusButton(player, true);
@@ -123,11 +123,18 @@ public class FragmentGUIListener implements Listener {
                 org.bukkit.Bukkit.getScheduler().runTaskLater(
                     org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
                     () -> uiManager.openFragmentGiveGUI(player),
-                    2L
+                    1L
                 );
             } else {
                 player.sendMessage("§cYou don't have permission to use this");
             }
+            return;
+        }
+
+        // Check for Close button
+        if (displayName.contains("Close") || displayName.contains("ᴄʟᴏsᴇ") || displayName.contains("✗")) {
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
+            player.closeInventory();
             return;
         }
         
@@ -150,13 +157,12 @@ public class FragmentGUIListener implements Listener {
         
         if (clickType == ClickType.LEFT || clickType == ClickType.SHIFT_LEFT) {
             // LEFT-CLICK: View abilities for ANY fragment (even locked ones!)
-            player.closeInventory();
-            // Small delay to prevent inventory glitch
+            // Small delay to prevent inventory glitch, but omit closeInventory for flicker-free transition
             final FragmentType finalType = clickedType;
             org.bukkit.Bukkit.getScheduler().runTaskLater(
                 org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
                 () -> uiManager.openAbilityDetails(player, finalType),
-                2L
+                1L
             );
 
             
@@ -188,12 +194,7 @@ public class FragmentGUIListener implements Listener {
                             uiManager.spawnFragmentSwitchParticles(player, clickedType);
                             
                             // Refresh the GUI
-                            player.closeInventory();
-                            org.bukkit.Bukkit.getScheduler().runTaskLater(
-                                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                                () -> uiManager.openFragmentOverview(player),
-                                3L
-                            );
+                            uiManager.refreshFragmentOverview(player);
                         }
                     } else {
                         uiManager.playLockedAbilitySound(player);
@@ -213,12 +214,7 @@ public class FragmentGUIListener implements Listener {
                         uiManager.spawnFragmentSwitchParticles(player, clickedType);
                         
                         // Refresh the GUI
-                        player.closeInventory();
-                        org.bukkit.Bukkit.getScheduler().runTaskLater(
-                            org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                            () -> uiManager.openFragmentOverview(player),
-                            3L
-                        );
+                        uiManager.refreshFragmentOverview(player);
                     }
                 }
                 
@@ -235,12 +231,7 @@ public class FragmentGUIListener implements Listener {
                         uiManager.spawnFragmentSwitchParticles(player, clickedType);
                         
                         // Refresh the GUI
-                        player.closeInventory();
-                        org.bukkit.Bukkit.getScheduler().runTaskLater(
-                            org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                            () -> uiManager.openFragmentOverview(player),
-                            3L
-                        );
+                        uiManager.refreshFragmentOverview(player);
                     } else {
                         uiManager.playLockedAbilitySound(player);
                         player.sendMessage(com.muzlik.util.Typography.formatError("You need a Fragment Changer in your inventory"));
@@ -257,12 +248,7 @@ public class FragmentGUIListener implements Listener {
                     uiManager.spawnFragmentSwitchParticles(player, clickedType);
                     
                     // Refresh the GUI
-                    player.closeInventory();
-                    org.bukkit.Bukkit.getScheduler().runTaskLater(
-                        org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
-                        () -> uiManager.openFragmentOverview(player),
-                        3L
-                    );
+                    uiManager.refreshFragmentOverview(player);
                 }
                 
             } else {
@@ -316,20 +302,36 @@ public class FragmentGUIListener implements Listener {
     /**
      * Handle clicks in Ability Detail View GUI
      */
-    private void handleAbilityDetailClick(Player player, String displayName) {
+    private void handleAbilityDetailClick(Player player, String displayName, InventoryClickEvent event) {
+        // Check for Mana Status button
+        if (displayName.contains("ᴍᴀɴᴀ") || displayName.contains("Mana Status")) {
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.2f);
+            ItemStack updated = uiManager.createManaStatusButton(player, true);
+            event.getInventory().setItem(event.getSlot(), updated);
+
+            org.bukkit.Bukkit.getScheduler().runTaskLater(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"), () -> {
+                if (player.getOpenInventory().getTopInventory().equals(event.getInventory())) {
+                    event.getInventory().setItem(event.getSlot(), uiManager.createManaStatusButton(player, false));
+                }
+            }, 20L);
+            return;
+        }
+
         // Check for back button
         if (displayName.contains("Back") || displayName.contains("ʙᴀᴄᴋ") || displayName.contains("←")) {
-            player.closeInventory();
+            // Omit closeInventory for flicker-free transition
             org.bukkit.Bukkit.getScheduler().runTaskLater(
                 org.bukkit.Bukkit.getPluginManager().getPlugin("FrostSMP"),
                 () -> uiManager.openFragmentOverview(player),
-                2L
+                1L
             );
             return;
         }
         
         // Check for close button
-        if (displayName.contains("Close") || displayName.contains("ᴄʟᴏsᴇ")) {
+        if (displayName.contains("Close") || displayName.contains("ᴄʟᴏsᴇ") || displayName.contains("✗")) {
+            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f);
             player.closeInventory();
             return;
         }

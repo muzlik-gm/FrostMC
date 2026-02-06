@@ -155,11 +155,13 @@ public class TextureRegistry {
         UI_TEXTURES.put("ui_locked_icon", 4006);
         UI_TEXTURES.put("ui_unlocked_icon", 4007);
         UI_TEXTURES.put("ui_warning_icon", 4008);
+        UI_TEXTURES.put("ui_mana_status", 4009);
         UI_TEXTURES.put("ui_rank_badge_bronze", 4010);
         UI_TEXTURES.put("ui_rank_badge_silver", 4011);
         UI_TEXTURES.put("ui_rank_badge_gold", 4012);
         UI_TEXTURES.put("ui_rank_badge_diamond", 4013);
         UI_TEXTURES.put("ui_rank_badge_master", 4014);
+        UI_TEXTURES.put("ui_give", 4015);
         UI_TEXTURES.put("ui_border_top", 4020);
         UI_TEXTURES.put("ui_border_bottom", 4021);
         UI_TEXTURES.put("ui_border_left", 4022);
