@@ -38,15 +38,7 @@ public class ManaDisplay {
         // Do NOT create or update boss bars
     }
 
-    /**
-     * Update boss bar display - DISABLED
-     * @deprecated Boss bar mana display has been removed. Mana is shown in action bar.
-     */
-    @Deprecated
-    private void updateBossBar(Player player, double currentMana, double maxMana) {
-        // DISABLED - No longer creating boss bars for mana
-        // This method is kept for compatibility but does nothing
-    }
+
 
     /**
      * Create visual mana bar

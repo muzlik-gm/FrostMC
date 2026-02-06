@@ -135,8 +135,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 }
                 grantFragment(player, args[1]);
                 break;
-            // REMOVED: activate command - players must use Fragment Changer ritual
-            // This prevents bypassing the inventory requirement
             case "controls":
             case "control":
                 handleControls(player, args);
@@ -186,7 +184,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
 
         return true;
     }
-
     private void handleReload(CommandSender sender) {
         if (!sender.hasPermission("fragment.admin")) {
             sender.sendMessage("§cYou don't have permission to use this command");
@@ -283,14 +280,14 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleSet(Player player, String[] args) {
-        // Usage: /fragment set <player> <fragment> <level/rank> <value>
+        // Usage: /fragment set <player> <charlevel|rank|level> <fragment|value>
         if (!player.hasPermission("fragment.admin")) {
             player.sendMessage("§cYou don't have permission to use this command");
             return;
         }
         
-        if (args.length < 5) {
-            player.sendMessage("§cUsage: /fragment set <player> <fragment> <level/rank> <value>");
+        if (args.length < 4) {
+            player.sendMessage("§cUsage: /fragment set <player> <charlevel|rank|level> <fragment|value>");
             return;
         }
         
@@ -300,31 +297,60 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
-        FragmentType type;
-        try {
-            type = FragmentType.valueOf(args[2].toUpperCase());
-        } catch (IllegalArgumentException e) {
-            player.sendMessage("§cInvalid fragment type: " + args[2]);
-            return;
-        }
+        String stat = args[2].toLowerCase();
         
-        String stat = args[3].toLowerCase();
-        int value;
-        try {
-            value = Integer.parseInt(args[4]);
-        } catch (NumberFormatException e) {
-            player.sendMessage("§cInvalid value: " + args[4]);
-            return;
-        }
-        
-        if (stat.equals("level")) {
-            levelManager.setLevel(target, type, value);
-            player.sendMessage("§aSet " + type.getDisplayName() + " level for " + target.getName() + " to " + value);
-        } else if (stat.equals("rank")) {
-            rankManager.setRank(target, type, value);
-            player.sendMessage("§aSet " + type.getDisplayName() + " rank for " + target.getName() + " to " + value);
+        if (stat.equals("charlevel")) {
+            // Character level: /fragment set <player> charlevel <value>
+            int value;
+            try {
+                value = Integer.parseInt(args[3]);
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cInvalid character level: " + args[3]);
+                return;
+            }
+            
+            if (characterLevelManager != null) {
+                characterLevelManager.setCharacterLevel(target, value);
+                double newMaxMana = characterLevelManager.getMaxMana(target);
+                player.sendMessage("§aSet character level for " + target.getName() + " to " + value);
+                player.sendMessage("§7New max mana: §b" + String.format("%.0f", newMaxMana));
+                target.sendMessage("§6Your character level has been set to " + value + "!");
+                target.sendMessage("§7Max mana is now: §b" + String.format("%.0f", newMaxMana));
+            } else {
+                player.sendMessage("§cCharacter level manager not available");
+            }
+        } else if (stat.equals("level") || stat.equals("rank")) {
+            // Fragment level/rank: /fragment set <player> <level|rank> <fragment> <value>
+            if (args.length < 5) {
+                player.sendMessage("§cUsage: /fragment set <player> " + stat + " <fragment> <value>");
+                return;
+            }
+            
+            FragmentType type;
+            try {
+                type = FragmentType.valueOf(args[3].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                player.sendMessage("§cInvalid fragment type: " + args[3]);
+                return;
+            }
+            
+            int value;
+            try {
+                value = Integer.parseInt(args[4]);
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cInvalid value: " + args[4]);
+                return;
+            }
+            
+            if (stat.equals("level")) {
+                levelManager.setLevel(target, type, value);
+                player.sendMessage("§aSet " + type.getDisplayName() + " level for " + target.getName() + " to " + value);
+            } else if (stat.equals("rank")) {
+                rankManager.setRank(target, type, value);
+                player.sendMessage("§aSet " + type.getDisplayName() + " rank for " + target.getName() + " to " + value);
+            }
         } else {
-            player.sendMessage("§cUnknown stat: " + stat + " (use level or rank)");
+            player.sendMessage("§cUnknown stat: " + stat + " (use charlevel, level, or rank)");
         }
     }
 
@@ -357,13 +383,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 levelManager.setLevel(target, type, 1);
                 levelManager.setXP(target, type, 0);
                 rankManager.initializeRank(target, type);
-                player.sendMessage(
-                    com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
-                    com.muzlik.util.Typography.toSmallCaps("reset") + " " +
-                    com.muzlik.util.Typography.COLOR_SECONDARY + type.getDisplayName() + " " +
-                    com.muzlik.util.Typography.COLOR_TEXT_DARK + com.muzlik.util.Typography.toSmallCaps("for") + " " +
-                    com.muzlik.util.Typography.COLOR_HIGHLIGHT + target.getName()
-                );
+                player.sendMessage("§a✓ Reset " + type.getDisplayName() + " for " + target.getName());
             } catch (IllegalArgumentException e) {
                 player.sendMessage("§cInvalid fragment type: " + args[2]);
             }
@@ -377,11 +397,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 levelManager.setXP(target, type, 0);
                 rankManager.initializeRank(target, type);
             }
-            player.sendMessage(
-                com.muzlik.util.Typography.COLOR_SUCCESS + com.muzlik.util.Typography.SYMBOL_CHECK + " " +
-                com.muzlik.util.Typography.toSmallCaps("reset all fragments for") + " " +
-                com.muzlik.util.Typography.COLOR_HIGHLIGHT + target.getName()
-            );
+            player.sendMessage("§a✓ Reset all fragments for " + target.getName());
         }
     }
     
@@ -434,16 +450,15 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         // Extinguish fire
         player.setFireTicks(0);
     }
-
     /**
-     * Show detailed Fragment info (Task 7.1, 7.2)
+     * Show compact, beautiful Fragment info (FIXED VERSION)
      */
     private void showFragmentInfo(Player player) {
         FragmentType activeFragment = fragmentManager.getActiveFragment(player);
         
         if (activeFragment == null) {
-            player.sendMessage("§cœ— No Fragment active");
-            player.sendMessage("§7Use §e/fragment list §7to view and activate a Fragment");
+            player.sendMessage("§c✗ No Fragment active");
+            player.sendMessage("§7Use §e/fragment list §7to activate one");
             return;
         }
         
@@ -451,176 +466,147 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         int rank = rankManager.getRank(player, activeFragment);
         int maxRank = rankManager.getMaxRank(activeFragment);
         int level = levelManager.getLevel(player, activeFragment);
+        int maxLevel = levelManager.getMaxLevel(activeFragment);
         double xp = levelManager.getXP(player, activeFragment);
         double xpRequired = levelManager.getXPForNextLevel(player, activeFragment);
         double currentMana = manaManager.getMana(player);
         double maxMana = manaManager.getMaxMana(player);
-        double regenRate = manaManager.getManaRegenRate(player);
         
-        // Calculate XP progress bar
+        // Calculate progress bars (simple version)
         double xpPercent = xpRequired > 0 ? (xp / xpRequired) : 1.0;
-        String xpBar = buildProgressBar(xpPercent, 20);
-        
-        // Calculate mana progress bar
         double manaPercent = maxMana > 0 ? (currentMana / maxMana) : 1.0;
-        String manaBar = buildProgressBar(manaPercent, 20);
         
-        // Header
-        player.sendMessage("§6§l–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬");
-        player.sendMessage("§e§l              " + activeFragment.getDisplayName().toUpperCase() + " FRAGMENT");
-        player.sendMessage("§6§l–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬");
-        player.sendMessage("");
+        // Build simple progress bars
+        int xpFilled = (int) (xpPercent * 10);
+        int manaFilled = (int) (manaPercent * 10);
+        String xpBar = "§a" + "█".repeat(xpFilled) + "§8" + "░".repeat(10 - xpFilled);
+        String manaBar = "§b" + "█".repeat(manaFilled) + "§8" + "░".repeat(10 - manaFilled);
         
-        // Rank display
-        String rankBadge = getRankBadge(rank, maxRank);
-        player.sendMessage("§7Rank: " + rankBadge + " §6§l" + rank + " §7/ §6" + maxRank);
-        if (rank < maxRank) {
-            player.sendMessage("§7  §8†’ §7Next rank unlocks more power!");
-        } else {
-            player.sendMessage("§7  §6§l˜… MASTERY ACHIEVED ˜…");
+        // Get fragment color
+        String fragColor = "§c"; // Default to red, will be overridden
+        switch (activeFragment) {
+            case FIRE: fragColor = "§c"; break;
+            case WATER: fragColor = "§b"; break;
+            case AIR: fragColor = "§f"; break;
+            case DARK: fragColor = "§8"; break;
+            case LIGHT: fragColor = "§e"; break;
+            case VOID: fragColor = "§5"; break;
+            case STORM: fragColor = "§9"; break;
+            case DRAGON: fragColor = "§6"; break;
+            case TIME: fragColor = "§d"; break;
+            case LUCK: fragColor = "§a"; break;
         }
-        player.sendMessage("");
         
-        // Level and XP display
-        player.sendMessage("§7Level: §e§l" + level + " §7/ §e50");
-        player.sendMessage("§7XP: " + xpBar);
-        player.sendMessage("§7  §e" + String.format("%.0f", xp) + " §7/ §e" + String.format("%.0f", xpRequired) + " §8(" + String.format("%.1f", xpPercent * 100) + "%)");
-        player.sendMessage("");
+        // Rank badge
+        String rankBadge = rank >= maxRank ? "§6★" : "§7◆";
         
-        // Mana display
-        player.sendMessage("§7Mana: §b§l" + String.format("%.0f", currentMana) + " §7/ §b" + String.format("%.0f", maxMana));
-        player.sendMessage("§7" + manaBar);
-        player.sendMessage("§7  §8Regen: §b+" + String.format("%.1f", regenRate) + " §7per second");
+        // Compact display (6 lines total) - Fixed box borders to not overflow
         player.sendMessage("");
+        player.sendMessage("§8╔═════════════════════════════════╗");
+        player.sendMessage("§8║  " + fragColor + "§l" + activeFragment.getDisplayName().toUpperCase() + " FRAGMENT §r§8║");
+        player.sendMessage("§8╚═════════════════════════════════╝");
         
-        // Abilities display
+        // Rank & Level (single line)
+        player.sendMessage("§7Rank: " + rankBadge + " §f" + rank + "§8/§7" + maxRank + 
+                         " §8│ §7Level: §e" + level + "§8/§7" + maxLevel);
+        
+        // XP Progress (compact)
+        if (level < maxLevel) {
+            player.sendMessage("§7XP: " + xpBar + " §e" + String.format("%.0f", xp) + "§8/§e" + String.format("%.0f", xpRequired));
+        } else {
+            player.sendMessage("§7XP: §6§l✦ MAX LEVEL ✦");
+        }
+        
+        // Mana (compact)
+        player.sendMessage("§7Mana: " + manaBar + " §b" + String.format("%.0f", currentMana) + "§8/§b" + String.format("%.0f", maxMana));
+        
+        // Abilities count (single line)
         com.muzlik.fragment.FragmentDefinition fragment = fragmentManager.getFragment(activeFragment);
         if (fragment != null) {
-            player.sendMessage("§7Abilities:");
-            
             int unlockedCount = 0;
             int totalCount = fragment.getAbilities().size();
             
             for (com.muzlik.fragment.ability.AbilityDefinition ability : fragment.getAbilities()) {
                 boolean isUnlocked = rank >= ability.getRankRequirement() && level >= ability.getLevelRequirement();
-                
-                if (isUnlocked) {
-                    unlockedCount++;
-                    String statusSymbol = "§aœ“";
-                    player.sendMessage("  " + statusSymbol + " §b" + ability.getDisplayName() + " §7(" + ability.getSlot().getDisplayName() + ")");
-                } else {
-                    String statusSymbol = "§cœ—";
-                    player.sendMessage("  " + statusSymbol + " §7" + ability.getDisplayName() + " §8(Requires Rank " + ability.getRankRequirement() + ")");
-                }
+                if (isUnlocked) unlockedCount++;
             }
             
-            player.sendMessage("");
-            player.sendMessage("§7Unlocked: §a" + unlockedCount + " §7/ §e" + totalCount);
+            String abilityStatus = unlockedCount == totalCount ? "§a" + unlockedCount + "§8/§a" + totalCount + " §7✓" : 
+                                  "§e" + unlockedCount + "§8/§7" + totalCount;
+            player.sendMessage("§7Abilities: " + abilityStatus + " §8│ §7Use §e/fragment abilities §7for details");
         }
         
         player.sendMessage("");
-        player.sendMessage("§7Use §e/fragment abilities §7for detailed ability information");
-        player.sendMessage("§6§l–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬");
     }
     
     /**
-     * Show abilities list (Task 8.1, 8.2)
+     * Show compact abilities list (FIXED VERSION)
      */
     private void showAbilitiesList(Player player) {
         FragmentType activeFragment = fragmentManager.getActiveFragment(player);
         
         if (activeFragment == null) {
-            player.sendMessage("§cœ— No Fragment active");
-            player.sendMessage("§7Use §e/fragment list §7to view and activate a Fragment");
+            player.sendMessage("§c✗ No Fragment active");
+            player.sendMessage("§7Use §e/fragment list §7to activate one");
             return;
         }
         
         com.muzlik.fragment.FragmentDefinition fragment = fragmentManager.getFragment(activeFragment);
         if (fragment == null) {
-            player.sendMessage("§cœ— Fragment data not found");
+            player.sendMessage("§c✗ Fragment data not found");
             return;
         }
         
         int rank = rankManager.getRank(player, activeFragment);
         int level = levelManager.getLevel(player, activeFragment);
         
-        // Header
-        player.sendMessage("§6§l–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬");
-        player.sendMessage("§e§l         " + activeFragment.getDisplayName().toUpperCase() + " ABILITIES");
-        player.sendMessage("§6§l–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬");
-        player.sendMessage("");
+        // Get fragment color
+        String fragColor = "§c";
+        switch (activeFragment) {
+            case FIRE: fragColor = "§c"; break;
+            case WATER: fragColor = "§b"; break;
+            case AIR: fragColor = "§f"; break;
+            case DARK: fragColor = "§8"; break;
+            case LIGHT: fragColor = "§e"; break;
+            case VOID: fragColor = "§5"; break;
+            case STORM: fragColor = "§9"; break;
+            case DRAGON: fragColor = "§6"; break;
+            case TIME: fragColor = "§d"; break;
+            case LUCK: fragColor = "§a"; break;
+        }
         
-        // List abilities
+        // Compact header - Fixed box borders to not overflow
+        player.sendMessage("");
+        player.sendMessage("§8╔═════════════════════════════════╗");
+        player.sendMessage("§8║  " + fragColor + "§l" + activeFragment.getDisplayName().toUpperCase() + " ABILITIES §r§8║");
+        player.sendMessage("§8╚═════════════════════════════════╝");
+        
+        // List abilities compactly
         for (com.muzlik.fragment.ability.AbilityDefinition ability : fragment.getAbilities()) {
             boolean isUnlocked = rank >= ability.getRankRequirement() && level >= ability.getLevelRequirement();
             boolean isOnCooldown = cooldownManager.isOnCooldown(player, ability.getId());
             
             if (isUnlocked) {
-                String statusSymbol = isOnCooldown ? "§e±" : "§aœ“";
-                player.sendMessage(statusSymbol + " §b§l" + ability.getDisplayName() + " §7(Slot " + ability.getSlot().getSlotIndex() + ")");
-                player.sendMessage("   §7" + ability.getDescription());
-                player.sendMessage("   §7Mana: §b" + String.format("%.0f", ability.getManaCost()) + " §8| §7Cooldown: §e" + (ability.getCooldown() / 1000.0) + "s");
+                String statusSymbol = isOnCooldown ? "§e⏳" : "§a✓";
+                player.sendMessage(statusSymbol + " §f" + ability.getDisplayName() + " §8│ §7Slot " + ability.getSlot().getSlotIndex());
                 
-                if (isOnCooldown) {
-                    double remaining = cooldownManager.getRemainingCooldownSeconds(player, ability.getId());
-                    player.sendMessage("   §c± On cooldown: §e" + String.format("%.1f", remaining) + "s");
-                }
+                // Compact info line
+                String cooldownInfo = isOnCooldown ? 
+                    " §c(" + String.format("%.1f", cooldownManager.getRemainingCooldownSeconds(player, ability.getId())) + "s)" : "";
+                player.sendMessage("  §7Mana: §b" + String.format("%.0f", ability.getManaCost()) + 
+                                 " §8│ §7CD: §e" + (ability.getCooldown() / 1000.0) + "s" + cooldownInfo);
             } else {
-                player.sendMessage("§cœ— §7" + ability.getDisplayName() + " §8(Slot " + ability.getSlot().getSlotIndex() + ")");
-                player.sendMessage("   §7" + ability.getDescription());
-                
-                int rankReq = ability.getRankRequirement();
-                int levelReq = ability.getLevelRequirement();
-                
-                if (rank < rankReq) {
-                    int ranksAway = rankReq - rank;
-                    player.sendMessage("   §cœ— Requires Rank §6" + rankReq + " §7(you are §6" + rank + "§7) - §e" + ranksAway + " ranks away");
-                }
-                if (level < levelReq) {
-                    int levelsAway = levelReq - level;
-                    player.sendMessage("   §cœ— Requires Level §e" + levelReq + " §7(you are §e" + level + "§7) - §e" + levelsAway + " levels away");
-                }
+                player.sendMessage("§c✗ §7" + ability.getDisplayName() + " §8│ §cRank " + ability.getRankRequirement() + " required");
             }
-            
-            player.sendMessage("");
         }
         
-        player.sendMessage("§7Use §eSneak + Right/Left Click §7while holding hotbar slots 0-4 to use abilities");
-        player.sendMessage("§6§l–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬–¬");
+        player.sendMessage("");
+        player.sendMessage("§7Use §eSneak + Right/Left Click §7with hotbar slots 0-4");
+        player.sendMessage("");
     }
     
     /**
-     * Build progress bar for display
-     */
-    private String buildProgressBar(double percent, int length) {
-        int filled = (int) (percent * length);
-        int empty = length - filled;
-        
-        StringBuilder bar = new StringBuilder("§7[");
-        bar.append("§a").append("–ˆ".repeat(Math.max(0, filled)));
-        bar.append("§7").append("–‘".repeat(Math.max(0, empty)));
-        bar.append("§7]");
-        
-        return bar.toString();
-    }
-    
-    /**
-     * Get rank badge symbol
-     */
-    private String getRankBadge(int rank, int maxRank) {
-        if (rank >= maxRank) {
-            return "§6§l˜…"; // Max rank - Gold star
-        } else if (rank >= maxRank - 1) {
-            return "§6—†"; // Near max - Gold diamond
-        } else if (rank >= (maxRank / 2)) {
-            return "§e—†"; // Mid rank - Yellow diamond
-        } else {
-            return "§7—†"; // Low rank - Gray diamond
-        }
-    }
-    
-    /**
-     * Show formatted Fragment list with pre-GUI message (Task 6.1)
+     * Show formatted Fragment list with pre-GUI message
      */
     private void showFragmentList(Player player) {
         Collection<FragmentType> ownedFragments = fragmentManager.getPlayerFragments(player);
@@ -664,17 +650,16 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("  §8Opening GUI...");
         player.sendMessage("");
         
-        // Open GUI after message (Task 6.2)
+        // Open GUI after message
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             uiManager.openFragmentOverview(player);
         }, 20L); // 1 second delay for smooth transition
     }
-    
     /**
      * Generate resource pack template (admin command)
      */
     private void generateResourcePack(Player player) {
-        player.sendMessage("§a§lœ“ Generating resource pack template...");
+        player.sendMessage("§a§l✓ Generating resource pack template...");
         
         try {
             com.muzlik.texture.ResourcePackGenerator generator = 
@@ -682,7 +667,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             generator.generateResourcePack();
             generator.generateExampleModels(new java.io.File(plugin.getDataFolder(), "resourcepack"));
             
-            player.sendMessage("§a§lœ“ Resource pack template generated!");
+            player.sendMessage("§a§l✓ Resource pack template generated!");
             player.sendMessage("§7Location: §e" + plugin.getDataFolder().getAbsolutePath() + "/resourcepack");
             player.sendMessage("§7Check TEXTURE_MAPPING.md for texture IDs and instructions");
             player.sendMessage("");
@@ -692,7 +677,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             player.sendMessage("§7  3. Distribute to players or host on server");
             
         } catch (Exception e) {
-            player.sendMessage("§cœ— Failed to generate resource pack: " + e.getMessage());
+            player.sendMessage("§c✗ Failed to generate resource pack: " + e.getMessage());
             plugin.getLogger().severe("Resource pack generation failed: " + e.getMessage());
             e.printStackTrace();
         }
@@ -744,78 +729,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage("§cUnknown control scheme: §e" + args[1]);
                 player.sendMessage("§7Available: sneak_click, double_sneak, swap_hands, click_only");
                 player.sendMessage("§7Or use §e/fragment controls §7to open GUI");
-            }
-        }
-    }
-    
-    /**
-     * OLD handleControls - keeping for reference
-     */
-    private void handleControlsOld(Player player, String[] args) {
-        if (plugin instanceof FrostSMPPlugin) {
-            FrostSMPPlugin frostPlugin = (FrostSMPPlugin) plugin;
-            com.muzlik.player.PlayerPreferencesManager prefsManager = frostPlugin.getPreferencesManager();
-            
-            if (prefsManager == null) {
-                player.sendMessage("§cPreferences system not initialized");
-                return;
-            }
-            
-            if (args.length == 1) {
-                // Show current control scheme and available options
-                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
-                
-                player.sendMessage("");
-                player.sendMessage("§8§m                                        ");
-                player.sendMessage("  §f§lCONTROL SCHEMES");
-                player.sendMessage("§8§m                                        ");
-                player.sendMessage("");
-                player.sendMessage("§eCurrent: §f" + current.getDisplayName());
-                player.sendMessage("§7" + current.getDescription());
-                player.sendMessage("");
-                
-                for (String instruction : current.getInstructions()) {
-                    player.sendMessage("  " + instruction);
-                }
-                
-                player.sendMessage("");
-                player.sendMessage("§7Available schemes:");
-                for (com.muzlik.player.ControlScheme scheme : com.muzlik.player.ControlScheme.values()) {
-                    String prefix = scheme == current ? "§a▶ " : "§7  ";
-                    player.sendMessage(prefix + "§f" + scheme.getDisplayName());
-                }
-                player.sendMessage("");
-                player.sendMessage("§7Use §e/fragment controls <scheme> §7to change");
-                player.sendMessage("§7Or §e/fragment controls next §7to cycle");
-                player.sendMessage("");
-                return;
-            }
-            
-            String schemeArg = args[1].toUpperCase().replace(" ", "_");
-            
-            if (schemeArg.equals("NEXT")) {
-                // Cycle to next scheme
-                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
-                com.muzlik.player.ControlScheme next = current.next();
-                prefsManager.setControlScheme(player, next);
-                return;
-            }
-            
-            if (schemeArg.equals("PREV") || schemeArg.equals("PREVIOUS")) {
-                // Cycle to previous scheme
-                com.muzlik.player.ControlScheme current = prefsManager.getControlScheme(player);
-                com.muzlik.player.ControlScheme prev = current.previous();
-                prefsManager.setControlScheme(player, prev);
-                return;
-            }
-            
-            // Try to match scheme name
-            try {
-                com.muzlik.player.ControlScheme scheme = com.muzlik.player.ControlScheme.valueOf(schemeArg);
-                prefsManager.setControlScheme(player, scheme);
-            } catch (IllegalArgumentException e) {
-                player.sendMessage("§cUnknown control scheme: §e" + args[1]);
-                player.sendMessage("§7Available: sneak_click, double_sneak, swap_hands, offhand_item, click_only");
             }
         }
     }
@@ -875,7 +788,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     }
     
     /**
-     * Handle debug commands (Task 15)
+     * Handle debug commands
      */
     private void handleDebug(Player player, String[] args) {
         if (args.length < 2) {
@@ -922,9 +835,8 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                 break;
         }
     }
-    
     /**
-     * Debug player info (Task 15.1)
+     * Debug player info
      */
     private void debugPlayer(Player admin, Player target) {
         admin.sendMessage("");
@@ -978,7 +890,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     }
     
     /**
-     * Debug ability slots (Task 15.2)
+     * Debug ability slots
      */
     private void debugSlots(Player admin, Player target) {
         if (plugin instanceof FrostSMPPlugin) {
@@ -1009,7 +921,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     }
     
     /**
-     * Debug active rituals (Task 15.3)
+     * Debug active rituals
      */
     private void debugRituals(Player admin) {
         if (plugin instanceof FrostSMPPlugin) {
@@ -1050,7 +962,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     }
     
     /**
-     * Debug system health (Task 17.3)
+     * Debug system health
      */
     private void debugHealth(Player admin) {
         admin.sendMessage("");
@@ -1152,7 +1064,8 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         
         // Calculate XP progress
         double xpPercent = xpForNext > 0 ? (charXP / xpForNext) : 1.0;
-        String xpBar = buildProgressBar(xpPercent, 20);
+        int xpFilled = (int) (xpPercent * 10);
+        String xpBar = "§a" + "█".repeat(xpFilled) + "§8" + "░".repeat(10 - xpFilled);
         
         player.sendMessage("");
         player.sendMessage("§8§m                                        ");
@@ -1182,80 +1095,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         player.sendMessage("");
         player.sendMessage("§8§m                                        ");
     }
-    
-    /**
-     * Set character level (admin command)
-     */
-    private void setCharacterLevel(Player player, String levelStr) {
-        if (characterLevelManager == null) {
-            player.sendMessage("§cCharacter level system not initialized");
-            return;
-        }
-        
-        try {
-            int level = Integer.parseInt(levelStr);
-            int maxLevel = characterLevelManager.getMaxCharacterLevel();
-            
-            if (level < 1 || level > maxLevel) {
-                player.sendMessage("§cLevel must be between 1 and " + maxLevel);
-                return;
-            }
-            
-            characterLevelManager.setCharacterLevel(player, level);
-            characterLevelManager.setCharacterXP(player, 0); // Reset XP
-            
-            double newMaxMana = characterLevelManager.getMaxMana(player);
-            
-            player.sendMessage("§a✦ Character level set to §b" + level);
-            player.sendMessage("§a⚡ Max Mana is now §b" + String.format("%.0f", newMaxMana));
-            
-        } catch (NumberFormatException e) {
-            player.sendMessage("§cInvalid level: " + levelStr);
-        }
-    }
-    
-    /**
-     * Set Fragment level (admin command) - for the active Fragment
-     */
-    private void setFragmentLevel(Player player, String levelStr) {
-        FragmentType activeFragment = fragmentManager.getActiveFragment(player);
-        
-        if (activeFragment == null) {
-            player.sendMessage("§c✗ No Fragment active");
-            return;
-        }
-        
-        try {
-            int level = Integer.parseInt(levelStr);
-            int maxLevel = levelManager.getMaxLevel(activeFragment);
-            
-            if (level < 1 || level > maxLevel) {
-                player.sendMessage("§cLevel must be between 1 and " + maxLevel);
-                return;
-            }
-            
-            levelManager.setLevel(player, activeFragment, level);
-            levelManager.setXP(player, activeFragment, 0); // Reset XP
-            
-            // Get bonuses at this level
-            double cdReduction = levelManager.getCooldownReduction(player, activeFragment) * 100;
-            double manaReduction = levelManager.getManaCostReduction(player, activeFragment) * 100;
-            double dmgBonus = levelManager.getDamageBonus(player, activeFragment) * 100;
-            
-            player.sendMessage("§a⬆ " + activeFragment.getDisplayName() + " Fragment level set to §b" + level + "/" + maxLevel);
-            player.sendMessage("");
-            player.sendMessage("§7Bonuses:");
-            player.sendMessage("  §b⏱ §fCooldown: §a-" + String.format("%.0f", cdReduction) + "%");
-            player.sendMessage("  §b⚡ §fMana Cost: §a-" + String.format("%.0f", manaReduction) + "%");
-            player.sendMessage("  §b⚔ §fDamage: §a+" + String.format("%.0f", dmgBonus) + "%");
-            
-        } catch (NumberFormatException e) {
-            player.sendMessage("§cInvalid level: " + levelStr);
-        }
-    }
-
-
-
     private void grantFragment(Player player, String typeName) {
         try {
             FragmentType type = FragmentType.valueOf(typeName.toUpperCase());
@@ -1264,10 +1103,6 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             player.sendMessage("§cInvalid Fragment type: " + typeName);
         }
     }
-
-    // REMOVED: activateFragment method
-    // Players must use Fragment Changer ritual to switch fragments
-    // This ensures they have the required item in inventory
 
     private ItemStack createFragmentCreationItem(FragmentType type) {
         // Use texture system for Fragment creation items
@@ -1310,7 +1145,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     private void forceActivateFragment(Player admin, String targetName, String typeName) {
         Player target = plugin.getServer().getPlayer(targetName);
         if (target == null) {
-            admin.sendMessage("§cœ— Player not found: " + targetName);
+            admin.sendMessage("§c✗ Player not found: " + targetName);
             return;
         }
 
@@ -1320,17 +1155,14 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             // Grant the Fragment if they don't have it
             if (!fragmentManager.hasFragment(target, type)) {
                 fragmentManager.grantFragment(target, type);
-                admin.sendMessage("§aœ“ Granted " + type.getDisplayName() + " Fragment to " + target.getName());
+                admin.sendMessage("§a✓ Granted " + type.getDisplayName() + " Fragment to " + target.getName());
             }
             
             // Force activate (bypass cooldown and checks)
             fragmentManager.setActiveFragment(target, type);
             
-            // Update mana pool for the new Fragment (mana data is auto-created)
-            // The mana system will automatically adjust based on the new Fragment rank
-            
-            admin.sendMessage("§aœ“ Force-activated " + type.getDisplayName() + " Fragment for " + target.getName());
-            target.sendMessage("§bœ¦ Your Fragment has been set to " + type.getDisplayName() + " by an administrator");
+            admin.sendMessage("§a✓ Force-activated " + type.getDisplayName() + " Fragment for " + target.getName());
+            target.sendMessage("§b⚡ Your Fragment has been set to " + type.getDisplayName() + " by an administrator");
             
         } catch (IllegalArgumentException e) {
             admin.sendMessage("§cInvalid Fragment type: " + typeName);
@@ -1343,12 +1175,12 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            // Player commands (removed "activate" - use ritual instead)
+            // Player commands
             completions.addAll(Arrays.asList("gui", "list", "info", "level", "abilities", "recipes", "controls", "toggle", "withdraw"));
             
             // Admin commands (only show to admins)
             if (sender.hasPermission("fragment.admin")) {
-                completions.addAll(Arrays.asList("give", "grant", "set", "reset", "forceactivate", "reload", "generatepack"));
+                completions.addAll(Arrays.asList("give", "grant", "set", "reset", "forceactivate", "reload", "generatepack", "debug"));
             }
         } else if (args.length == 2) {
             if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
@@ -1357,32 +1189,42 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
                     completions.add(p.getName());
                 }
             } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("grant")) {
-                // Admin command - show only existing fragments (removed EARTH, MOB)
+                // Admin command - show only existing fragments
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "DARK", "LIGHT", "VOID", "DRAGON", "STORM", "TIME", "LUCK"));
             } else if (args[0].equalsIgnoreCase("controls") || args[0].equalsIgnoreCase("control")) {
                 completions.addAll(Arrays.asList("sneak_click", "double_sneak", "swap_hands", "click_only", "next", "prev"));
+            } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("debug")) {
+                completions.addAll(Arrays.asList("player", "slots", "rituals", "health"));
             }
         } else if (args.length == 3) {
             if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("give")) {
-                // Removed earth, mob from give command (only existing fragments)
                 completions.addAll(Arrays.asList("fire", "water", "air", "dark", "light", "void", "dragon", "storm", "time", "luck", "changer", "manaflask"));
-            } else if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
-                // Only show existing fragments (removed EARTH, MOB)
+            } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {
+                completions.addAll(Arrays.asList("charlevel", "level", "rank"));
+            } else if (sender.hasPermission("fragment.admin") && (args[0].equalsIgnoreCase("reset") || args[0].equalsIgnoreCase("forceactivate"))) {
                 completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "DARK", "LIGHT", "VOID", "DRAGON", "STORM", "TIME", "LUCK"));
+            } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("debug") && !args[1].equalsIgnoreCase("rituals") && !args[1].equalsIgnoreCase("health")) {
+                // Add player names for debug player/slots commands
+                for (Player p : plugin.getServer().getOnlinePlayers()) {
+                    completions.add(p.getName());
+                }
             }
         } else if (args.length == 4) {
-            if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {
-                completions.addAll(Arrays.asList("level", "rank"));
+            if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set") && (args[2].equalsIgnoreCase("level") || args[2].equalsIgnoreCase("rank"))) {
+                completions.addAll(Arrays.asList("FIRE", "WATER", "AIR", "DARK", "LIGHT", "VOID", "DRAGON", "STORM", "TIME", "LUCK"));
+            } else if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set") && args[2].equalsIgnoreCase("charlevel")) {
+                completions.addAll(Arrays.asList("1", "5", "10", "25", "50"));
             }
         } else if (args.length == 5) {
             if (sender.hasPermission("fragment.admin") && args[0].equalsIgnoreCase("set")) {
-                completions.add("1");
-                completions.add("5");
-                completions.add("10");
+                if (args[2].equalsIgnoreCase("level")) {
+                    completions.addAll(Arrays.asList("1", "5", "10", "25", "50"));
+                } else if (args[2].equalsIgnoreCase("rank")) {
+                    completions.addAll(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"));
+                }
             }
         }
 
         return completions;
     }
 }
-

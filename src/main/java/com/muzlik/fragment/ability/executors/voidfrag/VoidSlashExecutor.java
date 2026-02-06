@@ -16,7 +16,7 @@ public class VoidSlashExecutor implements AbilityExecutor {
     public void execute(AbilityContext context) {
         Player player = context.getPlayer();
         int rank = context.getRank();
-        double baseDamage = 5.0; // EXTREME NERF: 16.0 → 5.0 (2.5 hearts, primary true damage cone)
+        double baseDamage = 8.0; // EXTREME NERF: 16.0 → 8.0 (4.0 hearts, primary true damage cone)
         double damage = context.getScalingEngine().scaleDamage(baseDamage, rank);
         double range = 8.0 + (rank * 0.5);
         

@@ -169,6 +169,38 @@ public class FragmentPassiveListener implements Listener {
                                 true
                             ));
                             break;
+                            
+                        case TIME:
+                            // Slowness immunity - remove any slowness effects
+                            if (player.hasPotionEffect(PotionEffectType.SLOW)) {
+                                player.removePotionEffect(PotionEffectType.SLOW);
+                            }
+                            // Also remove mining fatigue
+                            if (player.hasPotionEffect(PotionEffectType.SLOW_DIGGING)) {
+                                player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                            }
+                            break;
+                            
+                        case DRAGON:
+                            // Fire immunity (stronger than fire resistance)
+                            player.addPotionEffect(new PotionEffect(
+                                PotionEffectType.FIRE_RESISTANCE,
+                                60,
+                                1, // Fire Resistance II for stronger protection
+                                true,
+                                false,
+                                true
+                            ));
+                            // Knockback resistance via Resistance effect
+                            player.addPotionEffect(new PotionEffect(
+                                PotionEffectType.DAMAGE_RESISTANCE,
+                                60,
+                                0, // Resistance I for damage reduction
+                                true,
+                                false,
+                                true
+                            ));
+                            break;
                     }
                 }
             }
@@ -244,8 +276,37 @@ public class FragmentPassiveListener implements Listener {
     }
     
     /**
-     * Void Fragment: Teleport to spawn when falling into void
+     * Dragon Fragment: Enhanced fire immunity
      */
+    @EventHandler
+    public void onDragonFireDamage(EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        
+        Player player = (Player) event.getEntity();
+        FragmentType activeFragment = fragmentManager.getActiveFragment(player);
+        
+        if (activeFragment == FragmentType.DRAGON) {
+            // Complete immunity to fire, lava, and magma block damage
+            if (event.getCause() == EntityDamageEvent.DamageCause.FIRE ||
+                event.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK ||
+                event.getCause() == EntityDamageEvent.DamageCause.LAVA ||
+                event.getCause() == EntityDamageEvent.DamageCause.HOT_FLOOR) {
+                
+                event.setCancelled(true);
+                
+                // Show dragon fire particles occasionally
+                if (Math.random() < 0.1) { // 10% chance
+                    player.getWorld().spawnParticle(
+                        org.bukkit.Particle.DRAGON_BREATH,
+                        player.getLocation().add(0, 1, 0),
+                        3,
+                        0.3, 0.3, 0.3,
+                        0.01
+                    );
+                }
+            }
+        }
+    }
     @EventHandler
     public void onVoidDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player)) return;

@@ -18,7 +18,6 @@ public class AbilityContext {
     private int rank;
     private AbilityScalingEngine scalingEngine;
 
-    // Legacy fields for backward compatibility
     private final FragmentType fragmentType;
     private final int playerRank;
     private final int playerLevel;

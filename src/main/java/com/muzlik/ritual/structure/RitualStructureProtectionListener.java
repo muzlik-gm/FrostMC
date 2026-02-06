@@ -49,7 +49,7 @@ public class RitualStructureProtectionListener implements Listener {
     }
     
     /**
-     * Schedule delayed despawn with countdown timer (20 seconds)
+     * Schedule delayed despawn with countdown timer (5 minutes)
      */
     private void scheduleDelayedDespawn(RitualStructure structure) {
         Location center = structure.getCenter();
@@ -63,11 +63,11 @@ public class RitualStructureProtectionListener implements Listener {
         countdown.setMarker(true);
         countdown.setSmall(true);
         countdown.setCustomNameVisible(true);
-        countdown.setCustomName("§e⏳ Ritual structure cleanup in 20s");
+        countdown.setCustomName("§e⏳ Ritual structure cleanup in 5m 0s");
         
         // Countdown task
         new BukkitRunnable() {
-            int secondsLeft = 20;
+            int secondsLeft = 300; // 5 minutes = 300 seconds
             
             @Override
             public void run() {
@@ -83,9 +83,13 @@ public class RitualStructureProtectionListener implements Listener {
                     return;
                 }
                 
-                // Update countdown display
-                String color = secondsLeft <= 5 ? "§c" : secondsLeft <= 10 ? "§6" : "§e";
-                countdown.setCustomName(color + "⏳ Cleanup in " + secondsLeft + "s");
+                // Update countdown display with minutes and seconds
+                int minutes = secondsLeft / 60;
+                int seconds = secondsLeft % 60;
+                String timeDisplay = minutes + "m " + seconds + "s";
+                
+                String color = secondsLeft <= 30 ? "§c" : secondsLeft <= 60 ? "§6" : "§e";
+                countdown.setCustomName(color + "⏳ Cleanup in " + timeDisplay);
                 
                 secondsLeft--;
             }

@@ -190,53 +190,77 @@ public class TextureItemBuilder {
      * Right-click to activate the fragment
      */
     public static ItemStack createFragmentItem(com.muzlik.fragment.FragmentType type) {
-        int customModelData = TextureRegistry.getFragmentTexture(type);
+        ItemStack item = new ItemStack(TextureRegistry.getBaseMaterial()); // Still use PAPER for fragment items
+        ItemMeta meta = item.getItemMeta();
         
-        TextureItemBuilder builder = new TextureItemBuilder(customModelData)
-                .name("§5§l" + type.getDisplayName() + " Fragment Activator")
-                .addLore("§7A powerful elemental fragment")
-                .addLore("§7containing " + type.getDisplayName().toLowerCase() + " energy")
-                .addEmptyLine()
-                .addLore("§e➤ Right-click to activate this fragment!")
-                .addEmptyLine();
+        // Set custom model data for texture pack compatibility
+        meta.setCustomModelData(TextureRegistry.getFragmentTexture(type));
+        
+        meta.setDisplayName("§5§l" + type.getDisplayName() + " Fragment Activator");
+        
+        // Build lore list first, then set it
+        List<String> lore = new ArrayList<>();
+        lore.add("§7A powerful elemental fragment");
+        lore.add("§7containing " + type.getDisplayName().toLowerCase() + " energy");
+        lore.add("");
+        lore.add("§e➤ Right-click to activate this fragment!");
+        lore.add("");
         
         // Add passive effects based on fragment type
-        builder.addLore("§6§lPassive Effects:");
+        lore.add("§6§lPassive Effects:");
         switch (type) {
             case FIRE:
-                builder.addLore("§7• Fire Resistance");
+                lore.add("§7• Fire Resistance");
                 break;
             case WATER:
-                builder.addLore("§7• Water Breathing");
+                lore.add("§7• Water Breathing");
                 break;
             case AIR:
-                builder.addLore("§7• Slow Falling (while sneaking)");
+                lore.add("§7• Slow Falling (while sneaking)");
                 break;
             case DARK:
-                builder.addLore("§7• Invisibility (while standing still)");
+                lore.add("§7• Invisibility (while standing still)");
                 break;
             case LIGHT:
-                builder.addLore("§7• Health Regeneration (out of combat)");
+                lore.add("§7• Health Regeneration (out of combat)");
                 break;
             case VOID:
-                builder.addLore("§7• Void Protection (teleport to spawn)");
+                lore.add("§7• Void Protection (teleport to spawn)");
                 break;
             case STORM:
-                builder.addLore("§7• Speed Boost (during rain/storms)");
+                lore.add("§7• Speed Boost (during rain/storms)");
                 break;
             case LUCK:
-                builder.addLore("§7• Luck VI Effect");
+                lore.add("§7• Luck VI Effect");
+                break;
+            case TIME:
+                lore.add("§7• Slowness Immunity");
+                break;
+            case DRAGON:
+                lore.add("§7• Fire Immunity");
+                lore.add("§7• Knockback Resistance");
                 break;
             default:
-                builder.addLore("§7• None");
+                lore.add("§7• None");
                 break;
         }
         
-        builder.addEmptyLine()
-                .addLore("§8Fragment Type: §5" + type.name())
-                .addLore("§5§lFRAGMENT_ACTIVATOR")
-                .hideFlags();
+        lore.add("");
+        lore.add("§8Fragment Type: §5" + type.name());
+        lore.add("§5§lFRAGMENT_ACTIVATOR");
         
-        return builder.build();
+        // Set the complete lore
+        meta.setLore(lore);
+        
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        meta.addItemFlags(ItemFlag.HIDE_DESTROYS);
+        meta.addItemFlags(ItemFlag.HIDE_PLACED_ON);
+        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        meta.addItemFlags(ItemFlag.HIDE_DYE);
+        
+        item.setItemMeta(meta);
+        return item;
     }
 }

@@ -54,23 +54,42 @@ public class PlayerDataListener implements Listener {
         
         // Task 11.1: Unlock fragment recipes in recipe book
         unlockFragmentRecipes(event.getPlayer());
+        
+        // Interactive tutorial auto-triggers on join (no manual activation needed)
     }
     
     /**
      * Unlock all fragment recipes in the player's recipe book (Task 11.1)
      */
     private void unlockFragmentRecipes(Player player) {
-        // Unlock all 10 fragment creation recipes
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:fire_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:water_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:air_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:dark_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:light_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:void_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:dragon_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:storm_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:time_fragment_creation"));
-        player.discoverRecipe(org.bukkit.NamespacedKey.fromString("frostsmp:luck_fragment_creation"));
+        try {
+            // Unlock all 10 fragment creation recipes with null checks
+            String[] recipeKeys = {
+                "frostsmp:fire_fragment_creation",
+                "frostsmp:water_fragment_creation", 
+                "frostsmp:air_fragment_creation",
+                "frostsmp:dark_fragment_creation",
+                "frostsmp:light_fragment_creation",
+                "frostsmp:void_fragment_creation",
+                "frostsmp:dragon_fragment_creation",
+                "frostsmp:storm_fragment_creation",
+                "frostsmp:time_fragment_creation",
+                "frostsmp:luck_fragment_creation"
+            };
+            
+            for (String recipeKey : recipeKeys) {
+                try {
+                    org.bukkit.NamespacedKey key = org.bukkit.NamespacedKey.fromString(recipeKey);
+                    if (key != null && plugin.getServer().getRecipe(key) != null) {
+                        player.discoverRecipe(key);
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Failed to unlock recipe " + recipeKey + " for " + player.getName() + ": " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to unlock fragment recipes for " + player.getName() + ": " + e.getMessage());
+        }
     }
 
     /**
@@ -81,6 +100,12 @@ public class PlayerDataListener implements Listener {
         dataPersistence.loadPlayerDataAsync(player.getUniqueId()).thenAccept(data -> {
             // Run on main thread
             plugin.getServer().getScheduler().runTask(plugin, () -> {
+                // CRITICAL FIX: Check if player is still online before processing
+                if (!player.isOnline()) {
+                    plugin.getLogger().warning("Player " + player.getName() + " disconnected before data loading completed");
+                    return;
+                }
+                
                 // CRITICAL FIX: Load ALL owned fragments first
                 if (data.fragments != null && !data.fragments.isEmpty()) {
                     for (java.util.Map.Entry<String, DataPersistence.FragmentDataContainer> entry : data.fragments.entrySet()) {

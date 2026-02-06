@@ -1,0 +1,68 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "item/nether_star"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1000
+      },
+      "model": "item/fragments/fire"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1001
+      },
+      "model": "item/fragments/water"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1002
+      },
+      "model": "item/fragments/air"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1003
+      },
+      "model": "item/fragments/dark"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1004
+      },
+      "model": "item/fragments/light"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1005
+      },
+      "model": "item/fragments/void"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1006
+      },
+      "model": "item/fragments/dragon"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1007
+      },
+      "model": "item/fragments/storm"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1008
+      },
+      "model": "item/fragments/time"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 1009
+      },
+      "model": "item/fragments/luck"
+    }
+  ]
+}

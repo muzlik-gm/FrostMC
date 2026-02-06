@@ -36,7 +36,7 @@ import com.muzlik.character.CharacterLevelManager;
  */
 public class FrostSMPPlugin extends JavaPlugin implements Listener {
     
-    // Cooldown Manager (replaces legacy PowerManager)
+    // Cooldown Manager for ability cooldowns
     private CooldownManager cooldownManager;
     
     // Fragment HUD
@@ -87,35 +87,32 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     // Luck Fragment Passive System
     private com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager luckPassiveManager;
     
+    // Interactive Tutorial System (new gameplay-driven system)
+    private com.muzlik.tutorial.InteractiveTutorial interactiveTutorial;
+    
     // Health Monitoring System (Task 17)
     private com.muzlik.monitoring.HealthMonitor healthMonitor;
 
     @Override
     public void onEnable() {
-        // Beautiful startup banner with ANSI colors
-        String CYAN = "\u001B[36m";
-        String WHITE = "\u001B[37m";
-        String YELLOW = "\u001B[33m";
-        String RESET = "\u001B[0m";
-        String BOLD = "\u001B[1m";
-        
-        System.out.println(CYAN + "╔════════════════════════════════════════════════════════════════╗" + RESET);
-        System.out.println(CYAN + "║" + RESET + "                                                                " + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + WHITE + BOLD + "   ███████╗██████╗  ██████╗ ███████╗████████╗███╗   ███╗ ██████╗" + RESET + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + WHITE + BOLD + "   ██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝████╗ ████║██╔════╝" + RESET + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + WHITE + BOLD + "   █████╗  ██████╔╝██║   ██║███████╗   ██║   ██╔████╔██║██║     " + RESET + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + WHITE + BOLD + "   ██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║   ██║╚██╔╝██║██║     " + RESET + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + WHITE + BOLD + "   ██║     ██║  ██║╚██████╔╝███████║   ██║   ██║ ╚═╝ ██║╚██████╗" + RESET + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + WHITE + BOLD + "   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝     ╚═╝ ╚═════╝" + RESET + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "                                                                "  + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "              " + YELLOW + BOLD + "Fragment Power System v1.0.0 "   + RESET + "                     " + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "                                                                "  + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "  " + WHITE + "Author: " + BOLD + "muzlik-gm" + RESET +  "                                             " + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "  " + WHITE + "Platform: Paper/Spigot 1.20.4+" + RESET +  "                               " + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "  " + WHITE + "Features: 10 Fragments | 40+ Abilities | VFX Engine " + RESET + "          " + CYAN + "║" + RESET);
-        System.out.println(CYAN + "║" + RESET + "                                                                " + CYAN + "║" + RESET);
-        System.out.println(CYAN + "╚════════════════════════════════════════════════════════════════╝" + RESET);
-        System.out.println("");
+        // Beautiful startup banner using logger
+        getLogger().info("╔════════════════════════════════════════════════════════════════╗");
+        getLogger().info("║                                                                ║");
+        getLogger().info("║   ███████╗██████╗  ██████╗ ███████╗████████╗███╗   ███╗ ██████╗║");
+        getLogger().info("║   ██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝████╗ ████║██╔════╝║");
+        getLogger().info("║   █████╗  ██████╔╝██║   ██║███████╗   ██║   ██╔████╔██║██║     ║");
+        getLogger().info("║   ██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║   ██║╚██╔╝██║██║     ║");
+        getLogger().info("║   ██║     ██║  ██║╚██████╔╝███████║   ██║   ██║ ╚═╝ ██║╚██████╗║");
+        getLogger().info("║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝     ╚═╝ ╚═════╝║");
+        getLogger().info("║                                                                ║");
+        getLogger().info("║              Fragment Power System v1.0.0                      ║");
+        getLogger().info("║                                                                ║");
+        getLogger().info("║  Author: muzlik-gm                                             ║");
+        getLogger().info("║  Platform: Paper/Spigot 1.20.4+                               ║");
+        getLogger().info("║  Features: 10 Fragments | 40+ Abilities | VFX Engine           ║");
+        getLogger().info("║                                                                ║");
+        getLogger().info("╚════════════════════════════════════════════════════════════════╝");
+        getLogger().info("");
         getLogger().info("▶ Initializing systems...");
 
         // Initialize configuration
@@ -164,6 +161,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         
         // Set cross-references for auto rank-up
         levelManager.setRankManager(rankManager);
+        rankManager.setLevelManager(levelManager);
         
         // Initialize Character Level system (affects max mana)
         characterLevelManager = new CharacterLevelManager(this);
@@ -182,7 +180,22 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Initialize flight system
         flightManager = new com.muzlik.fragment.ability.FlightManager(this);
         
-        // Initialize Ability Slot system (Task 2)
+        // Initialize data persistence FIRST (needed by other systems)
+        dataPersistence = new DataPersistence(this);
+        
+        // Initialize the data storage system SYNCHRONOUSLY to ensure it's ready before other systems
+        try {
+            dataPersistence.initialize().join(); // Wait for completion
+            getLogger().info("Data storage system initialized successfully");
+        } catch (Exception e) {
+            getLogger().severe("Failed to initialize data storage system: " + e.getMessage());
+            e.printStackTrace();
+            // Don't continue if data storage fails
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        
+        // Initialize Ability Slot system (Task 2) - AFTER dataPersistence is ready
         abilitySlotManager = new com.muzlik.fragment.ability.AbilitySlotManager(this, dataPersistence);
         
         // Initialize Luck Fragment passive system
@@ -194,7 +207,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         fxLibrary.setDebugMode(configManager.isFXDebugMode());
         fxLibrary.setParticleDensityMultiplier(configManager.getParticleDensity());
         
-        // Initialize CooldownManager (replaces legacy PowerManager)
+        // Initialize CooldownManager for ability cooldowns
         cooldownManager = new CooldownManager();
         
         // Initialize ritual system
@@ -209,6 +222,11 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         recipeManager = new RecipeManager(this);
         recipeManager.registerRecipes();
         
+        // Test recipe registration (debug)
+        getServer().getScheduler().runTaskLater(this, () -> {
+            recipeManager.testRecipeRegistration();
+        }, 20L); // Wait 1 second for server to fully load
+        
         // Initialize UI manager (with CooldownManager)
         uiManager = new UIManager(this, fragmentManager, manaManager, levelManager, rankManager,
                 cooldownManager, configManager);
@@ -216,8 +234,9 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Initialize GUI systems (after preferencesManager is available)
         uiManager.initializeGUIs(preferencesManager);
         
-        // Initialize data persistence
-        dataPersistence = new DataPersistence(this);
+        // Initialize Interactive Tutorial System (new gameplay-driven system)
+        interactiveTutorial = new com.muzlik.tutorial.InteractiveTutorial(this);
+        getLogger().info("✓ Interactive Tutorial System initialized!");
         
         // Register all 10 Fragments
         fragmentRegistry = new FragmentRegistry(this, fragmentManager, fxLibrary);
@@ -354,57 +373,54 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
         // Register /testtexture command (debug)
         com.muzlik.command.TestTextureCommand testTextureCommand = new com.muzlik.command.TestTextureCommand();
         getCommand("testtexture").setExecutor(testTextureCommand);
+        
+        // Register /tutorial command (new interactive system)
+        com.muzlik.command.TutorialCommand tutorialCommand = new com.muzlik.command.TutorialCommand(interactiveTutorial);
+        getCommand("tutorial").setExecutor(tutorialCommand);
+        getCommand("tutorial").setTabCompleter(tutorialCommand);
 
         getLogger().info("✓ Fragment System initialized successfully!");
         getLogger().info("✓ Fragment ActionBar HUD initialized!");
         
-        String GREEN = "\u001B[32m";
-        // Reuse existing color variables from startup banner
-        
-        System.out.println("");
-        System.out.println(GREEN + "╔═══════════════════════════════════════════════════════════════╗" + RESET);
-        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "                " + WHITE + BOLD + "✓ PLUGIN ENABLED SUCCESSFULLY" + RESET + "                  " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "  " + WHITE + BOLD + "Systems Active:" + RESET + "                                              " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Fragment System" + RESET + " (10 fragments, 40+ abilities)            " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Mana System" + RESET + " (resource management)                        " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "VFX Engine" + RESET + " (5-layer particle system)                     " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Ritual System" + RESET + " (multi-block structures)                   " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "    " + WHITE + "• " + CYAN + "Progression" + RESET + " (levels 1-50, ranks 1-8)                     " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "  " + YELLOW + "Ready to serve players!" + RESET + "                                      " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "║" + RESET + "                                                               " + GREEN + "║" + RESET);
-        System.out.println(GREEN + "╚═══════════════════════════════════════════════════════════════╝" + RESET);
-        System.out.println("");
+        // Success banner using logger
+        getLogger().info("");
+        getLogger().info("╔═══════════════════════════════════════════════════════════════╗");
+        getLogger().info("║                                                               ║");
+        getLogger().info("║                ✓ PLUGIN ENABLED SUCCESSFULLY                  ║");
+        getLogger().info("║                                                               ║");
+        getLogger().info("║  Systems Active:                                              ║");
+        getLogger().info("║    • Fragment System (10 fragments, 40+ abilities)            ║");
+        getLogger().info("║    • Mana System (resource management)                        ║");
+        getLogger().info("║    • VFX Engine (5-layer particle system)                     ║");
+        getLogger().info("║    • Ritual System (multi-block structures)                   ║");
+        getLogger().info("║    • Progression (levels 1-50, ranks 1-8)                     ║");
+        getLogger().info("║                                                               ║");
+        getLogger().info("║  Ready to serve players!                                      ║");
+        getLogger().info("║                                                               ║");
+        getLogger().info("╚═══════════════════════════════════════════════════════════════╝");
+        getLogger().info("");
     }
     
     @Override
     public void onDisable() {
-        String RED = "\u001B[31m";
-        String GRAY = "\u001B[90m";
-        String WHITE = "\u001B[37m";
-        String YELLOW = "\u001B[33m";
-        String RESET = "\u001B[0m";
-        String BOLD = "\u001B[1m";
-        
-        System.out.println("");
-        System.out.println(RED + "╔═══════════════════════════════════════════════════════════════╗" + RESET);
-        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
-        System.out.println(RED + "║" + GRAY + "   ███████╗██████╗  ██████╗ ███████╗████████╗███╗   ███╗ ██████╗" + RESET + RED + "║" + RESET);
-        System.out.println(RED + "║" + GRAY + "   ██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝████╗ ████║██╔════╝" + RESET + RED + "║" + RESET);
-        System.out.println(RED + "║" + GRAY + "   █████╗  ██████╔╝██║   ██║███████╗   ██║   ██╔████╔██║██║     " + RESET + RED + "║" + RESET);
-        System.out.println(RED + "║" + GRAY + "   ██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║   ██║╚██╔╝██║██║     " + RESET + RED + "║" + RESET);
-        System.out.println(RED + "║" + GRAY + "   ██║     ██║  ██║╚██████╔╝███████║   ██║   ██║ ╚═╝ ██║╚██████╗" + RESET + RED + "║" + RESET);
-        System.out.println(RED + "║" + GRAY + "   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝     ╚═╝ ╚═════╝" + RESET + RED + "║" + RESET);
-        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
-        System.out.println(RED + "║" + RESET + "                  " + YELLOW + BOLD + "Shutting Down Systems..." + RESET + "                     " + RED + "║" + RESET);
-        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
-        System.out.println(RED + "║" + RESET + "  " + WHITE + "Created by: " + BOLD + "muzlik-gm" + RESET + "                                        " + RED + "║" + RESET);
-        System.out.println(RED + "║" + RESET + "  " + WHITE + "Thank you for using FrostMC!" + RESET + "                                 " + RED + "║" + RESET);
-        System.out.println(RED + "║" + RESET + "                                                               " + RED + "║" + RESET);
-        System.out.println(RED + "╚═══════════════════════════════════════════════════════════════╝" + RESET);
-        System.out.println("");
+        // Shutdown banner using logger
+        getLogger().info("");
+        getLogger().info("╔═══════════════════════════════════════════════════════════════╗");
+        getLogger().info("║                                                               ║");
+        getLogger().info("║   ███████╗██████╗  ██████╗ ███████╗████████╗███╗   ███╗ ██████╗║");
+        getLogger().info("║   ██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝████╗ ████║██╔════╝║");
+        getLogger().info("║   █████╗  ██████╔╝██║   ██║███████╗   ██║   ██╔████╔██║██║     ║");
+        getLogger().info("║   ██╔══╝  ██╔══██╗██║   ██║╚════██║   ██║   ██║╚██╔╝██║██║     ║");
+        getLogger().info("║   ██║     ██║  ██║╚██████╔╝███████║   ██║   ██║ ╚═╝ ██║╚██████╗║");
+        getLogger().info("║   ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝   ╚═╝     ╚═╝ ╚═════╝║");
+        getLogger().info("║                                                               ║");
+        getLogger().info("║                  Shutting Down Systems...                     ║");
+        getLogger().info("║                                                               ║");
+        getLogger().info("║  Created by: muzlik-gm                                        ║");
+        getLogger().info("║  Thank you for using FrostMC!                                 ║");
+        getLogger().info("║                                                               ║");
+        getLogger().info("╚═══════════════════════════════════════════════════════════════╝");
+        getLogger().info("");
         
         // Shutdown Flight system
         if (flightManager != null) {
@@ -488,6 +504,12 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
             healthMonitor.shutdown();
         }
         
+        // Shutdown interactive tutorial system
+        if (interactiveTutorial != null) {
+            interactiveTutorial.shutdown();
+            getLogger().info("Interactive tutorial system shutdown");
+        }
+        
         getLogger().info("All systems shutdown complete");
     }
     
@@ -537,6 +559,7 @@ public class FrostSMPPlugin extends JavaPlugin implements Listener {
     public com.muzlik.fragment.ability.executors.luck.LuckFragmentPassiveManager getLuckPassiveManager() { return luckPassiveManager; }
     public com.muzlik.fragment.ability.AbilitySlotManager getAbilitySlotManager() { return abilitySlotManager; }
     public com.muzlik.monitoring.HealthMonitor getHealthMonitor() { return healthMonitor; }
+    public com.muzlik.tutorial.InteractiveTutorial getInteractiveTutorial() { return interactiveTutorial; }
 }
 
 

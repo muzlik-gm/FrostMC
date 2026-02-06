@@ -134,9 +134,38 @@ public class LevelManager {
      * Set player's level for a Fragment
      */
     public void setLevel(Player player, FragmentType type, int level) {
+        setLevel(player, type, level, true);
+    }
+    
+    /**
+     * Set player's level for a Fragment with sync control
+     */
+    public void setLevel(Player player, FragmentType type, int level, boolean syncRank) {
         FragmentLevelData data = getLevelData(player, type);
         int maxLevel = getMaxLevel(type);
-        data.setLevel(Math.min(level, maxLevel));
+        int clampedLevel = Math.min(level, maxLevel);
+        
+        int oldLevel = data.getLevel();
+        data.setLevel(clampedLevel);
+        
+        // CRITICAL FIX: Trigger rank progression when level is set manually (both directions)
+        if (syncRank && rankManager != null) {
+            // Check if the new level should trigger rank changes
+            int currentRank = rankManager.getRank(player, type);
+            int expectedRank = calculateExpectedRank(clampedLevel, type);
+            
+            // Auto-rank up or down to match the level
+            int rankDifference = expectedRank - currentRank;
+            
+            if (rankDifference != 0) {
+                // Set rank directly without triggering level sync to prevent circular calls
+                rankManager.setRankDirect(player, type, expectedRank);
+                player.sendMessage("§6★ " + type.getDisplayName() + " Fragment rank synced to " + expectedRank);
+            }
+        }
+        
+        // Notify player about level change
+        player.sendMessage("§a⬆ " + type.getDisplayName() + " Fragment level set to §e" + clampedLevel + "§8/§7" + maxLevel);
     }
 
     /**
@@ -204,6 +233,75 @@ public class LevelManager {
     public void setXPCurve(Player player, FragmentType type, XPCurve curve) {
         FragmentLevelData data = getLevelData(player, type);
         data.setXpCurve(curve);
+    }
+    
+    /**
+     * Calculate expected rank based on level for a specific fragment type
+     * Uses the fragment's specific max level and max rank for calculation
+     */
+    private int calculateExpectedRank(int level, FragmentType type) {
+        int maxLevel = getMaxLevel(type);
+        int baseRank = rankManager != null ? rankManager.getBaseRank(type) : 1;
+        int maxRank = rankManager != null ? rankManager.getMaxRank(type) : 8;
+        
+        // Calculate rank based on level progression
+        // Formula: baseRank + floor((level - 1) * (maxRank - baseRank) / (maxLevel - 1))
+        if (maxLevel <= 1) return baseRank;
+        
+        int rank = baseRank + ((level - 1) * (maxRank - baseRank)) / (maxLevel - 1);
+        return Math.min(rank, maxRank);
+    }
+    
+    /**
+     * Calculate expected level based on rank for a specific fragment type
+     * Uses the fragment's specific max level and max rank for calculation
+     */
+    private int calculateExpectedLevel(int rank, FragmentType type) {
+        int maxLevel = getMaxLevel(type);
+        int baseRank = rankManager != null ? rankManager.getBaseRank(type) : 1;
+        int maxRank = rankManager != null ? rankManager.getMaxRank(type) : 8;
+        
+        // Calculate minimum level for this rank
+        // Formula: 1 + floor((rank - baseRank) * (maxLevel - 1) / (maxRank - baseRank))
+        if (maxRank <= baseRank) return 1;
+        
+        int level = 1 + ((rank - baseRank) * (maxLevel - 1)) / (maxRank - baseRank);
+        return Math.min(level, maxLevel);
+    }
+    
+    /**
+     * Get total XP required to reach a specific level
+     */
+    public double getXPRequired(int targetLevel) {
+        if (targetLevel <= 1) {
+            return 0;
+        }
+        
+        double totalXP = 0;
+        for (int level = 1; level < targetLevel; level++) {
+            totalXP += BASE_XP * Math.pow(level, 1.5);
+        }
+        return totalXP;
+    }
+    
+    /**
+     * Synchronize level to match rank (called by RankManager when rank is set manually)
+     */
+    public void syncLevelToRank(Player player, FragmentType type, int newRank) {
+        FragmentLevelData data = getLevelData(player, type);
+        int currentLevel = data.getLevel();
+        int expectedLevel = calculateExpectedLevel(newRank, type);
+        int maxLevel = getMaxLevel(type);
+        
+        // Sync level to match rank (both up and down) within max level bounds
+        if (expectedLevel != currentLevel && expectedLevel <= maxLevel && expectedLevel >= 1) {
+            // Use setLevel with syncRank=false to prevent circular calls
+            setLevel(player, type, expectedLevel, false);
+            
+            // Also set appropriate XP for the new level (total XP accumulated to reach this level)
+            double xpForLevel = getXPRequired(expectedLevel);
+            data.setXp(xpForLevel);
+        }
     }
 
     /**

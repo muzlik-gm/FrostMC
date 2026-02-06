@@ -169,6 +169,15 @@ public class AsyncExecutor {
     }
     
     /**
+     * Get the underlying executor service
+     * 
+     * @return The executor service
+     */
+    public ExecutorService getExecutor() {
+        return executor;
+    }
+    
+    /**
      * Check if executor is shutdown
      * 
      * @return true if shutdown

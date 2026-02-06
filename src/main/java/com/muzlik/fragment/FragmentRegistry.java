@@ -375,7 +375,7 @@ public class FragmentRegistry {
             .description("Tears space itself, dealing true damage that bypasses armor and totems, 2 hearts fixed")
             .slot(com.muzlik.fragment.ability.AbilitySlot.PRIMARY)
             .manaCost(32)
-            .cooldown(300000) // 5 minutes
+            .cooldown(30000) // 0.5 minutes or 30s
             .executor(new com.muzlik.fragment.ability.executors.voidfrag.SlashExecutor())
             .activation(com.muzlik.fragment.ability.ActivationType.RIGHT_CLICK)
             .build());

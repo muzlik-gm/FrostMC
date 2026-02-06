@@ -491,6 +491,11 @@ public class RitualManager {
         Player owner = plugin.getServer().getPlayer(ownerId);
         RitualType type = ritual.getType();
         
+        // CRITICAL FIX: Handle null owner gracefully
+        if (owner == null) {
+            plugin.getLogger().warning("Ritual owner " + ownerId + " is offline during ritual completion");
+        }
+        
         switch (type) {
             case FRAGMENT_CREATION:
                 completeFragmentCreation(ownerId, ritual);
@@ -522,21 +527,23 @@ public class RitualManager {
                 ritualAnimations.playCompletionAnimation(ritual.getLocation(), fragmentType, vfxPlayer);
             } else {
                 // Fallback to FXLibrary
-                fxLibrary.playRitualEffect(
-                    ritual.getLocation(),
-                    RitualStage.COMPLETION,
-                    fxLibrary.getColorScheme(fragmentType)
-                );
-                fxLibrary.playSound(ritual.getLocation(), SoundPreset.RITUAL_COMPLETE, 1.0f, 1.0f);
+                try {
+                    fxLibrary.playRitualEffect(
+                        ritual.getLocation(),
+                        RitualStage.COMPLETION,
+                        fxLibrary.getColorScheme(fragmentType)
+                    );
+                    fxLibrary.playSound(ritual.getLocation(), SoundPreset.RITUAL_COMPLETE, 1.0f, 1.0f);
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Failed to play ritual completion effects: " + e.getMessage());
+                }
             }
         }
     }
 
     /**
      * Complete Fragment Creation ritual
-     * Behavior depends on fragment_changer_required config:
-     * - If TRUE: Drops item on ground for player to pick up and activate
-     * - If FALSE: Auto-grants and activates the fragment immediately
+     * ALWAYS drops fragment on ground (immune to despawning) regardless of config
      */
     private void completeFragmentCreation(UUID ownerId, RitualInstance ritual) {
         // Determine Fragment type from catalyst item
@@ -552,35 +559,18 @@ public class RitualManager {
                 }
             }
             
-            // Check if Fragment Changer is required
-            boolean fragmentChangerRequired = configManager.isFragmentChangerRequired();
-            
-            if (fragmentChangerRequired) {
-                // Drop the fragment from the floating display to the ground
-                // The display manager handles this - it drops the floating item
-                displayManager.completeAndDropFragment(ownerId);
+            // ALWAYS drop the fragment - ignore config setting
+            // Drop the fragment from the floating display to the ground
+            // The display manager handles this - it drops the floating item with despawn immunity
+            displayManager.completeAndDropFragment(ownerId);
 
-                if (owner != null) {
-                    owner.sendMessage("§a✓ Fragment Creation complete!");
-                    owner.sendMessage("");
-                    owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment has materialized!");
-                    owner.sendMessage("§7Pick it up and right-click to activate");
-                    owner.sendMessage("§c§l⚠ This fragment can only be created once!");
-                }
-            } else {
-                // Auto-grant and activate the fragment
-                displayManager.removeDisplay(ownerId); // Remove the floating display
-                
-                if (owner != null) {
-                    fragmentManager.grantFragment(owner, fragmentType);
-                    fragmentManager.setActiveFragment(owner, fragmentType);
-                    
-                    owner.sendMessage("§a✓ Fragment Creation complete!");
-                    owner.sendMessage("");
-                    owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment activated!");
-                    owner.sendMessage("§7Your fragment has been automatically activated");
-                    owner.sendMessage("§c§l⚠ This fragment can only be created once!");
-                }
+            if (owner != null) {
+                owner.sendMessage("§a✓ Fragment Creation complete!");
+                owner.sendMessage("");
+                owner.sendMessage("§e§l⚡ " + fragmentType.getDisplayName() + " Fragment has materialized!");
+                owner.sendMessage("§7Pick it up and right-click to activate");
+                owner.sendMessage("§c§l⚠ This fragment can only be created once!");
+                owner.sendMessage("§d§l✨ The fragment is immune to despawning!");
             }
             
             // Broadcast completion

@@ -23,12 +23,12 @@ import java.util.*;
 /**
  * GUI for giving fragments to players (admin)
  * Two-stage: First select player, then select fragment
+ * FIXED: Player selection and online status issues
  */
 public class FragmentGiveGUI implements Listener {
     
     private final FragmentManager fragmentManager;
-    private final Map<UUID, Inventory> openInventories = new HashMap<>();
-    private final Map<UUID, UUID> selectedPlayers = new HashMap<>(); // Store UUID instead of Player object
+    private final Map<UUID, String> selectedPlayerNames = new HashMap<>(); // Store player names instead of UUIDs to avoid stale references
     
     private static final Component PLAYER_SELECT_TITLE = Component.text("⚡ SELECT PLAYER")
             .color(NamedTextColor.DARK_GRAY)
@@ -45,6 +45,9 @@ public class FragmentGiveGUI implements Listener {
      * Open player selection GUI
      */
     public void openPlayerSelection(Player admin) {
+        // Clear any previous selection
+        selectedPlayerNames.remove(admin.getUniqueId());
+        
         Inventory inv = Bukkit.createInventory(null, 54, PLAYER_SELECT_TITLE);
         
         // Fill border
@@ -63,6 +66,11 @@ public class FragmentGiveGUI implements Listener {
                 continue;
             }
             
+            // Skip the admin themselves
+            if (target.getUniqueId().equals(admin.getUniqueId())) {
+                continue;
+            }
+            
             ItemStack playerHead = createPlayerHead(target);
             inv.setItem(slot, playerHead);
             slot++;
@@ -74,24 +82,25 @@ public class FragmentGiveGUI implements Listener {
             "§7select who receives the fragment");
         inv.setItem(49, infoButton);
         
-        openInventories.put(admin.getUniqueId(), inv);
         admin.openInventory(inv);
     }
     
     /**
      * Open fragment selection GUI
      */
-    public void openFragmentSelection(Player admin, Player target) {
-        // Verify target is still online before opening GUI
+    public void openFragmentSelection(Player admin, String targetPlayerName) {
+        // Verify target is still online using fresh lookup
+        Player target = Bukkit.getPlayerExact(targetPlayerName);
         if (target == null || !target.isOnline()) {
-            admin.sendMessage("§c✗ Player is no longer online");
+            admin.sendMessage("§c✗ Player '" + targetPlayerName + "' is no longer online");
+            selectedPlayerNames.remove(admin.getUniqueId());
             return;
         }
         
         Inventory inv = Bukkit.createInventory(null, 54, FRAGMENT_SELECT_TITLE);
         
-        // Store the target player's UUID to avoid stale Player references
-        selectedPlayers.put(admin.getUniqueId(), target.getUniqueId());
+        // Store the target player's name for reliable lookup
+        selectedPlayerNames.put(admin.getUniqueId(), targetPlayerName);
         
         // Fill border
         fillBorder(inv);
@@ -119,7 +128,6 @@ public class FragmentGiveGUI implements Listener {
         ItemStack backButton = createBackButton();
         inv.setItem(48, backButton);
         
-        openInventories.put(admin.getUniqueId(), inv);
         admin.openInventory(inv);
     }
     
@@ -224,8 +232,6 @@ public class FragmentGiveGUI implements Listener {
         return item;
     }
     
-
-    
     /**
      * Fill border with glass panes
      */
@@ -280,7 +286,7 @@ public class FragmentGiveGUI implements Listener {
     }
     
     /**
-     * Handle player selection
+     * Handle player selection - FIXED to avoid stale references
      */
     private void handlePlayerSelection(Player admin, ItemStack item) {
         if (item.getType() != Material.PLAYER_HEAD) return;
@@ -288,21 +294,26 @@ public class FragmentGiveGUI implements Listener {
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta == null || meta.getOwningPlayer() == null) return;
         
-        // Get fresh player reference from server
-        Player target = Bukkit.getPlayer(meta.getOwningPlayer().getUniqueId());
+        // Get player name from the skull meta display name (more reliable)
+        String displayName = meta.getDisplayName();
+        if (displayName == null || displayName.isEmpty()) return;
+        
+        // Extract player name from display name (remove formatting)
+        String playerName = displayName.replaceAll("§[0-9a-fk-or]", "").trim();
+        
+        // Verify player is still online using exact name lookup
+        Player target = Bukkit.getPlayerExact(playerName);
         if (target == null || !target.isOnline()) {
-            admin.sendMessage("§c✗ Player is no longer online");
-            admin.closeInventory();
+            admin.sendMessage("§c✗ Player '" + playerName + "' is no longer online");
             return;
         }
         
-        // Clear any previous selection before opening new GUI
-        selectedPlayers.remove(admin.getUniqueId());
-        openFragmentSelection(admin, target);
+        // Open fragment selection with the verified player name
+        openFragmentSelection(admin, target.getName());
     }
     
     /**
-     * Handle fragment selection
+     * Handle fragment selection - FIXED to use reliable player lookup
      */
     private void handleFragmentSelection(Player admin, ItemStack item) {
         ItemMeta meta = item.getItemMeta();
@@ -312,24 +323,24 @@ public class FragmentGiveGUI implements Listener {
         
         // Check for back button
         if (displayName.contains("Back")) {
-            selectedPlayers.remove(admin.getUniqueId()); // Clear selection when going back
+            selectedPlayerNames.remove(admin.getUniqueId()); // Clear selection when going back
             openPlayerSelection(admin);
             return;
         }
         
-        // Get stored target UUID
-        UUID targetUUID = selectedPlayers.get(admin.getUniqueId());
-        if (targetUUID == null) {
+        // Get stored target player name
+        String targetPlayerName = selectedPlayerNames.get(admin.getUniqueId());
+        if (targetPlayerName == null || targetPlayerName.isEmpty()) {
             admin.sendMessage("§c✗ No player selected. Please try again.");
             admin.closeInventory();
             return;
         }
         
-        // Get fresh player reference from server to ensure they're still online
-        Player target = Bukkit.getPlayer(targetUUID);
+        // Get fresh player reference using exact name lookup
+        Player target = Bukkit.getPlayerExact(targetPlayerName);
         if (target == null || !target.isOnline()) {
-            admin.sendMessage("§c✗ Target player is no longer online");
-            selectedPlayers.remove(admin.getUniqueId());
+            admin.sendMessage("§c✗ Target player '" + targetPlayerName + "' is no longer online");
+            selectedPlayerNames.remove(admin.getUniqueId());
             admin.closeInventory();
             return;
         }
@@ -337,14 +348,22 @@ public class FragmentGiveGUI implements Listener {
         // Check for fragment selection
         for (FragmentType type : FragmentType.values()) {
             if (displayName.contains(type.getDisplayName())) {
-                fragmentManager.grantFragment(target, type);
-                admin.sendMessage("§a✓ Gave " + type.getDisplayName() + " Fragment to " + target.getName());
-                target.sendMessage("§a✓ You received the " + type.getDisplayName() + " Fragment!");
-                selectedPlayers.remove(admin.getUniqueId()); // Clear selection after giving
-                admin.closeInventory();
-                return;
+                try {
+                    fragmentManager.grantFragment(target, type);
+                    admin.sendMessage("§a✓ Gave " + type.getDisplayName() + " Fragment to " + target.getName());
+                    target.sendMessage("§a✓ You received the " + type.getDisplayName() + " Fragment!");
+                    selectedPlayerNames.remove(admin.getUniqueId()); // Clear selection after giving
+                    admin.closeInventory();
+                    return;
+                } catch (Exception e) {
+                    admin.sendMessage("§c✗ Failed to give fragment: " + e.getMessage());
+                    return;
+                }
             }
         }
+        
+        // If we get here, no fragment was matched
+        admin.sendMessage("§c✗ Could not identify the selected fragment. Please try again.");
     }
     
     /**
@@ -364,18 +383,23 @@ public class FragmentGiveGUI implements Listener {
     }
     
     /**
-     * Handle inventory close
+     * Handle inventory close - FIXED to properly clean up
      */
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (event.getPlayer() instanceof Player) {
             Player player = (Player) event.getPlayer();
             UUID uuid = player.getUniqueId();
-            openInventories.remove(uuid);
             
-            // Clean up selected player if closing
-            if (!event.getView().title().equals(FRAGMENT_SELECT_TITLE)) {
-                selectedPlayers.remove(uuid);
+            Component title = event.getView().title();
+            
+            // Only clear selection if closing the player selection GUI
+            // Keep selection when moving from player selection to fragment selection
+            if (title.equals(PLAYER_SELECT_TITLE)) {
+                // Don't clear selection here - let it persist for fragment selection
+            } else if (title.equals(FRAGMENT_SELECT_TITLE)) {
+                // Clear selection when closing fragment selection
+                selectedPlayerNames.remove(uuid);
             }
         }
     }

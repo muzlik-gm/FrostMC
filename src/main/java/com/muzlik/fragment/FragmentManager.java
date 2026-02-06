@@ -244,10 +244,24 @@ public class FragmentManager {
      * Clean up active abilities for a specific fragment
      */
     private void cleanupFragmentAbilities(Player player, FragmentType type) {
+        // CRITICAL FIX: Clean up VFX effects from previous fragment
+        try {
+            com.muzlik.FrostSMPPlugin frostPlugin = (com.muzlik.FrostSMPPlugin) plugin;
+            if (frostPlugin.getEffectRegistry() != null) {
+                frostPlugin.getEffectRegistry().cleanupPlayerEffects(player.getUniqueId());
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to cleanup VFX effects for " + player.getName() + ": " + e.getMessage());
+        }
+        
         // End flight if active for Dragon or Air fragments
         if (type == FragmentType.DRAGON || type == FragmentType.AIR) {
-            com.muzlik.FrostSMPPlugin frostPlugin = (com.muzlik.FrostSMPPlugin) plugin;
-            frostPlugin.getFlightManager().endFlight(player, false);
+            try {
+                com.muzlik.FrostSMPPlugin frostPlugin = (com.muzlik.FrostSMPPlugin) plugin;
+                frostPlugin.getFlightManager().endFlight(player, false);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to end flight for " + player.getName() + ": " + e.getMessage());
+            }
         }
         
         // Ensure flight is disabled when switching away from flying fragments

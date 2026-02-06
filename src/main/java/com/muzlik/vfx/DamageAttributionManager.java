@@ -118,7 +118,7 @@ public class DamageAttributionManager implements Listener {
     }
     
     /**
-     * Register a projectile with its owner (legacy method)
+     * Register a projectile with its owner
      * 
      * @param projectile The projectile entity
      * @param owner The player who shot the projectile

@@ -31,7 +31,7 @@ public class EffectEntry {
     private final Map<String, Object> configFlags;
     
     /**
-     * Constructor for EffectEntry (legacy compatibility)
+     * Constructor for EffectEntry
      * 
      * @param effectId Unique identifier for this effect
      * @param ownerId UUID of the player who owns this effect

@@ -629,7 +629,7 @@ public class RitualDisplayManager {
             case AIR -> Color.fromRGB(70, 70, 70); // Dark gray
             case DARK -> Color.fromRGB(30, 0, 50); // Very dark purple
             case LIGHT -> Color.fromRGB(100, 100, 50); // Dark gold
-            case VOID -> Color.fromRGB(20, 0, 30); // Almost black purple
+            case VOID -> Color.fromRGB(20, 0, 40); // Very dark purple0, 0, 30); // Almost black purple
             case STORM -> Color.fromRGB(30, 30, 80); // Dark blue-purple
             case DRAGON -> Color.fromRGB(80, 0, 80); // Dark magenta
             case TIME -> Color.fromRGB(180, 180, 0); // Dark yellow

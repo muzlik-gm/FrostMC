@@ -22,17 +22,6 @@ public class AbilityScalingEngine {
     }
 
     /**
-     * Scale damage based on rank only (legacy method)
-     * Formula: BASE_DAMAGE * (1 + (Rank * 0.10))
-     * @param baseDamage The base damage value
-     * @param rank The Fragment rank
-     * @return The scaled damage
-     */
-    public double scaleDamage(double baseDamage, int rank) {
-        return baseDamage * (1 + (rank * 0.10));
-    }
-
-    /**
      * Scale defense/resistance based on rank
      * Formula: BASE_DEFENSE * (1 + (Rank * 0.10))
      * @param baseDefense The base defense value
@@ -89,16 +78,6 @@ public class AbilityScalingEngine {
     }
 
     /**
-     * Scale mana cost based on rank only (legacy method)
-     * @param baseManaCost The base mana cost
-     * @param rank The Fragment rank
-     * @return The scaled mana cost
-     */
-    public double scaleManaCost(double baseManaCost, int rank) {
-        return baseManaCost * (1 + (rank * 0.08));
-    }
-
-    /**
      * Scale cooldown based on level reduction
      * Formula: BASE_COOLDOWN * (1 - levelCooldownReduction)
      * @param baseCooldown The base cooldown in milliseconds
@@ -107,5 +86,27 @@ public class AbilityScalingEngine {
      */
     public long scaleCooldown(long baseCooldown, double levelCooldownReduction) {
         return (long) (baseCooldown * (1 - levelCooldownReduction));
+    }
+
+    /**
+     * Simple damage scaling based on rank only (for backward compatibility)
+     * Formula: BASE_DAMAGE * (1 + (Rank * 0.10))
+     * @param baseDamage The base damage value
+     * @param rank The Fragment rank
+     * @return The scaled damage
+     */
+    public double scaleDamage(double baseDamage, int rank) {
+        return baseDamage * (1 + (rank * 0.10));
+    }
+
+    /**
+     * Simple mana cost scaling based on rank only (for backward compatibility)
+     * Formula: BASE_MANA * (1 + (Rank * 0.08))
+     * @param baseManaCost The base mana cost
+     * @param rank The Fragment rank
+     * @return The scaled mana cost
+     */
+    public double scaleManaCost(double baseManaCost, int rank) {
+        return baseManaCost * (1 + (rank * 0.08));
     }
 }

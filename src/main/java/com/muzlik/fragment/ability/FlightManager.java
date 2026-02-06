@@ -118,12 +118,7 @@ public class FlightManager {
         };
     }
     
-    /**
-     * Get max duration for fragment type (legacy method for compatibility)
-     */
-    private int getMaxDuration(FragmentType type) {
-        return getFlightDuration(type);
-    }
+
     
     /**
      * Cleanup on plugin disable

@@ -2,6 +2,7 @@ package com.muzlik.fragment.rank;
 
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.fragment.ability.PassiveAbility;
+import com.muzlik.fragment.level.LevelManager;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,12 +20,20 @@ public class RankManager {
     private final Map<UUID, Map<FragmentType, FragmentRankData>> playerRankData;
     private final Map<FragmentType, Integer> baseRanks;
     private final Map<FragmentType, Map<Integer, PassiveAbility>> rankPassives;
+    private LevelManager levelManager;
 
     public RankManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.playerRankData = new ConcurrentHashMap<>();
         this.baseRanks = new ConcurrentHashMap<>();
         this.rankPassives = new ConcurrentHashMap<>();
+    }
+    
+    /**
+     * Set LevelManager reference (called after initialization)
+     */
+    public void setLevelManager(LevelManager levelManager) {
+        this.levelManager = levelManager;
     }
 
     /**
@@ -63,6 +72,20 @@ public class RankManager {
      * Set player's rank for a Fragment
      */
     public void setRank(Player player, FragmentType type, int rank) {
+        setRank(player, type, rank, true);
+    }
+    
+    /**
+     * Set player's rank for a Fragment without triggering level sync (used by LevelManager)
+     */
+    public void setRankDirect(Player player, FragmentType type, int rank) {
+        setRank(player, type, rank, false);
+    }
+    
+    /**
+     * Set player's rank for a Fragment with sync control
+     */
+    private void setRank(Player player, FragmentType type, int rank, boolean syncLevel) {
         int maxRank = getMaxRank(type);
         if (rank > maxRank) {
             rank = maxRank;
@@ -72,9 +95,20 @@ public class RankManager {
         int oldRank = data.getCurrentRank();
         data.setCurrentRank(rank);
         
-        // Handle passive abilities
+        // CRITICAL FIX: Trigger level synchronization when syncLevel is true AND rank actually changed
+        if (syncLevel && rank != oldRank && levelManager != null) {
+            levelManager.syncLevelToRank(player, type, rank);
+            player.sendMessage("§6★ " + type.getDisplayName() + " Fragment level synced to match rank " + rank);
+        }
+        
+        // Handle passive abilities (only when ranking up)
         if (rank > oldRank) {
             activateRankPassive(player, type, rank);
+        }
+        
+        // Notify player about rank change
+        if (rank != oldRank) {
+            player.sendMessage("§a⬆ " + type.getDisplayName() + " Fragment rank set to §6" + rank + "§8/§7" + maxRank);
         }
     }
 

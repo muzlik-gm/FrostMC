@@ -199,95 +199,95 @@ public class RecipeDiscoveryGUI {
     private static RecipePattern getRecipePattern(FragmentType fragmentType) {
         return switch (fragmentType) {
             case FIRE -> new RecipePattern(
-                new ItemStack(Material.BLAZE_POWDER),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.BLAZE_POWDER),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.NETHERRACK),
+                new ItemStack(Material.FIRE_CHARGE),
+                new ItemStack(Material.NETHERRACK),
                 new ItemStack(Material.FIRE_CHARGE),
                 new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.BLAZE_POWDER),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.BLAZE_POWDER)
+                new ItemStack(Material.FIRE_CHARGE),
+                new ItemStack(Material.NETHERRACK),
+                new ItemStack(Material.FIRE_CHARGE),
+                new ItemStack(Material.NETHERRACK)
             );
             case WATER -> new RecipePattern(
-                new ItemStack(Material.PRISMARINE_SHARD),
+                new ItemStack(Material.PRISMARINE),
+                new ItemStack(Material.WATER_BUCKET),
+                new ItemStack(Material.PRISMARINE),
+                new ItemStack(Material.WATER_BUCKET),
                 new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.PRISMARINE_SHARD),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.HEART_OF_THE_SEA),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.PRISMARINE_SHARD),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.PRISMARINE_SHARD)
+                new ItemStack(Material.WATER_BUCKET),
+                new ItemStack(Material.PRISMARINE),
+                new ItemStack(Material.WATER_BUCKET),
+                new ItemStack(Material.PRISMARINE)
             );
             case AIR -> new RecipePattern(
                 new ItemStack(Material.FEATHER),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.PHANTOM_MEMBRANE),
                 new ItemStack(Material.FEATHER),
-                new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.PHANTOM_MEMBRANE),
                 new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.PHANTOM_MEMBRANE),
                 new ItemStack(Material.FEATHER),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.PHANTOM_MEMBRANE),
                 new ItemStack(Material.FEATHER)
             );
             case DARK -> new RecipePattern(
+                new ItemStack(Material.OBSIDIAN),
+                new ItemStack(Material.WITHER_SKELETON_SKULL),
+                new ItemStack(Material.OBSIDIAN),
                 new ItemStack(Material.WITHER_SKELETON_SKULL),
                 new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.WITHER_SKELETON_SKULL),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.NETHER_STAR),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.OBSIDIAN),
                 new ItemStack(Material.WITHER_SKELETON_SKULL),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.WITHER_SKELETON_SKULL)
+                new ItemStack(Material.OBSIDIAN)
             );
             case LIGHT -> new RecipePattern(
-                new ItemStack(Material.GLOWSTONE_DUST),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.GLOWSTONE_DUST),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.GLOWSTONE),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.GLOWSTONE),
+                new ItemStack(Material.NETHERITE_INGOT),
                 new ItemStack(Material.BEACON),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.GLOWSTONE_DUST),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.GLOWSTONE_DUST)
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.GLOWSTONE),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.GLOWSTONE)
             );
             case VOID -> new RecipePattern(
-                new ItemStack(Material.ENDER_PEARL),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.ENDER_PEARL),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.ENDER_EYE),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.ENDER_PEARL),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.ENDER_PEARL)
+                new ItemStack(Material.ECHO_SHARD),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.ECHO_SHARD),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.SCULK_CATALYST),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.ECHO_SHARD),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.ECHO_SHARD)
+            );
+            case DRAGON -> new RecipePattern(
+                new ItemStack(Material.DRAGON_HEAD),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.DRAGON_HEAD),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.DRAGON_EGG),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.DRAGON_HEAD),
+                new ItemStack(Material.NETHERITE_INGOT),
+                new ItemStack(Material.DRAGON_HEAD)
             );
             case STORM -> new RecipePattern(
                 new ItemStack(Material.LIGHTNING_ROD),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.TRIDENT),
                 new ItemStack(Material.LIGHTNING_ROD),
-                new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.TRIDENT),
                 new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.TRIDENT),
                 new ItemStack(Material.LIGHTNING_ROD),
-                new ItemStack(Material.DIAMOND),
+                new ItemStack(Material.TRIDENT),
                 new ItemStack(Material.LIGHTNING_ROD)
             );
-            case DRAGON -> new RecipePattern(
-                new ItemStack(Material.DRAGON_BREATH),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.DRAGON_BREATH),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.DRAGON_HEAD),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.DRAGON_BREATH),
-                new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.DRAGON_BREATH)
-            );
             case TIME -> new RecipePattern(
-                new ItemStack(Material.CLOCK),
+                new ItemStack(Material.AMETHYST_SHARD),
                 new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.AMETHYST_SHARD),
                 new ItemStack(Material.DIAMOND),
@@ -295,10 +295,10 @@ public class RecipeDiscoveryGUI {
                 new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.AMETHYST_SHARD),
                 new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.CLOCK)
+                new ItemStack(Material.AMETHYST_SHARD)
             );
             case LUCK -> new RecipePattern(
-                new ItemStack(Material.RABBIT_FOOT),
+                new ItemStack(Material.GOLD_INGOT),
                 new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.GOLD_INGOT),
                 new ItemStack(Material.DIAMOND),
@@ -306,7 +306,7 @@ public class RecipeDiscoveryGUI {
                 new ItemStack(Material.DIAMOND),
                 new ItemStack(Material.GOLD_INGOT),
                 new ItemStack(Material.DIAMOND),
-                new ItemStack(Material.RABBIT_FOOT)
+                new ItemStack(Material.GOLD_INGOT)
             );
             default -> new RecipePattern(
                 new ItemStack(Material.BARRIER),

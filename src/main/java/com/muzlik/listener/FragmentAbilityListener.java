@@ -220,8 +220,14 @@ public class FragmentAbilityListener implements Listener {
 
         // Determine which ability slot based on hotbar position
         int hotbarSlot = player.getInventory().getHeldItemSlot();
-        if (hotbarSlot > 4) {
-            // Only slots 0-4 are valid
+        if (hotbarSlot > 4 || hotbarSlot < 0) {
+            // Only slots 0-4 are valid for abilities
+            return;
+        }
+        
+        // CRITICAL FIX: Verify inventory slot exists
+        if (hotbarSlot >= player.getInventory().getSize()) {
+            plugin.getLogger().warning("Invalid hotbar slot " + hotbarSlot + " for player " + player.getName());
             return;
         }
 
@@ -357,6 +363,8 @@ public class FragmentAbilityListener implements Listener {
             
             if (levelManager != null) {
                 manaCostReduction = levelManager.getManaCostReduction(player, fragmentType);
+                // CRITICAL FIX: Clamp reduction to prevent negative costs
+                manaCostReduction = Math.max(0.0, Math.min(manaCostReduction, 1.0));
             }
             
             double finalManaCost = baseManaCost * (1 - manaCostReduction);
@@ -374,9 +382,9 @@ public class FragmentAbilityListener implements Listener {
         }
 
         // Determine activation mode
-        com.muzlik.fragment.ability.ActivationMode mode = isRightClick ? 
-            com.muzlik.fragment.ability.ActivationMode.PRIMARY : 
-            com.muzlik.fragment.ability.ActivationMode.ALTERNATE;
+        com.muzlik.fragment.ability.ActivationType mode = isRightClick ? 
+            com.muzlik.fragment.ability.ActivationType.PRIMARY : 
+            com.muzlik.fragment.ability.ActivationType.ALTERNATE;
         
         String interactionType = isRightClick ? "Right-Click" : "Left-Click";
 
@@ -394,6 +402,8 @@ public class FragmentAbilityListener implements Listener {
                 
                 if (levelManager != null) {
                     manaCostReduction = levelManager.getManaCostReduction(player, fragmentType);
+                    // CRITICAL FIX: Clamp reduction to prevent negative costs
+                    manaCostReduction = Math.max(0.0, Math.min(manaCostReduction, 1.0));
                 }
                 
                 double finalManaCost = baseManaCost * (1 - manaCostReduction);

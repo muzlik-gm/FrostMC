@@ -30,7 +30,7 @@ public class DamageUtils {
             return;
         }
         
-        // Deal damage directly (recursion protection removed with legacy PowerManager)
+        // Deal damage directly
         target.damage(damage, damager);
     }
     

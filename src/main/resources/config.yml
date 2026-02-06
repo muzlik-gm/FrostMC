@@ -6,6 +6,57 @@
 # ═══════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════
+# DATA STORAGE SYSTEM
+# ═══════════════════════════════════════════════════════════════
+# Choose your data storage backend based on server size and needs
+#
+# JSON (json):
+#   - Best for: Small servers (< 50 players)
+#   - Pros: Simple, no setup required, human-readable
+#   - Cons: Poor performance with many players, file corruption risk
+#
+# SQLite (sqlite) - RECOMMENDED DEFAULT:
+#   - Best for: Most servers (50-500 players)
+#   - Pros: Good performance, no external dependencies, reliable
+#   - Cons: Single file database, limited concurrent access
+#
+# MySQL (mysql):
+#   - Best for: Large networks (500+ players)
+#   - Pros: Excellent performance, multi-server support, professional
+#   - Cons: Requires external MySQL server setup
+# ═══════════════════════════════════════════════════════════════
+data:
+  # Storage backend type: json, sqlite, or mysql
+  storage_type: sqlite
+  
+  # Automatic migration system
+  auto_migration:
+    enabled: true                    # Enable automatic migration from JSON to SQLite/MySQL
+    timeout_minutes: 5               # Migration timeout (prevents hanging)
+  
+  # Automatic backup system
+  auto_backup:
+    enabled: true                    # Enable automatic backups
+    interval_minutes: 60             # Backup every hour
+  
+  # Automatic data repair system
+  auto_repair:
+    enabled: true                    # Enable automatic corruption repair
+  
+  # Health monitoring
+  health_check:
+    interval_minutes: 30             # Check storage health every 30 minutes
+  
+  # MySQL configuration (only used if storage_type is mysql)
+  mysql:
+    host: localhost                  # MySQL server host
+    port: 3306                       # MySQL server port
+    database: frostsmp               # Database name
+    username: root                   # MySQL username
+    password: ""                     # MySQL password
+    table_prefix: frostsmp           # Table prefix for multi-plugin setups
+
+# ═══════════════════════════════════════════════════════════════
 # MANA SYSTEM
 # ═══════════════════════════════════════════════════════════════
 # Controls whether abilities cost mana to use
@@ -85,7 +136,7 @@ rituals:
     proximity_distance: 12.0       # How close you must stay (12 blocks)
     cooldown: 3600                 # Wait time between rituals (1 hour) - only if fragment_changer_required is false
   
-  fragment_changer_required: false  # If false, Fragment Creation ritual auto-activates and replaces current fragment
+  fragment_changer_required: true   # If false, Fragment Creation ritual auto-activates and replaces current fragment
   
   fragment_changer:
     duration: 150                  # Time to complete ritual (2.5 minutes)

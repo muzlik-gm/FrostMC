@@ -165,7 +165,8 @@ public class ManaManager {
      * @return The calculated mana regen rate per second
      */
     public double calculateManaRegen(int rank) {
-        return BASE_REGEN_RATE + (rank * REGEN_PER_RANK);
+        // CRITICAL FIX: Cast to double to prevent integer overflow
+        return BASE_REGEN_RATE + ((double)rank * REGEN_PER_RANK);
     }
 
     /**

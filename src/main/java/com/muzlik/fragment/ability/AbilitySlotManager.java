@@ -217,7 +217,7 @@ public class AbilitySlotManager {
         UUID playerId = player.getUniqueId();
         
         try {
-            DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerData(playerId);
+            DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerDataAsync(playerId).join();
             
             // Initialize player's map if not exists
             unlockedSlots.putIfAbsent(playerId, new ConcurrentHashMap<>());
@@ -261,7 +261,7 @@ public class AbilitySlotManager {
         
         try {
             // Load existing data
-            DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerData(playerId);
+            DataPersistence.PlayerDataContainer data = dataPersistence.loadPlayerDataAsync(playerId).join();
             
             // Convert in-memory slot states to JSON format
             Map<String, Set<Integer>> slotsToSave = new HashMap<>();
@@ -277,7 +277,7 @@ public class AbilitySlotManager {
             data.unlockedAbilitySlots = slotsToSave;
             
             // Save to disk
-            dataPersistence.savePlayerData(playerId, data);
+            dataPersistence.savePlayerDataAsync(playerId, data).join();
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to save ability slot data for player " + playerId + ": " + e.getMessage());
         }

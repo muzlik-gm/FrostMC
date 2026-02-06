@@ -4,7 +4,6 @@ import com.muzlik.config.ConfigManager;
 import com.muzlik.fragment.FragmentManager;
 import com.muzlik.fragment.FragmentType;
 import com.muzlik.ritual.RitualManager;
-import com.muzlik.util.FragmentUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;

@@ -1,7 +1,7 @@
 name: FrostSMP
 version: 1.0.0
 main: com.muzlik.FrostSMPPlugin
-api-version: 1.21
+api-version: '1.21'
 description: A Fragment-based power system with 10 unique fragments and custom abilities
 authors: [muzlik]
 website: https://muzlik.com
@@ -10,20 +10,26 @@ softdepend: [WorldEdit, FastAsyncWorldEdit, DiscordSRV]
 commands:
   fragment:
     description: Fragment system commands
-    usage: /fragment <give|list|mana|grant|controls>
+    usage: "/fragment <give|list|mana|grant|controls>"
     aliases: [frag, f]
     permission: frostmc.fragment
-    permission-message: You don't have permission to use fragments
+    permission-message: "You don't have permission to use fragments"
   controls:
     description: Open control scheme selection GUI
-    usage: /controls
+    usage: "/controls"
     permission: frostmc.fragment
-    permission-message: You don't have permission to use this command
+    permission-message: "You don't have permission to use this command"
+  tutorial:
+    description: Interactive tutorial that teaches through gameplay
+    usage: "/tutorial [start|reset|status|complete|stats|help]"
+    aliases: [tut, guide, learn]
+    permission: frostmc.fragment
+    permission-message: "You don't have permission to use this command"
   testtexture:
     description: Test custom model data textures (debug)
-    usage: /testtexture <texture_name>
+    usage: "/testtexture <texture_name>"
     permission: frostmc.admin
-    permission-message: You don't have permission to use this command
+    permission-message: "You don't have permission to use this command"
 
 permissions:
   frostmc.fragment:
@@ -31,6 +37,9 @@ permissions:
     default: true
   frostmc.admin:
     description: Admin access to fragment commands
+    default: op
+  frostmc.tutorial.admin:
+    description: Admin access to tutorial statistics
     default: op
   fragment.admin:
     description: Admin access to fragment commands

@@ -1,0 +1,14 @@
+{
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "item/glass_bottle"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 3005
+      },
+      "model": "item/mana/mana_flask"
+    }
+  ]
+}

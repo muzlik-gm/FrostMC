@@ -66,6 +66,12 @@
     },
     {
       "predicate": {
+        "custom_model_data": 3005
+      },
+      "model": "item/mana/mana_flask"
+    },
+    {
+      "predicate": {
         "custom_model_data": 4000
       },
       "model": "item/ui/back"
@@ -87,6 +93,12 @@
         "custom_model_data": 4003
       },
       "model": "item/ui/controls"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4004
+      },
+      "model": "item/ui/ui_info_button"
     },
     {
       "predicate": {

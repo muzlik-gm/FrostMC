@@ -35,6 +35,10 @@ public class RecipeManager {
             registerRitualCatalystRecipe();
             registerManaFlaskRecipe();
             plugin.getLogger().info("Successfully registered all recipes");
+            
+            // Debug: List all registered recipes
+            plugin.getLogger().info("Registered recipe keys: " + recipeKeys.keySet());
+            
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to register recipes: " + e.getMessage());
             e.printStackTrace();
@@ -101,7 +105,7 @@ public class RecipeManager {
         recipe.setIngredient('G', Material.GLOWSTONE);
         recipe.setIngredient('N', Material.NETHERITE_INGOT);
         recipe.setIngredient('B', Material.BEACON);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC); // Task 11.2
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC); // Commented out for compatibility
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_light", key);
@@ -124,7 +128,7 @@ public class RecipeManager {
         recipe.setIngredient('D', Material.DRAGON_HEAD);
         recipe.setIngredient('N', Material.NETHERITE_INGOT);
         recipe.setIngredient('E', Material.DRAGON_EGG);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_dragon", key);
@@ -149,7 +153,7 @@ public class RecipeManager {
         recipe.setIngredient('E', Material.ECHO_SHARD);
         recipe.setIngredient('S', Material.NETHERITE_INGOT);
         recipe.setIngredient('N', Material.SCULK_CATALYST);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_void", key);
@@ -172,7 +176,7 @@ public class RecipeManager {
         recipe.setIngredient('C', Material.AMETHYST_SHARD);
         recipe.setIngredient('D', Material.DIAMOND);
         recipe.setIngredient('K', Material.CLOCK);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_time", key);
@@ -195,7 +199,7 @@ public class RecipeManager {
         recipe.setIngredient('G', Material.GOLD_INGOT);
         recipe.setIngredient('D', Material.DIAMOND);
         recipe.setIngredient('R', Material.RABBIT_FOOT);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_luck", key);
@@ -214,7 +218,7 @@ public class RecipeManager {
         recipe.setIngredient('O', outer);
         recipe.setIngredient('I', inner);
         recipe.setIngredient('C', center);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("fragment_creation_" + type.name(), key);
@@ -265,23 +269,26 @@ public class RecipeManager {
         recipe.shape(" L ", "LBL", " L ");
         recipe.setIngredient('L', Material.LAPIS_LAZULI);
         recipe.setIngredient('B', Material.GLASS_BOTTLE);
-        recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
+        // recipe.setCategory(org.bukkit.inventory.recipe.CraftingBookCategory.MISC);
         
         plugin.getServer().addRecipe(recipe);
         recipeKeys.put("mana_flask", key);
     }
 
     /**
-     * Create Fragment Creation item
+     * Create Fragment Creation item using appropriate base material with custom model data
      */
     private ItemStack createFragmentCreationItem(FragmentType type) {
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
         
+        // Set custom model data for texture pack compatibility
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getFragmentTexture(type));
+        
         meta.setDisplayName("§b§l" + type.getDisplayName() + " Fragment Creation");
         meta.setLore(Arrays.asList(
             "§7Place this item to start ritual",
-            "§7Duration: 10-15 minutes",
+            "§7Duration: 10-15 minutes", 
             "§7Grants: §b" + type.getDisplayName() + " Fragment",
             "§7Stay within 5 blocks!",
             "",
@@ -293,17 +300,20 @@ public class RecipeManager {
     }
 
     /**
-     * Create Fragment Changer item
+     * Create Fragment Changer item using appropriate base material with custom model data
      */
     private ItemStack createFragmentChangerItem() {
         ItemStack item = new ItemStack(Material.ENDER_EYE);
         ItemMeta meta = item.getItemMeta();
         
+        // Set custom model data for texture pack compatibility
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_info_button"));
+        
         meta.setDisplayName("§d§lFragment Changer");
         meta.setLore(Arrays.asList(
             "§7Place this item to start ritual",
             "§7Duration: 5 minutes",
-            "§7Allows switching active Fragment",
+            "§7Allows switching active Fragment", 
             "§7Stay within 5 blocks!",
             "",
             "§e§lFRAGMENT CHANGER RITUAL"
@@ -314,16 +324,21 @@ public class RecipeManager {
     }
 
     /**
-     * Create Ritual Catalyst item
+     * Create Ritual Catalyst item using appropriate base material with custom model data
      */
     private ItemStack createRitualCatalystItem() {
-        ItemStack item = new ItemStack(Material.GOLD_INGOT);
+        // Use DIAMOND as base - makes sense since it's crafted with diamond and is a refined/enhanced item
+        ItemStack item = new ItemStack(Material.DIAMOND);
         ItemMeta meta = item.getItemMeta();
+        
+        // Set custom model data for texture pack compatibility
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getUITexture("ui_bonus"));
         
         meta.setDisplayName("§6§lRitual Catalyst");
         meta.setLore(Arrays.asList(
-            "§7Used in various rituals",
-            "§7Enhances ritual power",
+            "§7A refined magical catalyst",
+            "§7Enhances ritual power and stability",
+            "§7Consumed when starting rituals",
             "",
             "§e§lRITUAL COMPONENT"
         ));
@@ -333,11 +348,14 @@ public class RecipeManager {
     }
 
     /**
-     * Create Mana Flask item
+     * Create Mana Flask item using appropriate base material with custom model data
      */
     private ItemStack createManaFlaskItem() {
-        ItemStack item = new ItemStack(Material.POTION);
+        ItemStack item = new ItemStack(Material.GLASS_BOTTLE);
         ItemMeta meta = item.getItemMeta();
+        
+        // Set custom model data for texture pack compatibility
+        meta.setCustomModelData(com.muzlik.texture.TextureRegistry.getManaTexture("mana_flask"));
         
         meta.setDisplayName("§b§lMana Flask");
         meta.setLore(Arrays.asList(
@@ -476,5 +494,25 @@ public class RecipeManager {
         }
         
         return null;
+    }
+    
+    /**
+     * Test if recipes are properly registered by checking server recipe registry
+     */
+    public void testRecipeRegistration() {
+        plugin.getLogger().info("Testing recipe registration...");
+        
+        int foundRecipes = 0;
+        for (String recipeKey : recipeKeys.keySet()) {
+            NamespacedKey key = recipeKeys.get(recipeKey);
+            if (plugin.getServer().getRecipe(key) != null) {
+                foundRecipes++;
+                plugin.getLogger().info("✓ Recipe found: " + recipeKey);
+            } else {
+                plugin.getLogger().warning("✗ Recipe missing: " + recipeKey);
+            }
+        }
+        
+        plugin.getLogger().info("Recipe test complete: " + foundRecipes + "/" + recipeKeys.size() + " recipes found");
     }
 }

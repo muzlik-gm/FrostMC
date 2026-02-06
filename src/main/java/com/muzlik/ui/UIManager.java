@@ -376,6 +376,16 @@ public class UIManager {
                 lore.add("§a🍀 ʟᴜᴄᴋ ᴠɪ");
                 lore.add("§7ɪɴᴄʀᴇᴀsᴇᴅ ʟᴏᴏᴛ & ꜰᴏʀᴛᴜɴᴇ");
                 break;
+            case TIME:
+                lore.add("§d⏰ sʟᴏᴡɴᴇss ɪᴍᴍᴜɴɪᴛʏ");
+                lore.add("§7ɪᴍᴍᴜɴᴇ ᴛᴏ sʟᴏᴡɪɴɢ ᴇꜰꜰᴇᴄᴛs");
+                break;
+            case DRAGON:
+                lore.add("§c🔥 ꜰɪʀᴇ ɪᴍᴍᴜɴɪᴛʏ");
+                lore.add("§7ᴄᴏᴍᴘʟᴇᴛᴇ ꜰɪʀᴇ ᴘʀᴏᴛᴇᴄᴛɪᴏɴ");
+                lore.add("§6🛡 ᴋɴᴏᴄᴋʙᴀᴄᴋ ʀᴇsɪsᴛᴀɴᴄᴇ");
+                lore.add("§7ʀᴇᴅᴜᴄᴇᴅ ᴋɴᴏᴄᴋʙᴀᴄᴋ");
+                break;
             default:
                 lore.add("§7ɴᴏɴᴇ");
                 break;
