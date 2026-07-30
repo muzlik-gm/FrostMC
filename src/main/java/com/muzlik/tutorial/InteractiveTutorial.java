@@ -790,12 +790,33 @@ public class InteractiveTutorial implements Listener {
     
     /**
      * Check if player has any fragment-related data (simpler check for existing players)
+     * 
+     * CRITICAL FIX: Now checks in-memory fragment data first (immediate), then falls back
+     * to persistent storage. This prevents tutorial from triggering for players who have
+     * withdrawn their fragment but still own it (preserving rank/level/XP).
      */
     private boolean hasAnyFragmentData(Player player) {
         try {
-            // Check if player has any existing fragment data
+            // CRITICAL FIX #1: Check in-memory fragment data first (fastest and most reliable)
+            com.muzlik.fragment.PlayerFragmentData playerData = 
+                plugin.getFragmentManager().getPlayerData(player);
+            if (playerData != null) {
+                // Player has fragment data if they own any fragments OR have completed any rituals
+                if (!playerData.getOwnedFragments().isEmpty() || !playerData.getCompletedRituals().isEmpty()) {
+                    plugin.getLogger().info("DEBUG: Player " + player.getName() + " has owned fragments or completed rituals");
+                    return true;
+                }
+            }
+            
+            // CRITICAL FIX #2: Check if player has any owned fragments via FragmentManager
+            if (!plugin.getFragmentManager().getPlayerFragments(player).isEmpty()) {
+                plugin.getLogger().info("DEBUG: Player " + player.getName() + " has fragments in FragmentManager");
+                return true;
+            }
+            
+            // Fallback: Check persistent storage (slower, for edge cases)
             boolean hasData = plugin.getDataPersistence().hasPlayerData(player.getUniqueId()).join();
-            plugin.getLogger().info("DEBUG: Player " + player.getName() + " has fragment data: " + hasData);
+            plugin.getLogger().info("DEBUG: Player " + player.getName() + " has persistent data: " + hasData);
             
             // Also check if they have any fragment-related items in inventory
             if (!hasData) {

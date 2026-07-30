@@ -101,7 +101,10 @@ public class FragmentItemListener implements Listener {
     }
     
     /**
-     * Activate a fragment for the player
+     * Activate a fragment for the player from a Fragment Activator item (ritual reward)
+     * 
+     * SECURITY FIX: Added check to prevent activating fragments that are already owned
+     * to prevent potential exploits with ritual items.
      */
     private void activateFragment(Player player, ItemStack item, FragmentType fragmentType) {
         // Check if player already has ANY fragment active
@@ -116,7 +119,35 @@ public class FragmentItemListener implements Listener {
             return;
         }
         
-        // Activate the fragment
+        // SECURITY FIX: Check if player already owns this fragment
+        // If they do, just activate it instead of granting again (prevents duping)
+        if (fragmentManager.hasFragment(player, fragmentType)) {
+            // Player already owns this fragment, just activate it
+            fragmentManager.setActiveFragment(player, fragmentType);
+            
+            // Remove the item from player's hand (consumed on activation)
+            if (item.getAmount() > 1) {
+                item.setAmount(item.getAmount() - 1);
+            } else {
+                player.getInventory().setItemInMainHand(null);
+            }
+            
+            player.sendMessage("§a§l✓ FRAGMENT ACTIVATED!");
+            player.sendMessage("§7You have re-activated the §5" + fragmentType.getDisplayName() + " §7Fragment!");
+            player.sendMessage("§7Your rank, level, and XP have been preserved.");
+            player.sendMessage("");
+            
+            // Play activation effects
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1.0f, 1.5f);
+            
+            // Spawn particles
+            player.getWorld().spawnParticle(Particle.TOTEM, player.getLocation().add(0, 1, 0), 50, 0.5, 1, 0.5, 0.3);
+            player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0), 100, 0.5, 1, 0.5, 0.5);
+            return;
+        }
+        
+        // Activate the fragment (first time activation from ritual)
         fragmentManager.grantAndActivateFragment(player, fragmentType);
         
         // Remove the item from player's hand
