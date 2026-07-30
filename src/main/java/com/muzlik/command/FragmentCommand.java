@@ -752,6 +752,13 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
     
     /**
      * Handle withdraw command - Deactivate fragment and give item to player
+     * 
+     * FEATURE: Withdrawal provides a reusable fragment token that can be right-clicked
+     * to re-equip. The fragment remains in the player's owned list so they don't lose
+     * their progress (rank, level, XP) when withdrawing.
+     * 
+     * SECURITY FIX: Prevents duping by ensuring the fragment stays owned but is deactivated.
+     * Players cannot receive a new starter fragment on rejoin because they still own this one.
      */
     private void handleWithdraw(Player player) {
         com.muzlik.fragment.PlayerFragmentData data = fragmentManager.getPlayerData(player);
@@ -768,13 +775,17 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
-        // SECURITY: Remove fragment from owned list before giving the item
-        data.removeFragment(activeFragment);
-
-        // Deactivate the fragment
+        // CRITICAL FIX: DO NOT remove fragment from owned list!
+        // The fragment should remain owned so players keep their rank/level/XP progress.
+        // This also prevents the duping exploit where players could withdraw and get
+        // a new starter fragment on rejoin.
+        // 
+        // OLD BUGGY CODE: data.removeFragment(activeFragment);
+        
+        // Deactivate the fragment (sets active to null, cleans up passives/abilities)
         fragmentManager.setActiveFragment(player, null);
         
-        // Create fragment item
+        // Create fragment item (reusable token)
         ItemStack fragmentItem = fragmentManager.createFragmentItem(activeFragment);
         
         if (fragmentItem == null) {
@@ -787,7 +798,7 @@ public class FragmentCommand implements CommandExecutor, TabCompleter {
         
         player.sendMessage("§a✓ Fragment withdrawn!");
         player.sendMessage("§7Your §b" + activeFragment.getDisplayName() + " Fragment §7has been deactivated and added to your inventory.");
-        player.sendMessage("§7Right-click it to activate again.");
+        player.sendMessage("§7Right-click it to activate again. Your rank, level, and XP are preserved!");
     }
     
     /**

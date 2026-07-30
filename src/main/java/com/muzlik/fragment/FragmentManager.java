@@ -164,6 +164,12 @@ public class FragmentManager {
     /**
      * Activate a charged Fragment using Fragment Changer
      * This grants the fragment and makes it active
+     * 
+     * DESIGN NOTE: When switching to a new fragment via ritual activation,
+     * the previous fragment is removed from ownership. This is intentional
+     * game balance - players must re-craft and re-ritual to use the previous
+     * fragment again. This is different from /fragment withdraw which preserves
+     * the fragment for later re-use.
      */
     public boolean activateChargedFragment(Player player, FragmentType type) {
         PlayerFragmentData data = getOrCreatePlayerData(player);
@@ -176,7 +182,7 @@ public class FragmentManager {
         }
         
         // If player already has an active fragment that's not this one,
-        // they lose the previous fragment when switching
+        // they lose the previous fragment when switching (game balance design)
         FragmentType previousActive = data.getActiveFragment();
         if (previousActive != null && previousActive != type) {
             // Remove the previous fragment - they need to re-craft and re-ritual
@@ -185,7 +191,7 @@ public class FragmentManager {
             player.sendMessage("§7Re-complete the ritual to use it again");
         }
         
-        // Grant the fragment
+        // Grant the new fragment
         data.addFragment(type);
         rankManager.initializeRank(player, type);
         

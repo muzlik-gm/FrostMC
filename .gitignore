@@ -1,50 +1,53 @@
-# Maven
+```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+build/
 target/
-dependency-reduced-pom.xml
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-pom.xml.next
-release.properties
 
-# IDE
-.idea/
-*.iml
+# Dependencies
+lib/
+libs/
+dependency/
+dependencies/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
 .vscode/
-.kiro/
+.idea/
 *.swp
 *.swo
-*~
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
 
-# Build artifacts
-*.jar
-!FrostSMP.jar
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-# Logs
-*.log
+# Gradle (if present)
+.gradle/
 
-# Temporary files
-*.tmp
-*.bak
-*.backup
+# MyPy cache (if present)
+.mypy_cache/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-
-# Resource pack build artifacts
-textures_final/
-textures_x32/
-*.zip
-
-# Console history
-console_history.txt
+# Pytest cache (if present)
+.pytest_cache/
+```

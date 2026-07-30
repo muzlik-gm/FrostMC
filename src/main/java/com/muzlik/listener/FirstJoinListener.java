@@ -14,11 +14,20 @@ import java.util.*;
 /**
  * Handles first join logic - grants a random Fragment with weighted probabilities.
  * Lower rank Fragments have higher chances.
+ * 
+ * CRITICAL FIX: Changed from in-memory tracking to persistent data-based tracking.
+ * The previous implementation used a HashSet that was cleared on server restart,
+ * allowing players to withdraw their fragment, relogin, and receive a new one (duping).
+ * 
+ * Now we check if the player has ANY saved fragment data (including completed rituals)
+ * to determine if they've played before, preventing the duping exploit.
  */
 public class FirstJoinListener implements Listener {
     private final JavaPlugin plugin;
     private final FragmentManager fragmentManager;
-    private final Set<UUID> hasJoinedBefore;
+    
+    // REMOVED: hasJoinedBefore Set - was vulnerable to server restart exploits
+    // Now relying on persistent data checks instead
     
     // Weighted probabilities based on Fragment rank
     private static final Map<FragmentType, Integer> FRAGMENT_WEIGHTS = new HashMap<>();
@@ -42,7 +51,7 @@ public class FirstJoinListener implements Listener {
     public FirstJoinListener(JavaPlugin plugin, FragmentManager fragmentManager) {
         this.plugin = plugin;
         this.fragmentManager = fragmentManager;
-        this.hasJoinedBefore = new HashSet<>();
+        // REMOVED: this.hasJoinedBefore = new HashSet<>();
     }
 
     @EventHandler(priority = EventPriority.LOWEST) // Run AFTER data loading
@@ -50,21 +59,23 @@ public class FirstJoinListener implements Listener {
         Player player = event.getPlayer();
         UUID playerId = player.getUniqueId();
         
-        // Check if player has joined before
-        if (hasJoinedBefore.contains(playerId)) {
-            return;
-        }
-        
-        // Check if player already has any Fragments (loaded from disk)
+        // CRITICAL FIX #1: Check if player has ANY owned fragments loaded from disk
+        // This prevents players from withdrawing their fragment and getting a new one on rejoin
         if (!fragmentManager.getPlayerFragments(player).isEmpty()) {
-            hasJoinedBefore.add(playerId);
-            return;
+            return; // Player already owns fragments, don't give starter
         }
         
-        // Check if player has played before (Bukkit API)
+        // CRITICAL FIX #2: Check if player has completed any rituals before
+        // This prevents players who have done rituals but withdrawn all fragments from getting new ones
+        com.muzlik.fragment.PlayerFragmentData playerData = fragmentManager.getPlayerData(player);
+        if (playerData != null && !playerData.getCompletedRituals().isEmpty()) {
+            return; // Player has completed rituals before, don't give starter
+        }
+        
+        // CRITICAL FIX #3: Check if player has played before (Bukkit API)
+        // This is the standard Minecraft check for first-time players
         if (player.hasPlayedBefore()) {
-            hasJoinedBefore.add(playerId);
-            return;
+            return; // Player has joined before, don't give starter
         }
         
         // First time joining - grant random Fragment
@@ -84,8 +95,9 @@ public class FirstJoinListener implements Listener {
         );
         player.sendMessage("");
         
-        // Mark as joined
-        hasJoinedBefore.add(playerId);
+        // Note: We no longer track hasJoinedBefore in memory since we now rely on
+        // persistent data checks (owned fragments, completed rituals) which survive
+        // server restarts and prevent the withdrawal duping exploit.
     }
     
     /**
